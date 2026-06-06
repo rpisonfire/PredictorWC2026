@@ -26,52 +26,70 @@ Prywatna aplikacja do typowania meczów Mistrzostw Świata 2026 dla ciebie i zna
 ## Stack
 
 - **Next.js 15** (App Router, Server Actions)
-- **Prisma** + SQLite (lokalnie) / Postgres (produkcja)
+- **Prisma** + Postgres
 - **Tailwind CSS** w barwach MŚ 2026 (USA · Kanada · Meksyk)
-- Hosting: **Vercel**
 
-## Uruchomienie lokalnie
+## Jak uruchomić projekt na nowym komputerze (Lokalnie)
 
-```bash
-# 1. Zainstaluj pakiety
-npm install
+### Wymagania:
+- **Node.js** (rekomendowana wersja 20+)
+- Dostęp do bazy **PostgreSQL** (możesz użyć lokalnej bazy z Dockera lub darmowej chmurowej bazy np. na [Neon.tech](https://neon.tech/) lub [Supabase](https://supabase.com/)).
 
-# 2. Skonfiguruj zmienne
-cp .env.example .env
-# Otwórz .env i ustaw ADMIN_PASSWORD (np. "tajnehaslo123")
+### Krok po kroku:
 
-# 3. Stwórz bazę i wypełnij demo danymi
-npx prisma db push
-npm run db:seed
+1. **Sklonuj repozytorium**
+   ```bash
+   git clone <link_do_repozytorium>
+   cd wc-predictor
+   ```
 
-# 4. Odpal
-npm run dev
-```
+2. **Zainstaluj zależności**
+   ```bash
+   npm install
+   ```
 
-Otwórz http://localhost:3000 — kod do testowej ligi: **MUNDIAL2026**
+3. **Skonfiguruj zmienne środowiskowe**
+   Skopiuj przykładowy plik `.env.example` i nazwij go `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Następnie otwórz plik `.env` i uzupełnij `DATABASE_URL` linkiem do Twojej bazy danych PostgreSQL.
+
+4. **Przygotuj bazę danych i wgraj dane testowe**
+   Zbuduj schemat bazy i wygeneruj klienta Prisma:
+   ```bash
+   npx prisma db push
+   ```
+   Wgraj początkowe dane (drużyny, stadiony, itp.):
+   ```bash
+   npm run db:seed
+   ```
+
+5. **Uruchom aplikację**
+   ```bash
+   npm run dev
+   ```
+   Aplikacja będzie dostępna pod adresem: [http://localhost:3000](http://localhost:3000)
+
+## Uprawnienia Administratora
+
+Z poziomu panelu administratora (`/admin`) możesz wpisywać wyniki meczów, co spowoduje automatyczne przeliczenie punktów wszystkich graczy. 
+
+Aby nadać sobie uprawnienia administratora:
+1. Zarejestruj się w aplikacji używając swojego loginu (np. "TwojNick").
+2. W terminalu uruchom skrypt:
+   ```bash
+   npx tsx scripts/make-admin.ts TwojNick
+   ```
+3. Odśwież stronę aplikacji. Masz teraz dostęp do zakładki **Admin**.
 
 ## Deploy na Vercel
 
-1. Wrzuć projekt na GitHub:
+1. Wejdź na [vercel.com/new](https://vercel.com/new), wybierz to repozytorium z GitHub.
+2. Stwórz darmową bazę Postgres (np. na Neon lub Supabase) i skopiuj `DATABASE_URL`.
+3. W ustawieniach projektu na Vercel dodaj zmienną środowiskową: `DATABASE_URL`.
+4. Wykonaj Deploy. 
+5. Po pierwszym zbudowaniu aplikacji, wejdź na zakładkę **Deployments → ...** i w terminalu Vercel CLI (lub po prostu z własnego komputera podłączonego do produkcyjnej bazy) wykonaj:
    ```bash
-   git init && git add . && git commit -m "init"
-   gh repo create wc-predictor --private --source=. --push
+   npx prisma db push && npm run db:seed
    ```
-2. Wejdź na [vercel.com/new](https://vercel.com/new), wybierz repo.
-3. Stwórz darmową bazę Postgres (np. na [Neon](https://neon.tech) albo [Supabase](https://supabase.com)) — wklej `DATABASE_URL` w **Environment Variables** w Vercel.
-4. **Zmień provider w `prisma/schema.prisma`** z `sqlite` na `postgresql` (lokalnie zostaw sqlite albo użyj dwóch plików schema).
-5. Dodaj zmienne: `DATABASE_URL`, `ADMIN_PASSWORD`.
-6. Deploy. Po pierwszym build wejdź na zakładkę **Deployments → ...** i w terminalu Vercel CLI zrób raz `npx prisma db push && npm run db:seed`, albo zrób to lokalnie z produkcyjnym `DATABASE_URL`.
-7. Wyślij link kumplom + kod ligi 🚀
-
-## Panel admina
-
-Wejdź na `/admin`, podaj hasło z `ADMIN_PASSWORD`. Tam wpisujesz wyniki meczów — punkty wszystkich typujących przeliczają się automatycznie.
-
-## Co dodać później
-
-- Auto-pull wyników z [API-Football](https://www.api-football.com/) lub [football-data.org](https://www.football-data.org/)
-- Wykresy formy (ostatnie 5 typów)
-- Odznaki ("Król strzelców", "Trzy z rzędu")
-- Predykcje całego turnieju (kto wygra cały Mundial)
-- Multi-liga (różne grupy znajomych w jednej apce)
