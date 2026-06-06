@@ -3,10 +3,11 @@ import Link from "next/link";
 type NavItem = { href: string; label: string; emoji: string };
 
 const ITEMS: NavItem[] = [
-  { href: "/dashboard",      label: "Mecze",  emoji: "⚽" },
-  { href: "/my-predictions", label: "Typy",   emoji: "📋" },
-  { href: "/leaderboard",    label: "Tabela", emoji: "🏆" },
-  { href: "/profile",        label: "Profil", emoji: "👤" },
+  { href: "/dashboard",      label: "Mecze",   emoji: "⚽" },
+  { href: "/my-predictions", label: "Typy",    emoji: "📋" },
+  { href: "/champion",       label: "Mistrz",  emoji: "🏆" },
+  { href: "/leaderboard",    label: "Ranking", emoji: "📊" },
+  { href: "/profile",        label: "Profil",  emoji: "👤" },
 ];
 
 export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {

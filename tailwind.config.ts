@@ -11,6 +11,7 @@ export default {
           green: "#006847",   // Mexico green
           blue: "#0A3161",    // USA navy
           gold: "#F1B434",    // accent gold
+          lime: "#A6E22E",    // limonkowy akcent
           cream: "#FAF7F2",   // soft background
           ink: "#0B0F19",     // text
         },

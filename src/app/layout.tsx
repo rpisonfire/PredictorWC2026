@@ -17,15 +17,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <header className="sticky top-0 z-30 bg-wc-ink/70 backdrop-blur border-b border-white/10">
           <nav className="mx-auto max-w-5xl flex items-center justify-between px-4 py-3">
             <Link href="/" className="flex items-center gap-2 font-black text-lg">
-              <span className="inline-block h-7 w-7 rounded-full bg-wc-red" />
-              <span>WC Predictor <span className="text-wc-blue">2026</span></span>
+              <span className="text-2xl leading-none">⚽</span>
+              <span>WC Predictor <span className="text-wc-lime">2026</span></span>
             </Link>
             {user ? (
               <div className="hidden md:flex items-center gap-4 text-sm">
                 <Link href="/dashboard" className="hover:underline">Mecze</Link>
                 <Link href="/my-predictions" className="hover:underline">Moje typy</Link>
-                <Link href="/champion" className="hover:underline">Mistrz 🏆</Link>
-                <Link href="/leaderboard" className="hover:underline">Tabela</Link>
+                <Link href="/champion" className="hover:underline">Typ na mistrza 🏆</Link>
+                <Link href="/leaderboard" className="hover:underline">Ranking</Link>
                 {user.isAdmin && <Link href="/admin" className="hover:underline text-wc-gold">Admin</Link>}
                 <Link href="/profile" className="hover:underline">{user.avatar} {user.nickname}</Link>
               </div>
