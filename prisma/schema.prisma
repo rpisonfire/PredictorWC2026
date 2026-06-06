@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String       @id @default(cuid())
+  nickname             String       @unique
+  passwordHash         String?
+  avatar               String       @default("⚽")
+  predictedChampionId  String?
+  predictedChampion    Team?        @relation("PredictedChampion", fields: [predictedChampionId], references: [id])
+  isAdmin              Boolean      @default(false)
+  createdAt            DateTime     @default(now())
+  memberships Membership[]
+  predictions Prediction[]
+  comments    Comment[]
+  boosts      Boost[]
+}
+
+model League {
+  id                String       @id @default(cuid())
+  name              String
+  inviteCode        String       @unique
+  actualChampionId  String?
+  actualChampion    Team?        @relation("ActualChampion", fields: [actualChampionId], references: [id])
+  createdAt         DateTime     @default(now())
+  memberships       Membership[]
+}
+
+model Membership {
+  id       String @id @default(cuid())
+  userId   String
+  leagueId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, leagueId])
+}
+
+model Team {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  shortCode String  @unique
+  flag      String  // emoji
+  logoUrl   String? // crest from API
+  group     String? // "A", "B", ...
+  apiId     Int?    @unique
+  players   Player[]
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+  firstScorerInMatches Match[] @relation("FirstScorerTeam")
+  predictedChampionOf User[]   @relation("PredictedChampion")
+  actualChampionOf    League[] @relation("ActualChampion")
+}
+
+model Player {
+  id        String  @id @default(cuid())
+  name      String
+  photoUrl  String?
+  position  String?
+  number    Int?
+  apiId     Int?    @unique
+  teamId    String
+  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  firstGoalInMatches Match[] @relation("FirstGoalPlayer")
+  predictedIn Prediction[]
+}
+
+model Match {
+  id              String   @id @default(cuid())
+  matchday        Int      // 1, 2, 3... groups, R16=10, QF=11, etc.
+  stage           String   // "Group A", "Round of 16", etc.
+  kickoff         DateTime
+  homeTeamId      String
+  awayTeamId      String
+  homeTeam        Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam        Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  // Results (null until match played)
+  homeScore       Int?
+  awayScore       Int?
+  firstScorerTeamId String?
+  firstScorerTeam   Team?    @relation("FirstScorerTeam", fields: [firstScorerTeamId], references: [id])
+  firstGoalPlayerId String?
+  firstGoalPlayer   Player?  @relation("FirstGoalPlayer", fields: [firstGoalPlayerId], references: [id])
+  noGoals         Boolean  @default(false) // 0-0 case
+
+  predictions     Prediction[]
+  comments        Comment[]
+  boosts          Boost[]
+}
+
+model Prediction {
+  id               String  @id @default(cuid())
+  userId           String
+  matchId          String
+  homeScore        Int
+  awayScore        Int
+  firstScorerTeam  String? // "HOME" | "AWAY" | "NONE"
+  firstGoalPlayerId String?
+  pointsAwarded    Int     @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match            Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player           Player? @relation(fields: [firstGoalPlayerId], references: [id])
+
+  @@unique([userId, matchId])
+}
+
+model Boost {
+  id        String @id @default(cuid())
+  userId    String
+  matchId   String
+  matchday  Int
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match     Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchday])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  matchId   String
+  body      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
