@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Sparkline } from "@/components/Sparkline";
+import { fmtDateTime } from "@/lib/dates";
 
 export default async function MyPredictions() {
   const user = await getCurrentUser();
@@ -87,7 +88,7 @@ function Row({ p, boosted, resolved }: { p: any; boosted: boolean; resolved?: bo
     <Link href={`/match/${m.id}`} className="card p-4 block hover:border-wc-red/40 transition">
       <div className="flex items-center justify-between text-xs text-white/40 mb-2">
         <span>{m.stage} · Kolejka {m.matchday}</span>
-        <span>{m.kickoff.toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}</span>
+        <span>{fmtDateTime(m.kickoff)}</span>
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1">

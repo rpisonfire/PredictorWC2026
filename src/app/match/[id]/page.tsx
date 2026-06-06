@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerPicker } from "@/components/PlayerPicker";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { fmtDateTime, fmtDateTimeLong } from "@/lib/dates";
 
 async function savePrediction(formData: FormData) {
   "use server";
@@ -104,7 +105,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       <div className="card p-6">
         <div className="flex justify-between text-xs text-white/40">
           <span>{match.stage} · Kolejka {match.matchday}</span>
-          <span>{match.kickoff.toLocaleString("pl-PL")}</span>
+          <span>{fmtDateTimeLong(match.kickoff)}</span>
         </div>
         <div className="mt-3 flex items-center justify-between text-center">
           <div className="flex-1">
@@ -276,7 +277,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <div>
                 <div className="text-sm">
                   <b>{c.user.nickname}</b>
-                  <span className="text-white/30 ml-2">{c.createdAt.toLocaleString("pl-PL")}</span>
+                  <span className="text-white/30 ml-2">{fmtDateTime(c.createdAt)}</span>
                 </div>
                 <div className="text-sm">{c.body}</div>
               </div>

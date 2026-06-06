@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { MobileNav } from "@/components/MobileNav";
 
 export const metadata: Metadata = {
   title: "WC Predictor 2026",
@@ -20,7 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span>WC Predictor <span className="text-wc-blue">2026</span></span>
             </Link>
             {user ? (
-              <div className="flex items-center gap-4 text-sm">
+              <div className="hidden md:flex items-center gap-4 text-sm">
                 <Link href="/dashboard" className="hover:underline">Mecze</Link>
                 <Link href="/my-predictions" className="hover:underline">Moje typy</Link>
                 <Link href="/champion" className="hover:underline">Mistrz 🏆</Link>
@@ -33,10 +34,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             )}
           </nav>
         </header>
-        <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
-        <footer className="mx-auto max-w-5xl px-4 py-10 text-center text-xs text-white/40">
+        <main className="mx-auto max-w-5xl px-4 py-6 pb-24 md:pb-6">{children}</main>
+        <footer className="mx-auto max-w-5xl px-4 py-10 pb-28 md:pb-10 text-center text-xs text-white/40">
           Aplikacja wykonana przez rpisonfire &amp; Claude Code na Mistrzostwa Świata 2026 w piłce nożnej ⚽
         </footer>
+        {user && <MobileNav isAdmin={user.isAdmin} />}
       </body>
     </html>
   );

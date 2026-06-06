@@ -6,6 +6,7 @@ import { Toast } from "@/components/Toast";
 import { Countdown } from "@/components/Countdown";
 import { STADIUMS } from "@/lib/stadiums";
 import { championPickIsLocked } from "@/lib/championLock";
+import { fmtDateTime, dayKey } from "@/lib/dates";
 
 export default async function Dashboard({
   searchParams,
@@ -34,6 +35,9 @@ export default async function Dashboard({
   const preWorldCup = now < WC_KICKOFF;
   const champLock = await championPickIsLocked();
   const needsChampionPick = !user.predictedChampionId && !champLock.locked;
+
+  const todayKey = dayKey(now);
+  const todayMatches = matches.filter((m) => dayKey(m.kickoff) === todayKey);
 
   // Find next match (kickoff in future)
   const nextMatch = matches.find((m) => m.kickoff.getTime() > now.getTime());
@@ -70,6 +74,59 @@ export default async function Dashboard({
           <div className="chip bg-wc-gold/15 text-wc-gold">Wybierz →</div>
         </Link>
       )}
+
+      {/* Dzisiejsze mecze */}
+      <div className="mb-10">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="text-2xl font-black">Dzisiejsze mecze 🔥</h2>
+          <span className="text-xs text-white/40">{todayKey}</span>
+        </div>
+        {todayMatches.length === 0 ? (
+          <div className="card p-8 text-center">
+            <div className="text-4xl mb-2">🌴</div>
+            <div className="font-black">Hola hola, mundial się jeszcze nie zaczął</div>
+            <p className="text-sm text-white/50 mt-1">Dziś nie ma żadnego meczu. Wracaj za parę dni 😎</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-3">
+            {todayMatches.map((m) => {
+              const pred = m.predictions[0];
+              const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
+              const boosted = m.boosts.length > 0;
+              return (
+                <Link key={m.id} href={`/match/${m.id}`} className="card p-4 hover:border-wc-red/40 transition border-wc-red/20">
+                  <div className="flex items-center justify-between text-xs text-white/40">
+                    <span>{m.stage}</span>
+                    <span>{fmtDateTime(m.kickoff)}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <Team flag={m.homeTeam.flag} name={m.homeTeam.name} />
+                    <div className="text-center min-w-[80px]">
+                      {m.homeScore !== null ? (
+                        <div className="text-2xl font-black text-wc-gold">
+                          {m.homeScore} <span className="text-white/30">:</span> {m.awayScore}
+                        </div>
+                      ) : pred ? (
+                        <div className="text-2xl font-black">
+                          {pred.homeScore} <span className="text-white/30">:</span> {pred.awayScore}
+                        </div>
+                      ) : (
+                        <div className="text-sm font-bold text-white/30">vs</div>
+                      )}
+                    </div>
+                    <Team flag={m.awayTeam.flag} name={m.awayTeam.name} right />
+                  </div>
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    {pred ? <span className="chip bg-wc-green/10 text-wc-green">Typ złożony</span> : <span className="chip bg-wc-red/10 text-wc-red">Brak typu</span>}
+                    {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
+                    {locked && m.homeScore === null && <span className="chip bg-white/10 text-white/60">Zablokowane</span>}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {nextMatch && hoursToNext !== null && hoursToNext < 48 && (
         <div className="card p-4 mb-6 flex items-center gap-4 border-wc-gold/30 bg-wc-gold/5">
@@ -120,7 +177,7 @@ export default async function Dashboard({
                 >
                   <div className="flex items-center justify-between text-xs text-white/40">
                     <span>{m.stage}</span>
-                    <span>{m.kickoff.toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" })}</span>
+                    <span>{fmtDateTime(m.kickoff)}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <Team flag={m.homeTeam.flag} name={m.homeTeam.name} />

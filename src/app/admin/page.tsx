@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { scorePrediction } from "@/lib/scoring";
 import { hashPassword } from "@/lib/password";
 import { getCurrentUser } from "@/lib/session";
+import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
 
 async function setResult(formData: FormData) {
   "use server";
@@ -149,7 +150,7 @@ export default async function Admin({
                 <span className="text-2xl">{u.avatar}</span>
                 <div>
                   <div className="font-bold">{u.nickname}</div>
-                  <div className="text-xs text-white/40">utworzony {u.createdAt.toLocaleDateString("pl-PL")}</div>
+                  <div className="text-xs text-white/40">utworzony {fmtDate(u.createdAt)}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -189,7 +190,7 @@ export default async function Admin({
             <input type="hidden" name="matchId" value={m.id} />
             <div className="flex items-center justify-between mb-2 text-sm text-white/50">
               <span>{m.stage} · Kolejka {m.matchday}</span>
-              <span>{m.kickoff.toLocaleString("pl-PL")}</span>
+              <span>{fmtDateTimeLong(m.kickoff)}</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex-1 font-bold">{m.homeTeam.flag} {m.homeTeam.name}</div>

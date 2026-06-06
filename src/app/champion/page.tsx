@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { championPickIsLocked } from "@/lib/championLock";
+import { fmtDateTimeLong } from "@/lib/dates";
 
 async function setChampion(formData: FormData) {
   "use server";
@@ -61,7 +62,7 @@ export default async function ChampionPage() {
         <form action={setChampion} className="card p-6 space-y-4">
           {lock.lockAt && (
             <div className="text-xs text-white/40">
-              ⏰ Możesz zmieniać do {lock.lockAt.toLocaleString("pl-PL", { dateStyle: "long", timeStyle: "short" })}
+              ⏰ Możesz zmieniać do {fmtDateTimeLong(lock.lockAt)}
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto p-1">
