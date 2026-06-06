@@ -11,6 +11,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:fetch": "tsx scripts/fetch-wc2026.ts",
+    "db:fd": "tsx scripts/fetch-fd.ts",
     "db:fixtures": "tsx scripts/seed-fixtures.ts",
     "postinstall": "prisma generate"
   },

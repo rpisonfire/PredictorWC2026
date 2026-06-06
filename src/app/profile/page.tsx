@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { clearSession, getCurrentUser } from "@/lib/session";
+import Link from "next/link";
 import { statsForUser, badgesFor, championBonusForUser, CHAMPION_BONUS } from "@/lib/stats";
+import { championPickIsLocked } from "@/lib/championLock";
 
 const AVATARS = ["⚽", "🏆", "🔥", "🦁", "🐉", "🦅", "🐂", "🦊", "🐺", "🦈", "👽", "🥇", "🐍", "🦖", "🐙"];
 
@@ -31,6 +33,7 @@ export default async function Profile() {
     ? await prisma.team.findUnique({ where: { id: user.predictedChampionId } })
     : null;
   const champBonus = await championBonusForUser(user.id);
+  const champLock = await championPickIsLocked();
 
   return (
     <section className="max-w-md mx-auto">
@@ -54,20 +57,29 @@ export default async function Profile() {
           <Stat label="Udane boosty" value={stats.successfulBoosts} />
         </div>
 
-        {champ && (
-          <div className="mt-5 pt-5 border-t border-white/10">
-            <div className="text-xs uppercase tracking-wider text-white/40 mb-2">Twój typ na mistrza 🏆</div>
+        <div className="mt-5 pt-5 border-t border-white/10">
+          <div className="text-xs uppercase tracking-wider text-white/40 mb-2">Twój typ na mistrza 🏆</div>
+          {champ ? (
             <div className="flex items-center gap-3">
               <span className="text-3xl">{champ.flag}</span>
               <span className="font-black flex-1">{champ.name}</span>
               {champBonus > 0 ? (
                 <span className="chip bg-wc-gold/20 text-wc-gold">+{champBonus} pkt 🎉</span>
+              ) : champLock.locked ? (
+                <span className="chip bg-white/5 text-white/40">🔒 zablokowany</span>
               ) : (
-                <span className="chip bg-white/5 text-white/40">{CHAMPION_BONUS} pkt jeśli trafisz</span>
+                <Link href="/champion" className="chip bg-wc-red/15 text-wc-red hover:bg-wc-red/25">Zmień</Link>
               )}
             </div>
-          </div>
-        )}
+          ) : champLock.locked ? (
+            <div className="text-sm text-white/50">Nie wybrałeś mistrza przed końcem fazy grupowej.</div>
+          ) : (
+            <Link href="/champion" className="btn-primary w-full justify-center">
+              ⚡ Wybierz mistrza (+{CHAMPION_BONUS} pkt jeśli trafisz)
+            </Link>
+          )}
+        </div>
+
 
         {badges.length > 0 && (
           <div className="mt-5 pt-5 border-t border-white/10">

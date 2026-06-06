@@ -23,6 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="flex items-center gap-4 text-sm">
                 <Link href="/dashboard" className="hover:underline">Mecze</Link>
                 <Link href="/my-predictions" className="hover:underline">Moje typy</Link>
+                <Link href="/champion" className="hover:underline">Mistrz 🏆</Link>
                 <Link href="/leaderboard" className="hover:underline">Tabela</Link>
                 {user.isAdmin && <Link href="/admin" className="hover:underline text-wc-gold">Admin</Link>}
                 <Link href="/profile" className="hover:underline">{user.avatar} {user.nickname}</Link>

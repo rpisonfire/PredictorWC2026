@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { Toast } from "@/components/Toast";
 import { Countdown } from "@/components/Countdown";
 import { STADIUMS } from "@/lib/stadiums";
+import { championPickIsLocked } from "@/lib/championLock";
 
 export default async function Dashboard({
   searchParams,
@@ -31,6 +32,8 @@ export default async function Dashboard({
   const now = new Date();
   const WC_KICKOFF = new Date("2026-06-11T21:00:00+02:00");
   const preWorldCup = now < WC_KICKOFF;
+  const champLock = await championPickIsLocked();
+  const needsChampionPick = !user.predictedChampionId && !champLock.locked;
 
   // Find next match (kickoff in future)
   const nextMatch = matches.find((m) => m.kickoff.getTime() > now.getTime());
@@ -56,6 +59,17 @@ export default async function Dashboard({
 
       <h1 className="text-3xl font-black mb-1">Mecze</h1>
       <p className="text-white/60 mb-6">Cześć <b>{user.nickname}</b> — typuj poniżej. Blokada 5 minut przed gwizdkiem.</p>
+
+      {needsChampionPick && (
+        <Link href="/champion" className="card p-4 mb-6 border-wc-gold/40 flex items-center gap-4 hover:bg-white/5">
+          <div className="text-3xl">🏆</div>
+          <div className="flex-1">
+            <div className="font-black">Wybierz mistrza turnieju</div>
+            <div className="text-sm text-white/60">+10 pkt jeśli trafisz. Można zmieniać do końca fazy grupowej.</div>
+          </div>
+          <div className="chip bg-wc-gold/15 text-wc-gold">Wybierz →</div>
+        </Link>
+      )}
 
       {nextMatch && hoursToNext !== null && hoursToNext < 48 && (
         <div className="card p-4 mb-6 flex items-center gap-4 border-wc-gold/30 bg-wc-gold/5">
