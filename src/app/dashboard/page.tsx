@@ -99,35 +99,8 @@ export default async function Dashboard({
               const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
               const boosted = m.boosts.length > 0;
               return (
-                <Link key={m.id} href={`/match/${m.id}`} className="card p-3 sm:p-4 hover:border-wc-red/40 transition border-wc-red/20">
-                  <div className="flex items-center justify-between text-xs text-white/40">
-                    <span>{m.stage}</span>
-                    <span>{fmtDateTime(m.kickoff)}</span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <Team flag={m.homeTeam.flag} shortCode={m.homeTeam.shortCode} name={m.homeTeam.name} />
-                    <div className="text-center min-w-[80px]">
-                      {m.homeScore !== null ? (
-                        <div className="text-2xl font-black text-wc-gold">
-                          {m.homeScore} <span className="text-white/30">:</span> {m.awayScore}
-                        </div>
-                      ) : pred ? (
-                        <div className="text-2xl font-black">
-                          {pred.homeScore} <span className="text-white/30">:</span> {pred.awayScore}
-                        </div>
-                      ) : (
-                        <div className="text-sm font-bold text-white/30">vs</div>
-                      )}
-                    </div>
-                    <Team flag={m.awayTeam.flag} shortCode={m.awayTeam.shortCode} name={m.awayTeam.name} right />
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 flex-wrap">
-                    {isLive(m.kickoff, m.homeScore !== null) && <LiveChip />}
-                    {pred ? <span className="chip bg-wc-green/10 text-wc-green">Typ złożony</span> : <span className="chip bg-wc-red/10 text-wc-red">Brak typu</span>}
-                    {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
-                    {locked && m.homeScore === null && !isLive(m.kickoff, false) && <span className="chip bg-white/10 text-white/60">Zablokowane</span>}
-                  </div>
-                </Link>
+                <MatchCard key={m.id} m={m} pred={pred} boosted={boosted} locked={locked} highlight />
+
               );
             })}
           </div>
@@ -176,57 +149,7 @@ export default async function Dashboard({
               const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
               const boosted = m.boosts.length > 0;
               return (
-                <Link
-                  key={m.id}
-                  href={`/match/${m.id}`}
-                  className="card p-3 sm:p-4 hover:border-wc-red/40 transition"
-                >
-                  <div className="flex items-center justify-between text-xs text-white/40">
-                    <span>{m.stage}</span>
-                    <span>{fmtDateTime(m.kickoff)}</span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <Team flag={m.homeTeam.flag} shortCode={m.homeTeam.shortCode} name={m.homeTeam.name} />
-                    <div className="text-center min-w-[80px]">
-                      {m.homeScore !== null ? (
-                        <>
-                          <div className="text-2xl font-black text-wc-gold">
-                            {m.homeScore} <span className="text-white/30">:</span> {m.awayScore}
-                          </div>
-                          {pred && (
-                            <div className="text-[10px] text-white/40 uppercase tracking-wider">
-                              twój: {pred.homeScore}:{pred.awayScore}
-                            </div>
-                          )}
-                        </>
-                      ) : pred ? (
-                        <div className="text-2xl font-black">
-                          {pred.homeScore} <span className="text-white/30">:</span> {pred.awayScore}
-                        </div>
-                      ) : (
-                        <div className="text-sm font-bold text-white/30">vs</div>
-                      )}
-                    </div>
-                    <Team flag={m.awayTeam.flag} shortCode={m.awayTeam.shortCode} name={m.awayTeam.name} right />
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 flex-wrap">
-                    {isLive(m.kickoff, m.homeScore !== null) && <LiveChip />}
-                    {m.homeScore !== null ? (
-                      <span className="chip bg-wc-gold/15 text-wc-gold">Rozegrany</span>
-                    ) : pred ? (
-                      <span className="chip bg-wc-green/10 text-wc-green">Typ złożony</span>
-                    ) : (
-                      <span className="chip bg-wc-red/10 text-wc-red">Brak typu</span>
-                    )}
-                    {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
-                    {locked && m.homeScore === null && !isLive(m.kickoff, false) && <span className="chip bg-white/10 text-white/60">Zablokowane</span>}
-                    {m.homeScore !== null && pred && (
-                      <span className={`chip ${pred.pointsAwarded > 0 ? "bg-wc-green/15 text-wc-green" : "bg-white/5 text-white/40"}`}>
-                        {boosted ? pred.pointsAwarded * 3 : pred.pointsAwarded} pkt
-                      </span>
-                    )}
-                  </div>
-                </Link>
+                <MatchCard key={m.id} m={m} pred={pred} boosted={boosted} locked={locked} />
               );
             })}
           </div>
@@ -262,15 +185,83 @@ export default async function Dashboard({
   );
 }
 
-function Team({ flag, shortCode, name, right }: { flag: string; shortCode: string; name: string; right?: boolean }) {
+function MatchCard({
+  m, pred, boosted, locked, highlight,
+}: {
+  m: any; pred: any; boosted: boolean; locked: boolean; highlight?: boolean;
+}) {
+  const finished = m.homeScore !== null;
+  const live = isLive(m.kickoff, finished);
   return (
-    <div className={`flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0 ${right ? "justify-end text-right" : ""}`}>
-      {!right && <span className="text-xl sm:text-2xl shrink-0">{flag}</span>}
-      <span className="font-bold truncate">
-        <span className="sm:hidden">{shortCode}</span>
-        <span className="hidden sm:inline">{name}</span>
+    <Link
+      href={`/match/${m.id}`}
+      className={`card p-3 sm:p-4 hover:border-wc-red/40 transition ${highlight ? "border-wc-red/20" : ""}`}
+    >
+      <div className="flex items-center justify-between text-[11px] sm:text-xs text-white/40">
+        <span className="truncate">{m.stage}</span>
+        <span className="shrink-0 ml-2">{fmtDateTime(m.kickoff)}</span>
+      </div>
+
+      {/* Vertical row layout — czytelne na mobile */}
+      <div className="mt-2 space-y-1">
+        <TeamRow
+          flag={m.homeTeam.flag}
+          shortCode={m.homeTeam.shortCode}
+          name={m.homeTeam.name}
+          score={finished ? m.homeScore : pred?.homeScore ?? null}
+          color={finished ? "text-wc-gold" : "text-white"}
+        />
+        <TeamRow
+          flag={m.awayTeam.flag}
+          shortCode={m.awayTeam.shortCode}
+          name={m.awayTeam.name}
+          score={finished ? m.awayScore : pred?.awayScore ?? null}
+          color={finished ? "text-wc-gold" : "text-white"}
+        />
+      </div>
+
+      {finished && pred && (
+        <div className="mt-1.5 text-[10px] text-white/40 uppercase tracking-wider">
+          twój typ: {pred.homeScore}:{pred.awayScore}
+        </div>
+      )}
+
+      <div className="mt-2 sm:mt-3 flex items-center gap-1.5 flex-wrap">
+        {live && <LiveChip small />}
+        {finished ? (
+          <span className="chip bg-wc-gold/15 text-wc-gold text-[10px]">Po meczu</span>
+        ) : pred ? (
+          <span className="chip bg-wc-green/10 text-wc-green text-[10px]">Typ ✓</span>
+        ) : (
+          <span className="chip bg-wc-red/10 text-wc-red text-[10px]">Brak typu</span>
+        )}
+        {boosted && <span className="chip bg-wc-gold/15 text-wc-gold text-[10px]">x3 ⚡</span>}
+        {locked && !finished && !live && <span className="chip bg-white/10 text-white/60 text-[10px]">🔒</span>}
+        {finished && pred && (
+          <span className={`chip text-[10px] ${pred.pointsAwarded > 0 ? "bg-wc-green/15 text-wc-green" : "bg-white/5 text-white/40"}`}>
+            {boosted ? pred.pointsAwarded * 3 : pred.pointsAwarded} pkt
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+function TeamRow({
+  flag, shortCode, name, score, color,
+}: { flag: string; shortCode: string; name: string; score: number | null; color: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+        <span className="text-xl sm:text-2xl shrink-0">{flag}</span>
+        <span className="font-bold truncate">
+          <span className="sm:hidden">{shortCode}</span>
+          <span className="hidden sm:inline">{name}</span>
+        </span>
+      </div>
+      <span className={`font-black text-xl sm:text-2xl tabular-nums shrink-0 ${color}`}>
+        {score ?? <span className="text-white/20">-</span>}
       </span>
-      {right && <span className="text-xl sm:text-2xl shrink-0">{flag}</span>}
     </div>
   );
 }
