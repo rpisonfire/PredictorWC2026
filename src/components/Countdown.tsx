@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const TARGET = new Date("2026-06-11T21:00:00+02:00"); // 11 czerwca 2026, 21:00 czasu polskiego — Estadio Azteca
+const TARGET = new Date("2026-06-11T21:00:00+02:00"); // 11 czerwca 2026, 21:00 czasu polskiego - Estadio Azteca
 
 function diff(target: Date) {
   const ms = Math.max(0, target.getTime() - Date.now());

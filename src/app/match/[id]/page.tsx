@@ -33,14 +33,14 @@ async function savePrediction(formData: FormData) {
     create: { userId: user.id, matchId, homeScore, awayScore, firstScorerTeam, firstGoalPlayerId },
   });
 
-  // Boost handling: one per matchday — locked once picked, no changes allowed
+  // Boost handling: one per matchday - locked once picked, no changes allowed
   const existing = await prisma.boost.findUnique({
     where: { userId_matchday: { userId: user.id, matchday: match.matchday } },
   });
   if (wantBoost && !existing) {
     await prisma.boost.create({ data: { userId: user.id, matchId, matchday: match.matchday } });
   }
-  // if existing — do nothing; locked for the matchday
+  // if existing - do nothing; locked for the matchday
 
   revalidatePath("/dashboard");
   revalidatePath(`/match/${matchId}`);
@@ -201,7 +201,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   <a href={`/match/${matchdayBoost.matchId}`} className="text-wc-gold underline">
                     {matchdayBoost.match.homeTeam.flag} {matchdayBoost.match.homeTeam.shortCode} vs {matchdayBoost.match.awayTeam.shortCode} {matchdayBoost.match.awayTeam.flag}
                   </a>{" "}
-                  — nie można zmienić.
+                  - nie można zmienić.
                 </div>
               </div>
             </div>
@@ -211,7 +211,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <div className="text-2xl">⚡</div>
               <div className="text-sm">
                 <div className="font-black text-wc-gold">Boost x3 aktywny na tym meczu</div>
-                <div className="text-white/60">Zablokowany — nie można cofnąć w tej kolejce.</div>
+                <div className="text-white/60">Zablokowany - nie można cofnąć w tej kolejce.</div>
               </div>
             </div>
           ) : (
@@ -219,7 +219,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <input type="checkbox" name="boost" className="h-5 w-5 accent-wc-red" />
               <div>
                 <div className="font-black text-wc-red">Boost x3 ⚡</div>
-                <div className="text-xs text-white/60">Pomnóż punkty z tego meczu razy 3. Jeden boost na kolejkę — <b>raz wybrany, zablokowany</b>.</div>
+                <div className="text-xs text-white/60">Pomnóż punkty z tego meczu razy 3. Jeden boost na kolejkę - <b>raz wybrany, zablokowany</b>.</div>
               </div>
             </label>
           )}

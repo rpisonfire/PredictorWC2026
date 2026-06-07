@@ -21,7 +21,7 @@ async function createLeague(formData: FormData) {
     const league = await prisma.league.create({ data: { name, inviteCode } });
     await prisma.membership.create({ data: { userId: user.id, leagueId: league.id } });
   } catch (e) {
-    // unique conflict — najprawdopodobniej kod zajęty
+    // unique conflict - najprawdopodobniej kod zajęty
   }
   revalidatePath("/leagues");
 }
@@ -66,7 +66,7 @@ export default async function LeaguesPage() {
     <section className="max-w-2xl mx-auto">
       <h1 className="text-3xl font-black mb-1">Moje ligi 🏟️</h1>
       <p className="text-white/60 mb-6">
-        Możesz być w wielu ligach na raz — każda ma swój ranking. Stwórz ligę dla znajomych z pracy, drugą dla osiedlowych itd.
+        Możesz być w wielu ligach na raz - każda ma swój ranking. Stwórz ligę dla znajomych z pracy, drugą dla osiedlowych itd.
       </p>
 
       <div className="space-y-3 mb-8">

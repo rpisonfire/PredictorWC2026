@@ -67,7 +67,7 @@ export default async function Dashboard({
       )}
 
       <h1 className="text-3xl font-black mb-1">Mecze</h1>
-      <p className="text-white/60 mb-6">Cześć <b>{user.nickname}</b> — typuj poniżej. Blokada 5 minut przed gwizdkiem.</p>
+      <p className="text-white/60 mb-6">Cześć <b>{user.nickname}</b> - typuj poniżej. Blokada 5 minut przed gwizdkiem.</p>
 
       {needsChampionPick && (
         <Link href="/champion" className="card p-4 mb-6 border-wc-gold/40 flex items-center gap-4 hover:bg-white/5">

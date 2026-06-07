@@ -114,7 +114,7 @@ export async function leaderboard(leagueId?: string) {
     ? await prisma.user.findMany({ where: { memberships: { some: { leagueId } } } })
     : await prisma.user.findMany();
 
-  // Spark per user — punkty per kolejka
+  // Spark per user - punkty per kolejka
   const allMatchdays = await prisma.match.findMany({
     select: { matchday: true },
     distinct: ["matchday"],

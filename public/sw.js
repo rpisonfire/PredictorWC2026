@@ -1,4 +1,4 @@
-// Minimalny service worker — offline cache dla statyków + fallback do sieci dla danych
+// Minimalny service worker - offline cache dla statyków + fallback do sieci dla danych
 const CACHE = "wcp-v1";
 const PRECACHE = ["/", "/dashboard", "/icons/icon.svg", "/manifest.webmanifest"];
 

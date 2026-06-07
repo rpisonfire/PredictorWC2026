@@ -34,7 +34,7 @@ export function PlayerPicker({
             {current.number != null && <span className="text-white/40 text-sm">#{current.number}</span>}
           </>
         ) : (
-          <span className="text-white/40 flex-1">— wybierz strzelca —</span>
+          <span className="text-white/40 flex-1">- wybierz strzelca -</span>
         )}
         <span className="text-white/40">▾</span>
       </button>
@@ -46,7 +46,7 @@ export function PlayerPicker({
             onClick={() => { setSelected(""); setOpen(false); }}
             className="w-full text-left px-4 py-2 text-white/50 hover:bg-white/5 border-b border-white/5"
           >
-            — nie wybieram —
+            - nie wybieram -
           </button>
           {groups.map((g) => (
             <div key={g.name}>

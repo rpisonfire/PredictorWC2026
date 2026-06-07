@@ -44,7 +44,7 @@ export default async function Home() {
             <Row label="Pierwszy strzelec" pts={5} color="bg-white/20" />
           </ul>
           <div className="mt-5 rounded-xl bg-wc-gold/10 border border-dashed border-wc-gold/60 p-4 text-sm">
-            <b className="text-wc-red">Boost x3</b> — raz na kolejkę pomnóż swoje punkty z jednego meczu razy trzy.
+            <b className="text-wc-red">Boost x3</b> - raz na kolejkę pomnóż swoje punkty z jednego meczu razy trzy.
           </div>
         </div>
       </div>

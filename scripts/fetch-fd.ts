@@ -8,7 +8,7 @@
  *   4. Odpal:          npm run db:fd
  *
  * Limity free: 10 req/min. Skrypt sam czeka między zapytaniami.
- * Brak zdjęć zawodników — UI pokaże inicjały.
+ * Brak zdjęć zawodników - UI pokaże inicjały.
  */
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
@@ -164,7 +164,7 @@ async function main() {
         skipped++;
       }
     }
-    console.log(`✓ Zapisano ${saved} meczów (pominięto ${skipped} — drużyny TBD)`);
+    console.log(`✓ Zapisano ${saved} meczów (pominięto ${skipped} - drużyny TBD)`);
   } catch (e) {
     console.log(`⚠️  Terminarz: ${(e as Error).message.slice(0, 120)}`);
   }

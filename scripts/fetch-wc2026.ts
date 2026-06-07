@@ -8,7 +8,7 @@
  *   3. Run:             npm run db:fetch              (default season=2026)
  *                   or  npm run db:fetch -- 2022      (fallback for testing)
  *
- * The script is idempotent — running it twice updates instead of duplicating.
+ * The script is idempotent - running it twice updates instead of duplicating.
  *
  * Note: API-Football's league ID for FIFA World Cup is 1.
  * Season 2026. If the tournament structure is not yet in the API, the script
@@ -68,7 +68,7 @@ async function api<T>(path: string, attempt = 1): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { headers });
   if (res.status === 429) {
     if (attempt > 5) throw new Error(`API ${path}: 429 (5x retry)`);
-    const wait = 65; // free tier: 10 req/min — wait a full minute
+    const wait = 65; // free tier: 10 req/min - wait a full minute
     console.log(`     ⏳ rate limit, czekam ${wait}s...`);
     await new Promise((r) => setTimeout(r, wait * 1000));
     return api<T>(path, attempt + 1);
@@ -90,7 +90,7 @@ async function main() {
     await prisma.player.deleteMany({});
     await prisma.team.deleteMany({});
   } else {
-    console.log("♻️  Wznawiam — pomijam drużyny które już mają zawodników.");
+    console.log("♻️  Wznawiam - pomijam drużyny które już mają zawodników.");
   }
 
   console.log("🌍 Pobieram drużyny MŚ 2026...");
@@ -129,7 +129,7 @@ async function main() {
       continue;
     }
 
-    // Squad — players for current season
+    // Squad - players for current season
     try {
       const squad = await api<ApiPlayer[]>(`/players?team=${t.team.id}&season=${SEASON}`);
       const dbTeam = await prisma.team.findUnique({ where: { apiId: t.team.id } });
@@ -160,7 +160,7 @@ async function main() {
       console.log(`błąd (${(e as Error).message})`);
     }
 
-    // Free tier: 10 req/min — wait 7s between teams
+    // Free tier: 10 req/min - wait 7s between teams
     await new Promise((r) => setTimeout(r, 7000));
   }
 

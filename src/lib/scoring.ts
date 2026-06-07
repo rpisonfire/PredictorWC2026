@@ -1,4 +1,4 @@
-// Scoring engine — WC 2026 Predictor
+// Scoring engine - WC 2026 Predictor
 // 5 pts exact score | 3 pts goal difference | 2 pts winner only
 // 2 pts first team to score | 5 pts exact first goalscorer
 // x3 boost multiplier applied per matchday on one chosen match.

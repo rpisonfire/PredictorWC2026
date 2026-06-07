@@ -94,7 +94,7 @@ export default async function Admin({
           <label className="text-sm font-semibold">Aktualnie ustawiony mistrz</label>
           <div className="flex gap-3 mt-2">
             <select name="teamId" defaultValue={league?.actualChampionId ?? ""} className="input flex-1">
-              <option value="">— jeszcze nieustalony —</option>
+              <option value="">- jeszcze nieustalony -</option>
               {teams.map((t) => (
                 <option key={t.id} value={t.id}>{t.flag} {t.name}</option>
               ))}
@@ -142,7 +142,7 @@ export default async function Admin({
     return (
       <section>
         <AdminTabs active="users" />
-        <h1 className="text-3xl font-black mb-6">Admin — użytkownicy</h1>
+        <h1 className="text-3xl font-black mb-6">Admin - użytkownicy</h1>
         <div className="card overflow-hidden">
           {users.map((u) => (
             <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-white/5 last:border-0">
@@ -167,7 +167,7 @@ export default async function Admin({
             </div>
           ))}
         </div>
-        <p className="text-xs text-white/40 mt-3">Tymczasowe hasło widoczne tylko teraz. Podaj kumplowi i powiedz żeby je zmienił (nie ma jeszcze funkcji zmiany hasła — TODO).</p>
+        <p className="text-xs text-white/40 mt-3">Tymczasowe hasło widoczne tylko teraz. Podaj kumplowi i powiedz żeby je zmienił (nie ma jeszcze funkcji zmiany hasła - TODO).</p>
       </section>
     );
   }
@@ -183,7 +183,7 @@ export default async function Admin({
   return (
     <section>
       <AdminTabs active="matches" />
-      <h1 className="text-3xl font-black mb-6">Admin — wpisz wyniki</h1>
+      <h1 className="text-3xl font-black mb-6">Admin - wpisz wyniki</h1>
       <div className="space-y-4">
         {matches.map((m) => (
           <form key={m.id} action={setResult} className="card p-4">

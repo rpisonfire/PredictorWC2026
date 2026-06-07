@@ -46,7 +46,7 @@ export default async function StatsPage() {
   const allPreds = await prisma.prediction.findMany({ select: { homeScore: true, awayScore: true } });
   const avgGoals = allPreds.length
     ? (allPreds.reduce((sum, p) => sum + p.homeScore + p.awayScore, 0) / allPreds.length).toFixed(2)
-    : "—";
+    : "-";
 
   // Najpopularniejszy wynik
   const scoreCounts = new Map<string, number>();
@@ -59,7 +59,7 @@ export default async function StatsPage() {
   return (
     <section className="max-w-3xl mx-auto">
       <h1 className="text-3xl font-black mb-1">Statystyki turnieju 🌍</h1>
-      <p className="text-white/60 mb-6">Co typują kumple — agregaty z całej apki.</p>
+      <p className="text-white/60 mb-6">Co typują kumple - agregaty z całej apki.</p>
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="card p-5">

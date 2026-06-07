@@ -57,7 +57,7 @@ export async function GET(req: Request) {
     updated++;
 
     // Recalc points for all predictions on this match
-    // Note: firstScorerTeam / firstGoalPlayer not provided by football-data.org free tier — admin must set manually
+    // Note: firstScorerTeam / firstGoalPlayer not provided by football-data.org free tier - admin must set manually
     const preds = await prisma.prediction.findMany({ where: { matchId: existing.id } });
     for (const p of preds) {
       const pts = scorePrediction(

@@ -101,7 +101,7 @@ async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
       <div className="grid grid-cols-3 gap-2 mb-4">
         <Mini label="Graczy" value={String(agg.players)} />
         <Mini label="Średnia pkt" value={agg.avgPoints.toFixed(1)} />
-        <Mini label="Najlepsza kolejka" value={agg.bestMatchday ? `${agg.bestMatchday.points} (${agg.bestMatchday.nickname})` : "—"} small />
+        <Mini label="Najlepsza kolejka" value={agg.bestMatchday ? `${agg.bestMatchday.points} (${agg.bestMatchday.nickname})` : "-"} small />
       </div>
       <div className="card overflow-hidden">
         {rows.map((r, i) => {
@@ -120,7 +120,7 @@ async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
                     <span className="truncate">{r.nickname}</span>
                     {isMe && <span className="text-xs text-wc-red">(ty)</span>}
                     {r.badges.map((b) => (
-                      <span key={b.key} title={`${b.label} — ${b.description}`} className="text-base">{b.emoji}</span>
+                      <span key={b.key} title={`${b.label} - ${b.description}`} className="text-base">{b.emoji}</span>
                     ))}
                   </div>
                   <div className="text-xs text-white/40">

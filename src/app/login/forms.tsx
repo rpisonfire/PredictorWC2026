@@ -53,7 +53,7 @@ export function SignUpForm({ action, avatars, teams }: { action: Action; avatars
       <div>
         <label className="text-sm font-semibold">Mistrz turnieju 🏆 <span className="text-white/40 font-normal">(+10 pkt jeśli trafisz)</span></label>
         <select name="predictedChampionId" required defaultValue="" className="input mt-1">
-          <option value="" disabled>— wybierz drużynę —</option>
+          <option value="" disabled>- wybierz drużynę -</option>
           {teams.map((t) => (
             <option key={t.id} value={t.id}>{t.flag} {t.name}</option>
           ))}

@@ -18,7 +18,7 @@ export function NotificationsButton() {
     setPerm(result as Perm);
     if (result === "granted") {
       new Notification("WC Predictor 2026", {
-        body: "🔔 Powiadomienia włączone — będziemy przypominać o meczach.",
+        body: "🔔 Powiadomienia włączone - będziemy przypominać o meczach.",
         icon: "/icons/icon.svg",
       });
     }
