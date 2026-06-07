@@ -113,13 +113,71 @@ export async function leaderboard(leagueId?: string) {
   const users = leagueId
     ? await prisma.user.findMany({ where: { memberships: { some: { leagueId } } } })
     : await prisma.user.findMany();
+
+  // Spark per user — punkty per kolejka
+  const allMatchdays = await prisma.match.findMany({
+    select: { matchday: true },
+    distinct: ["matchday"],
+    orderBy: { matchday: "asc" },
+  });
+  const mds = allMatchdays.map((m) => m.matchday);
+
   const rows = await Promise.all(
     users.map(async (u) => {
       const stats = await statsForUser(u.id, leagueId);
-      return { userId: u.id, nickname: u.nickname, avatar: u.avatar, stats, badges: badgesFor(stats) };
+
+      // sparkline: punkty per kolejka (tylko rozegrane mecze)
+      const predictions = await prisma.prediction.findMany({
+        where: { userId: u.id, match: { homeScore: { not: null } } },
+        include: { match: true },
+      });
+      const boosts = await prisma.boost.findMany({ where: { userId: u.id } });
+      const boostSet = new Set(boosts.map((b) => b.matchId));
+      const ptsPerMd = new Map<number, number>();
+      for (const p of predictions) {
+        const pts = boostSet.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
+        ptsPerMd.set(p.match.matchday, (ptsPerMd.get(p.match.matchday) ?? 0) + pts);
+      }
+      const spark = mds.map((n) => ptsPerMd.get(n) ?? 0);
+
+      return { userId: u.id, nickname: u.nickname, avatar: u.avatar, stats, badges: badgesFor(stats), spark };
     })
   );
   return rows.sort((a, b) => b.stats.totalPoints - a.stats.totalPoints);
+}
+
+/** Stats agregowane dla całej ligi */
+export async function leagueAggregateStats(leagueId: string) {
+  const users = await prisma.user.findMany({ where: { memberships: { some: { leagueId } } } });
+  let totalPoints = 0;
+  let count = 0;
+  let bestMd: { userId: string; nickname: string; matchday: number; points: number } | null = null;
+
+  const matchdays = await prisma.match.findMany({
+    select: { matchday: true }, distinct: ["matchday"], orderBy: { matchday: "asc" },
+  });
+
+  for (const u of users) {
+    const stats = await statsForUser(u.id, leagueId);
+    totalPoints += stats.totalPoints;
+    count++;
+    for (const md of matchdays) {
+      const predictions = await prisma.prediction.findMany({
+        where: { userId: u.id, match: { matchday: md.matchday } },
+      });
+      const boosts = await prisma.boost.findMany({ where: { userId: u.id, matchday: md.matchday } });
+      const boostSet = new Set(boosts.map((b) => b.matchId));
+      let pts = 0;
+      for (const p of predictions) pts += boostSet.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
+      if (!bestMd || pts > bestMd.points) bestMd = { userId: u.id, nickname: u.nickname, matchday: md.matchday, points: pts };
+    }
+  }
+
+  return {
+    players: count,
+    avgPoints: count ? totalPoints / count : 0,
+    bestMatchday: bestMd,
+  };
 }
 
 export async function leaderboardForMatchday(matchday: number, leagueId?: string) {

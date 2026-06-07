@@ -5,6 +5,9 @@ import { getCurrentUser } from "@/lib/session";
 import { PlayerPicker } from "@/components/PlayerPicker";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { fmtDateTime, fmtDateTimeLong } from "@/lib/dates";
+import { isLive } from "@/lib/matchStatus";
+import { LiveChip } from "@/components/LiveChip";
+import { AutoRefresh } from "@/components/AutoRefresh";
 
 async function savePrediction(formData: FormData) {
   "use server";
@@ -100,12 +103,18 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const boostedUserIds = new Set(allBoostsForMatch.map((b) => b.userId));
   const allPlayers = [...match.homeTeam.players, ...match.awayTeam.players];
 
+  const live = isLive(match.kickoff, finished);
+
   return (
     <section className="max-w-2xl mx-auto">
+      {live && <AutoRefresh intervalSec={60} />}
       <div className="card p-6">
-        <div className="flex justify-between text-xs text-white/40">
+        <div className="flex justify-between items-center text-xs text-white/40">
           <span>{match.stage} · Kolejka {match.matchday}</span>
-          <span>{fmtDateTimeLong(match.kickoff)}</span>
+          <div className="flex items-center gap-2">
+            {live && <LiveChip small />}
+            <span>{fmtDateTimeLong(match.kickoff)}</span>
+          </div>
         </div>
         <div className="mt-3 flex items-center justify-between text-center">
           <div className="flex-1">
@@ -214,6 +223,10 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               </div>
             </label>
           )}
+
+          <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-xs text-white/60">
+            💡 <b>Wskazówka:</b> wybierz <b>pierwszą drużynę</b> która strzeli (+2 pkt) i <b>strzelca</b> pierwszego gola (+5 pkt) żeby zmaksymalizować punkty z meczu.
+          </div>
 
           <button className="btn-primary w-full">Zapisz typ</button>
         </form>

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { leaderboard, leaderboardForMatchday } from "@/lib/stats";
+import { leaderboard, leaderboardForMatchday, leagueAggregateStats } from "@/lib/stats";
+import { Sparkline } from "@/components/Sparkline";
 
 export default async function Leaderboard({
   searchParams,
@@ -92,37 +93,62 @@ function Tab({ href, active, label }: { href: string; active: boolean; label: st
 }
 
 async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
-  const rows = await leaderboard(leagueId);
+  const [rows, agg] = await Promise.all([leaderboard(leagueId), leagueAggregateStats(leagueId)]);
   if (rows.length === 0) return <Empty />;
+  const sparkHasData = rows.some((r) => r.spark.some((v) => v > 0));
   return (
-    <div className="card overflow-hidden">
-      {rows.map((r, i) => {
-        const medal = ["🥇", "🥈", "🥉"][i] ?? `${i + 1}.`;
-        const isMe = r.userId === meId;
-        return (
-          <div
-            key={r.userId}
-            className={`flex items-center justify-between px-5 py-3 border-b border-white/5 last:border-0 ${isMe ? "bg-wc-red/5" : ""}`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="w-8 text-center font-black text-lg">{medal}</span>
-              <span className="text-2xl">{r.avatar}</span>
-              <div>
-                <div className="font-bold flex items-center gap-2 flex-wrap">
-                  {r.nickname} {isMe && <span className="text-xs text-wc-red">(ty)</span>}
-                  {r.badges.map((b) => (
-                    <span key={b.key} title={`${b.label} — ${b.description}`} className="text-base">{b.emoji}</span>
-                  ))}
-                </div>
-                <div className="text-xs text-white/40">
-                  {r.stats.finishedCount} rozegranych · celność {r.stats.accuracy.toFixed(0)}%
+    <>
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <Mini label="Graczy" value={String(agg.players)} />
+        <Mini label="Średnia pkt" value={agg.avgPoints.toFixed(1)} />
+        <Mini label="Najlepsza kolejka" value={agg.bestMatchday ? `${agg.bestMatchday.points} (${agg.bestMatchday.nickname})` : "—"} small />
+      </div>
+      <div className="card overflow-hidden">
+        {rows.map((r, i) => {
+          const medal = ["🥇", "🥈", "🥉"][i] ?? `${i + 1}.`;
+          const isMe = r.userId === meId;
+          return (
+            <div
+              key={r.userId}
+              className={`flex items-center justify-between gap-3 px-5 py-3 border-b border-white/5 last:border-0 ${isMe ? "bg-wc-red/5" : ""}`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-8 text-center font-black text-lg">{medal}</span>
+                <span className="text-2xl">{r.avatar}</span>
+                <div className="min-w-0">
+                  <div className="font-bold flex items-center gap-2 flex-wrap">
+                    <span className="truncate">{r.nickname}</span>
+                    {isMe && <span className="text-xs text-wc-red">(ty)</span>}
+                    {r.badges.map((b) => (
+                      <span key={b.key} title={`${b.label} — ${b.description}`} className="text-base">{b.emoji}</span>
+                    ))}
+                  </div>
+                  <div className="text-xs text-white/40">
+                    {r.stats.finishedCount} rozegranych · celność {r.stats.accuracy.toFixed(0)}%
+                  </div>
                 </div>
               </div>
+              <div className="flex items-center gap-3">
+                {sparkHasData && r.spark.length >= 2 && (
+                  <div className="hidden sm:block w-20 opacity-70">
+                    <Sparkline points={r.spark} />
+                  </div>
+                )}
+                <div className="text-2xl font-black tabular-nums">{r.stats.totalPoints} <span className="text-sm text-white/40">pkt</span></div>
+              </div>
             </div>
-            <div className="text-2xl font-black">{r.stats.totalPoints} <span className="text-sm text-white/40">pkt</span></div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function Mini({ label, value, small }: { label: string; value: string; small?: boolean }) {
+  return (
+    <div className="card p-3">
+      <div className="text-[10px] uppercase tracking-wider text-white/40">{label}</div>
+      <div className={`font-black ${small ? "text-sm" : "text-xl"} truncate`}>{value}</div>
     </div>
   );
 }

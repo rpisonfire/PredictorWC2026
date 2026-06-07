@@ -7,6 +7,9 @@ import { Countdown } from "@/components/Countdown";
 import { STADIUMS } from "@/lib/stadiums";
 import { championPickIsLocked } from "@/lib/championLock";
 import { fmtDateTime, dayKey } from "@/lib/dates";
+import { isLive } from "@/lib/matchStatus";
+import { LiveChip } from "@/components/LiveChip";
+import { AutoRefresh } from "@/components/AutoRefresh";
 
 export default async function Dashboard({
   searchParams,
@@ -38,6 +41,7 @@ export default async function Dashboard({
 
   const todayKey = dayKey(now);
   const todayMatches = matches.filter((m) => dayKey(m.kickoff) === todayKey);
+  const hasLiveToday = todayMatches.some((m) => isLive(m.kickoff, m.homeScore !== null));
 
   // Find next match (kickoff in future)
   const nextMatch = matches.find((m) => m.kickoff.getTime() > now.getTime());
@@ -54,6 +58,7 @@ export default async function Dashboard({
   return (
     <section>
       {saved === "1" && <Toast message="Typ zapisany" />}
+      {hasLiveToday && <AutoRefresh intervalSec={60} />}
 
       {preWorldCup && (
         <div className="mb-8">
@@ -117,9 +122,10 @@ export default async function Dashboard({
                     <Team flag={m.awayTeam.flag} name={m.awayTeam.name} right />
                   </div>
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    {isLive(m.kickoff, m.homeScore !== null) && <LiveChip />}
                     {pred ? <span className="chip bg-wc-green/10 text-wc-green">Typ złożony</span> : <span className="chip bg-wc-red/10 text-wc-red">Brak typu</span>}
                     {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
-                    {locked && m.homeScore === null && <span className="chip bg-white/10 text-white/60">Zablokowane</span>}
+                    {locked && m.homeScore === null && !isLive(m.kickoff, false) && <span className="chip bg-white/10 text-white/60">Zablokowane</span>}
                   </div>
                 </Link>
               );
@@ -204,6 +210,7 @@ export default async function Dashboard({
                     <Team flag={m.awayTeam.flag} name={m.awayTeam.name} right />
                   </div>
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    {isLive(m.kickoff, m.homeScore !== null) && <LiveChip />}
                     {m.homeScore !== null ? (
                       <span className="chip bg-wc-gold/15 text-wc-gold">Rozegrany</span>
                     ) : pred ? (
@@ -212,7 +219,7 @@ export default async function Dashboard({
                       <span className="chip bg-wc-red/10 text-wc-red">Brak typu</span>
                     )}
                     {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
-                    {locked && m.homeScore === null && <span className="chip bg-white/10 text-white/60">Zablokowane</span>}
+                    {locked && m.homeScore === null && !isLive(m.kickoff, false) && <span className="chip bg-white/10 text-white/60">Zablokowane</span>}
                     {m.homeScore !== null && pred && (
                       <span className={`chip ${pred.pointsAwarded > 0 ? "bg-wc-green/15 text-wc-green" : "bg-white/5 text-white/40"}`}>
                         {boosted ? pred.pointsAwarded * 3 : pred.pointsAwarded} pkt

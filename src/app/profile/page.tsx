@@ -5,6 +5,9 @@ import { clearSession, getCurrentUser } from "@/lib/session";
 import Link from "next/link";
 import { statsForUser, badgesFor, championBonusForUser, CHAMPION_BONUS } from "@/lib/stats";
 import { championPickIsLocked } from "@/lib/championLock";
+import { hashPassword, verifyPassword } from "@/lib/password";
+import { ChangePasswordForm } from "./change-password";
+import { NotificationsButton } from "@/components/NotificationsButton";
 
 const AVATARS = ["⚽", "🏆", "🔥", "🦁", "🐉", "🦅", "🐂", "🦊", "🐺", "🦈", "👽", "🥇", "🐍", "🦖", "🐙"];
 
@@ -15,6 +18,25 @@ async function update(formData: FormData) {
   const avatar = String(formData.get("avatar") ?? user.avatar);
   await prisma.user.update({ where: { id: user.id }, data: { avatar } });
   revalidatePath("/");
+}
+
+export type PwState = { ok?: boolean; error?: string };
+
+async function changePassword(_prev: PwState, formData: FormData): Promise<PwState> {
+  "use server";
+  const user = await getCurrentUser();
+  if (!user) return { error: "Nie jesteś zalogowany" };
+  const oldPw = String(formData.get("oldPassword") ?? "");
+  const newPw = String(formData.get("newPassword") ?? "");
+  const confirm = String(formData.get("confirmPassword") ?? "");
+  if (!oldPw || !newPw) return { error: "Wypełnij wszystkie pola" };
+  if (newPw.length < 6) return { error: "Nowe hasło musi mieć min. 6 znaków" };
+  if (newPw !== confirm) return { error: "Nowe hasła nie pasują" };
+  if (!user.passwordHash || !verifyPassword(oldPw, user.passwordHash)) {
+    return { error: "Stare hasło jest nieprawidłowe" };
+  }
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: hashPassword(newPw) } });
+  return { ok: true };
 }
 
 async function logout() {
@@ -120,6 +142,9 @@ export default async function Profile() {
             </div>
           ))}
         </div>
+        <NotificationsButton />
+        <ChangePasswordForm action={changePassword} />
+
         <form action={logout}>
           <button className="btn-ghost w-full">Wyloguj się</button>
         </form>
