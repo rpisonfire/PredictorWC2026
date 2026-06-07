@@ -3,10 +3,29 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { MobileNav } from "@/components/MobileNav";
+import { RegisterSW } from "@/components/RegisterSW";
 
 export const metadata: Metadata = {
   title: "WC Predictor 2026",
   description: "Typuj wyniki Mundialu 2026 z ekipą",
+  applicationName: "WC Predictor 2026",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "WC2026",
+  },
+  icons: {
+    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/icon.svg" }],
+  },
+  formatDetection: { telephone: false },
+};
+
+export const viewport = {
+  themeColor: "#0B0F19",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -39,6 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Aplikacja wykonana przez rpisonfire &amp; Claude Code na Mistrzostwa Świata 2026 w piłce nożnej ⚽
         </footer>
         {user && <MobileNav isAdmin={user.isAdmin} />}
+        <RegisterSW />
       </body>
     </html>
   );

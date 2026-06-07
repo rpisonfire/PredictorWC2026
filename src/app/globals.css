@@ -9,6 +9,9 @@
 html, body {
   background: #0B0F19;
   color: #F5F7FA;
+  min-height: 100vh;
+  /* Wsparcie safe area dla iOS w trybie PWA */
+  padding-top: env(safe-area-inset-top);
 }
 
 /* subtle stadium-lights backdrop */
