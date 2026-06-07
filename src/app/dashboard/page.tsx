@@ -93,19 +93,19 @@ export default async function Dashboard({
             <p className="text-sm text-white/50 mt-1">Dziś nie ma żadnego meczu. Wracaj za parę dni 😎</p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {todayMatches.map((m) => {
               const pred = m.predictions[0];
               const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
               const boosted = m.boosts.length > 0;
               return (
-                <Link key={m.id} href={`/match/${m.id}`} className="card p-4 hover:border-wc-red/40 transition border-wc-red/20">
+                <Link key={m.id} href={`/match/${m.id}`} className="card p-3 sm:p-4 hover:border-wc-red/40 transition border-wc-red/20">
                   <div className="flex items-center justify-between text-xs text-white/40">
                     <span>{m.stage}</span>
                     <span>{fmtDateTime(m.kickoff)}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between gap-3">
-                    <Team flag={m.homeTeam.flag} name={m.homeTeam.name} />
+                    <Team flag={m.homeTeam.flag} shortCode={m.homeTeam.shortCode} name={m.homeTeam.name} />
                     <div className="text-center min-w-[80px]">
                       {m.homeScore !== null ? (
                         <div className="text-2xl font-black text-wc-gold">
@@ -119,7 +119,7 @@ export default async function Dashboard({
                         <div className="text-sm font-bold text-white/30">vs</div>
                       )}
                     </div>
-                    <Team flag={m.awayTeam.flag} name={m.awayTeam.name} right />
+                    <Team flag={m.awayTeam.flag} shortCode={m.awayTeam.shortCode} name={m.awayTeam.name} right />
                   </div>
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {isLive(m.kickoff, m.homeScore !== null) && <LiveChip />}
@@ -170,7 +170,7 @@ export default async function Dashboard({
               <span className="chip bg-wc-gold/20 text-wc-gold">Boost użyty ⚡</span>
             )}
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {list.map((m) => {
               const pred = m.predictions[0];
               const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
@@ -179,14 +179,14 @@ export default async function Dashboard({
                 <Link
                   key={m.id}
                   href={`/match/${m.id}`}
-                  className="card p-4 hover:border-wc-red/40 transition"
+                  className="card p-3 sm:p-4 hover:border-wc-red/40 transition"
                 >
                   <div className="flex items-center justify-between text-xs text-white/40">
                     <span>{m.stage}</span>
                     <span>{fmtDateTime(m.kickoff)}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between gap-3">
-                    <Team flag={m.homeTeam.flag} name={m.homeTeam.name} />
+                    <Team flag={m.homeTeam.flag} shortCode={m.homeTeam.shortCode} name={m.homeTeam.name} />
                     <div className="text-center min-w-[80px]">
                       {m.homeScore !== null ? (
                         <>
@@ -207,7 +207,7 @@ export default async function Dashboard({
                         <div className="text-sm font-bold text-white/30">vs</div>
                       )}
                     </div>
-                    <Team flag={m.awayTeam.flag} name={m.awayTeam.name} right />
+                    <Team flag={m.awayTeam.flag} shortCode={m.awayTeam.shortCode} name={m.awayTeam.name} right />
                   </div>
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     {isLive(m.kickoff, m.homeScore !== null) && <LiveChip />}
@@ -262,12 +262,15 @@ export default async function Dashboard({
   );
 }
 
-function Team({ flag, name, right }: { flag: string; name: string; right?: boolean }) {
+function Team({ flag, shortCode, name, right }: { flag: string; shortCode: string; name: string; right?: boolean }) {
   return (
-    <div className={`flex items-center gap-2 flex-1 ${right ? "justify-end text-right" : ""}`}>
-      {!right && <span className="text-2xl">{flag}</span>}
-      <span className="font-bold truncate">{name}</span>
-      {right && <span className="text-2xl">{flag}</span>}
+    <div className={`flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0 ${right ? "justify-end text-right" : ""}`}>
+      {!right && <span className="text-xl sm:text-2xl shrink-0">{flag}</span>}
+      <span className="font-bold truncate">
+        <span className="sm:hidden">{shortCode}</span>
+        <span className="hidden sm:inline">{name}</span>
+      </span>
+      {right && <span className="text-xl sm:text-2xl shrink-0">{flag}</span>}
     </div>
   );
 }

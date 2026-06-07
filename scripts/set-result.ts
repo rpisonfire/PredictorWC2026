@@ -16,7 +16,7 @@ async function main() {
     where: { homeTeamId: poland.id, awayTeamId: argentina.id },
     include: { homeTeam: { include: { players: true } } },
   });
-  if (!match) throw new Error("Brak meczu Polska–Argentyna");
+  if (!match) throw new Error("Brak meczu Polska-Argentyna");
 
   const scorer = match.homeTeam.players.find((p) =>
     p.name.toLowerCase().includes("zielinski") || p.name.toLowerCase().includes("zieliński")

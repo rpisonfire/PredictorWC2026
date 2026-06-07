@@ -80,14 +80,14 @@ export default async function BracketPage() {
                               <span className="text-lg">{m.homeTeam.flag}</span>
                               <span className={`font-bold truncate ${homeWon ? "text-wc-gold" : ""}`}>{m.homeTeam.shortCode}</span>
                             </div>
-                            <span className={`font-black text-lg tabular-nums ${homeWon ? "text-wc-gold" : ""}`}>{m.homeScore ?? "–"}</span>
+                            <span className={`font-black text-lg tabular-nums ${homeWon ? "text-wc-gold" : ""}`}>{m.homeScore ?? "-"}</span>
                           </div>
                           <div className={`flex items-center justify-between mt-1 ${homeWon ? "opacity-50" : ""}`}>
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-lg">{m.awayTeam.flag}</span>
                               <span className={`font-bold truncate ${awayWon ? "text-wc-gold" : ""}`}>{m.awayTeam.shortCode}</span>
                             </div>
-                            <span className={`font-black text-lg tabular-nums ${awayWon ? "text-wc-gold" : ""}`}>{m.awayScore ?? "–"}</span>
+                            <span className={`font-black text-lg tabular-nums ${awayWon ? "text-wc-gold" : ""}`}>{m.awayScore ?? "-"}</span>
                           </div>
                         </a>
                       );
