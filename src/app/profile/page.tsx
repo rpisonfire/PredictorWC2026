@@ -109,7 +109,10 @@ export default async function Profile() {
           <button className="btn-primary w-full">Zapisz</button>
         </form>
         <div>
-          <div className="text-sm text-white/40 mb-1">Ligi</div>
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-sm text-white/40">Ligi</div>
+            <Link href="/leagues" className="text-xs text-wc-red font-bold hover:underline">Zarządzaj →</Link>
+          </div>
           {user.memberships.map((m) => (
             <div key={m.id} className="flex justify-between items-center py-2 border-t border-white/5">
               <span className="font-bold">{m.league.name}</span>

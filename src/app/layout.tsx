@@ -44,7 +44,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Link href="/dashboard" className="hover:underline">Mecze</Link>
                 <Link href="/my-predictions" className="hover:underline">Moje typy</Link>
                 <Link href="/champion" className="hover:underline">Typ na mistrza 🏆</Link>
+                <Link href="/groups" className="hover:underline">Grupy 📊</Link>
                 <Link href="/leaderboard" className="hover:underline">Ranking</Link>
+                <Link href="/leagues" className="hover:underline">Ligi</Link>
                 {user.isAdmin && <Link href="/admin" className="hover:underline text-wc-gold">Admin</Link>}
                 <Link href="/profile" className="hover:underline">{user.avatar} {user.nickname}</Link>
               </div>

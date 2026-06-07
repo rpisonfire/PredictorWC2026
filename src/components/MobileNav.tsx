@@ -4,9 +4,9 @@ type NavItem = { href: string; label: string; emoji: string };
 
 const ITEMS: NavItem[] = [
   { href: "/dashboard",      label: "Mecze",   emoji: "⚽" },
+  { href: "/groups",         label: "Grupy",   emoji: "📊" },
+  { href: "/leaderboard",    label: "Ranking", emoji: "🏆" },
   { href: "/my-predictions", label: "Typy",    emoji: "📋" },
-  { href: "/champion",       label: "Mistrz",  emoji: "🏆" },
-  { href: "/leaderboard",    label: "Ranking", emoji: "📊" },
   { href: "/profile",        label: "Profil",  emoji: "👤" },
 ];
 

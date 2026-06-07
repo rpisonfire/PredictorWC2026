@@ -6,11 +6,33 @@ import { leaderboard, leaderboardForMatchday } from "@/lib/stats";
 
 export default async function Leaderboard({
   searchParams,
-}: { searchParams: Promise<{ md?: string }> }) {
+}: { searchParams: Promise<{ md?: string; league?: string }> }) {
   const me = await getCurrentUser();
   if (!me) redirect("/login");
 
-  const { md } = await searchParams;
+  const { md, league } = await searchParams;
+
+  // Pobierz ligi do których należy user
+  const memberships = await prisma.membership.findMany({
+    where: { userId: me.id },
+    include: { league: true },
+    orderBy: { league: { createdAt: "asc" } },
+  });
+  if (memberships.length === 0) {
+    return (
+      <section className="max-w-md mx-auto py-10 text-center">
+        <div className="text-6xl mb-4">🏟️</div>
+        <h1 className="text-3xl font-black mb-2">Brak ligi</h1>
+        <p className="text-white/60 mb-6">Nie należysz do żadnej ligi.</p>
+        <Link href="/leagues" className="btn-primary">Dołącz lub stwórz</Link>
+      </section>
+    );
+  }
+
+  const activeLeagueId = league && memberships.some((m) => m.league.id === league)
+    ? league
+    : memberships[0].league.id;
+
   const matchdays = await prisma.match.findMany({
     select: { matchday: true },
     distinct: ["matchday"],
@@ -21,17 +43,39 @@ export default async function Leaderboard({
 
   return (
     <section className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-black mb-1">Tabela 🏆</h1>
+      <h1 className="text-3xl font-black mb-1">Ranking 🏆</h1>
       <p className="text-white/60 mb-4">Kto rządzi w lidze.</p>
 
+      {memberships.length > 1 && (
+        <div className="flex gap-2 mb-4 overflow-x-auto -mx-1 px-1">
+          {memberships.map((m) => (
+            <Link
+              key={m.league.id}
+              href={`/leaderboard?league=${m.league.id}${activeMd != null ? `&md=${activeMd}` : ""}`}
+              className={`shrink-0 px-3 py-1.5 rounded-xl text-sm font-bold ${m.league.id === activeLeagueId ? "bg-wc-blue text-white" : "bg-white/5 text-white/60 hover:bg-white/10"}`}
+            >
+              {m.league.name}
+            </Link>
+          ))}
+        </div>
+      )}
+
       <div className="flex gap-2 mb-5 overflow-x-auto -mx-1 px-1">
-        <Tab href="/leaderboard" active={activeMd === null} label="Ogólna" />
+        <Tab href={`/leaderboard?league=${activeLeagueId}`} active={activeMd === null} label="Ogólna" />
         {mds.map((n) => (
-          <Tab key={n} href={`/leaderboard?md=${n}`} active={activeMd === n} label={`Kolejka ${n}`} />
+          <Tab
+            key={n}
+            href={`/leaderboard?league=${activeLeagueId}&md=${n}`}
+            active={activeMd === n}
+            label={`Kolejka ${n}`}
+          />
         ))}
       </div>
 
-      {activeMd === null ? <Overall meId={me.id} /> : <PerMatchday md={activeMd} meId={me.id} />}
+      {activeMd === null
+        ? <Overall leagueId={activeLeagueId} meId={me.id} />
+        : <PerMatchday md={activeMd} leagueId={activeLeagueId} meId={me.id} />
+      }
     </section>
   );
 }
@@ -47,8 +91,9 @@ function Tab({ href, active, label }: { href: string; active: boolean; label: st
   );
 }
 
-async function Overall({ meId }: { meId: string }) {
-  const rows = await leaderboard();
+async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
+  const rows = await leaderboard(leagueId);
+  if (rows.length === 0) return <Empty />;
   return (
     <div className="card overflow-hidden">
       {rows.map((r, i) => {
@@ -82,8 +127,8 @@ async function Overall({ meId }: { meId: string }) {
   );
 }
 
-async function PerMatchday({ md, meId }: { md: number; meId: string }) {
-  const rows = await leaderboardForMatchday(md);
+async function PerMatchday({ md, leagueId, meId }: { md: number; leagueId: string; meId: string }) {
+  const rows = await leaderboardForMatchday(md, leagueId);
   if (rows.length === 0) {
     return <div className="card p-10 text-center text-white/50">Nikt jeszcze nie typował w tej kolejce.</div>;
   }
@@ -111,4 +156,8 @@ async function PerMatchday({ md, meId }: { md: number; meId: string }) {
       })}
     </div>
   );
+}
+
+function Empty() {
+  return <div className="card p-10 text-center text-white/50">Brak graczy w tej lidze.</div>;
 }

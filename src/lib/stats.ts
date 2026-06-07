@@ -7,8 +7,8 @@ export type UserStats = {
   exactScoreHits: number;
   scorerHits: number;
   avgPointsPerMatch: number;
-  accuracy: number; // % of finished predictions that scored any points
-  longestStreak: number; // consecutive finished matches with points > 0
+  accuracy: number;
+  longestStreak: number;
   successfulBoosts: number;
 };
 
@@ -18,6 +18,8 @@ export type Badge = {
   label: string;
   description: string;
 };
+
+export const CHAMPION_BONUS = 10;
 
 export function badgesFor(stats: UserStats): Badge[] {
   const out: Badge[] = [];
@@ -32,21 +34,28 @@ export function badgesFor(stats: UserStats): Badge[] {
   return out;
 }
 
-export const CHAMPION_BONUS = 10;
+/** Bonus za trafionego mistrza w konkretnej lidze. */
+export async function championBonusForUserInLeague(userId: string, leagueId: string): Promise<number> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const league = await prisma.league.findUnique({ where: { id: leagueId } });
+  if (!user?.predictedChampionId || !league?.actualChampionId) return 0;
+  return user.predictedChampionId === league.actualChampionId ? CHAMPION_BONUS : 0;
+}
 
+/** Najlepszy aktualny bonus we wszystkich ligach (do wyświetlenia w profilu) */
 export async function championBonusForUser(userId: string): Promise<number> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { memberships: { include: { league: true } } },
   });
   if (!user?.predictedChampionId) return 0;
-  const wonLeague = user.memberships.find(
+  const hit = user.memberships.some(
     (m) => m.league.actualChampionId && m.league.actualChampionId === user.predictedChampionId
   );
-  return wonLeague ? CHAMPION_BONUS : 0;
+  return hit ? CHAMPION_BONUS : 0;
 }
 
-export async function statsForUser(userId: string): Promise<UserStats> {
+export async function statsForUser(userId: string, leagueId?: string): Promise<UserStats> {
   const predictions = await prisma.prediction.findMany({
     where: { userId },
     include: { match: true },
@@ -57,7 +66,11 @@ export async function statsForUser(userId: string): Promise<UserStats> {
 
   const finished = predictions.filter((p) => p.match.homeScore !== null);
 
-  let totalPoints = await championBonusForUser(userId);
+  const bonus = leagueId
+    ? await championBonusForUserInLeague(userId, leagueId)
+    : await championBonusForUser(userId);
+
+  let totalPoints = bonus;
   let exactScoreHits = 0;
   let scorerHits = 0;
   let pointed = 0;
@@ -95,25 +108,24 @@ export async function statsForUser(userId: string): Promise<UserStats> {
   };
 }
 
-export async function leaderboard(): Promise<{
-  userId: string;
-  nickname: string;
-  avatar: string;
-  stats: UserStats;
-  badges: Badge[];
-}[]> {
-  const users = await prisma.user.findMany();
+/** Ranking dla podanej ligi (lub wszystkich userów, jeśli leagueId pominięte). */
+export async function leaderboard(leagueId?: string) {
+  const users = leagueId
+    ? await prisma.user.findMany({ where: { memberships: { some: { leagueId } } } })
+    : await prisma.user.findMany();
   const rows = await Promise.all(
     users.map(async (u) => {
-      const stats = await statsForUser(u.id);
+      const stats = await statsForUser(u.id, leagueId);
       return { userId: u.id, nickname: u.nickname, avatar: u.avatar, stats, badges: badgesFor(stats) };
     })
   );
   return rows.sort((a, b) => b.stats.totalPoints - a.stats.totalPoints);
 }
 
-export async function leaderboardForMatchday(matchday: number) {
-  const users = await prisma.user.findMany();
+export async function leaderboardForMatchday(matchday: number, leagueId?: string) {
+  const users = leagueId
+    ? await prisma.user.findMany({ where: { memberships: { some: { leagueId } } } })
+    : await prisma.user.findMany();
   const rows = await Promise.all(
     users.map(async (u) => {
       const predictions = await prisma.prediction.findMany({
