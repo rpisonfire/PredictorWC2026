@@ -219,7 +219,7 @@ export default async function StatsPage() {
           <div className="grid grid-cols-2 gap-3">
             <Mini value={avgGoals.toFixed(2)} label="średnia/mecz" color="text-wc-gold" />
             <Mini value={String(totalGoalsPredicted)} label="łącznie" color="text-app" />
-            <Mini value={String(maxGoals)} label="max w 1 meczu" color="text-wc-red" />
+            <Mini value={String(maxGoals)} label="max w 1 meczu" color="text-accent" />
             <Mini value={`${drawsPct.toFixed(0)}%`} label="typów na remis" color="text-app" />
           </div>
         </div>
@@ -259,7 +259,7 @@ export default async function StatsPage() {
                   {bold.match.homeTeam.flag} {bold.match.homeTeam.shortCode} vs {bold.match.awayTeam.shortCode} {bold.match.awayTeam.flag}
                 </div>
               </div>
-              <div className="text-2xl font-black text-wc-red tabular-nums">{bold.homeScore}:{bold.awayScore}</div>
+              <div className="text-2xl font-black text-accent tabular-nums">{bold.homeScore}:{bold.awayScore}</div>
             </div>
           </div>
         )}

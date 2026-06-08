@@ -15,6 +15,8 @@
   --hover-bg: rgba(255, 255, 255, 0.05);
   --header-bg: rgba(11, 15, 25, 0.7);
   --chip-bg: rgba(255, 255, 255, 0.05);
+  --accent: #E4002B;
+  --accent-bg: rgba(228, 0, 43, 0.15);
 }
 
 :root[data-theme="light"] {
@@ -30,6 +32,8 @@
   --hover-bg: rgba(11, 15, 25, 0.05);
   --header-bg: rgba(250, 247, 242, 0.85);
   --chip-bg: rgba(11, 15, 25, 0.06);
+  --accent: #006847;
+  --accent-bg: rgba(0, 104, 71, 0.15);
 }
 
 html, body {
@@ -102,6 +106,9 @@ body {
 }
 
 /* Pomocnicze klasy mapujące na zmienne — żeby nie używać var() w JSX */
+.text-accent { color: var(--accent); }
+.bg-accent-soft { background: var(--accent-bg); }
+.border-accent { border-color: var(--accent); }
 .text-app { color: var(--text); }
 .text-app-muted { color: var(--text-muted); }
 .text-app-subtle { color: var(--text-subtle); }
