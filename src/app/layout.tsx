@@ -17,8 +17,11 @@ export const metadata: Metadata = {
     title: "WC2026",
   },
   icons: {
-    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/icons/icon.svg" }],
+    icon: [
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
   formatDetection: { telephone: false },
 };
@@ -40,15 +43,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         {/* Mobile / niezalogowani: górny pasek */}
         <header className={`sticky top-0 z-20 backdrop-blur border-b border-app ${user ? "md:hidden" : ""}`} style={{ background: "var(--header-bg)" }}>
-          <nav className="mx-auto max-w-5xl flex items-center justify-between px-4 py-3">
-            <Link href="/" className="flex items-center gap-2 font-black text-lg">
-              <span className="text-2xl leading-none">⚽</span>
-              <span>WC Predictor <span className="text-wc-lime">2026</span></span>
+          <nav className="mx-auto max-w-5xl flex items-center justify-between px-4 py-2">
+            <Link href="/" className="flex items-center gap-1.5 font-black">
+              <span className="text-xl leading-none">⚽</span>
+              <span className="text-base">WC Predictor <span className="text-wc-lime">2026</span></span>
             </Link>
             {user ? (
-              <div className="flex items-center gap-2">
-                <ThemeToggle compact />
-              </div>
+              <ThemeToggle compact />
             ) : (
               <div className="flex items-center gap-2">
                 <ThemeToggle compact />
@@ -58,7 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </nav>
         </header>
 
-        <main className={`mx-auto max-w-5xl px-4 py-6 pb-24 md:pb-6 ${user ? "md:pl-64" : ""}`}>
+        <main className={`mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-6 pb-24 md:pb-6 ${user ? "md:pl-64" : ""}`}>
           {children}
         </main>
 
