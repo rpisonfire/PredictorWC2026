@@ -25,13 +25,13 @@ export function NotificationsButton() {
   }
 
   if (perm === "unsupported") {
-    return <div className="text-xs text-white/40">Twoja przeglądarka nie wspiera powiadomień.</div>;
+    return <div className="text-xs text-app-subtle">Twoja przeglądarka nie wspiera powiadomień.</div>;
   }
   if (perm === "granted") {
     return <div className="text-sm text-wc-green">🔔 Powiadomienia włączone ✓</div>;
   }
   if (perm === "denied") {
-    return <div className="text-xs text-white/40">Powiadomienia zablokowane w przeglądarce. Odblokuj w ustawieniach strony.</div>;
+    return <div className="text-xs text-app-subtle">Powiadomienia zablokowane w przeglądarce. Odblokuj w ustawieniach strony.</div>;
   }
   return (
     <button onClick={enable} type="button" className="btn-ghost w-full text-sm">

@@ -17,10 +17,10 @@ export function ChangePasswordForm({ action }: { action: Action }) {
   }
 
   return (
-    <form action={formAction} className="space-y-3 border-t border-white/10 pt-5">
+    <form action={formAction} className="space-y-3 border-t border-app pt-5">
       <div className="flex items-center justify-between">
         <h3 className="font-black">Zmiana hasła</h3>
-        <button type="button" onClick={() => setOpen(false)} className="text-white/40 text-sm hover:text-white">Anuluj</button>
+        <button type="button" onClick={() => setOpen(false)} className="text-app-subtle text-sm hover:text-white">Anuluj</button>
       </div>
       <input type="password" name="oldPassword" required placeholder="Stare hasło" className="input" />
       <input type="password" name="newPassword" required minLength={6} placeholder="Nowe hasło (min. 6 znaków)" className="input" />

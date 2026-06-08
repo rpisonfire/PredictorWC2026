@@ -73,7 +73,7 @@ export default async function Admin({
       <section className="max-w-md mx-auto py-10 text-center">
         <div className="text-6xl mb-4">🔒</div>
         <h1 className="text-3xl font-black mb-2">Brak dostępu</h1>
-        <p className="text-white/60 mb-6">Ta strona jest tylko dla admina ligi.</p>
+        <p className="text-app-muted mb-6">Ta strona jest tylko dla admina ligi.</p>
         <Link href="/dashboard" className="btn-primary">Wróć do meczów</Link>
       </section>
     );
@@ -102,7 +102,7 @@ export default async function Admin({
             <button className="btn-primary">Zapisz</button>
           </div>
           {league?.actualChampion && (
-            <div className="text-xs text-white/40 mt-2">
+            <div className="text-xs text-app-subtle mt-2">
               Każdy kto wytypował {league.actualChampion.flag} {league.actualChampion.name} dostaje +10 pkt.
             </div>
           )}
@@ -113,17 +113,17 @@ export default async function Admin({
           {users.map((u) => {
             const hit = league?.actualChampionId && u.predictedChampionId === league.actualChampionId;
             return (
-              <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-white/5 last:border-0">
+              <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-app last:border-0">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{u.avatar}</span>
                   <span className="font-bold">{u.nickname}</span>
                 </div>
                 {u.predictedChampion ? (
-                  <span className={`chip ${hit ? "bg-wc-gold/20 text-wc-gold" : "bg-white/5 text-white/60"}`}>
+                  <span className={`chip ${hit ? "bg-wc-gold/20 text-wc-gold" : "bg-app-hover text-app-muted"}`}>
                     {u.predictedChampion.flag} {u.predictedChampion.name} {hit && "🎉 +10"}
                   </span>
                 ) : (
-                  <span className="text-xs text-white/30">brak typu</span>
+                  <span className="text-xs text-app-subtle">brak typu</span>
                 )}
               </div>
             );
@@ -145,12 +145,12 @@ export default async function Admin({
         <h1 className="text-3xl font-black mb-6">Admin - użytkownicy</h1>
         <div className="card overflow-hidden">
           {users.map((u) => (
-            <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-white/5 last:border-0">
+            <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-app last:border-0">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{u.avatar}</span>
                 <div>
                   <div className="font-bold">{u.nickname}</div>
-                  <div className="text-xs text-white/40">utworzony {fmtDate(u.createdAt)}</div>
+                  <div className="text-xs text-app-subtle">utworzony {fmtDate(u.createdAt)}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -167,7 +167,7 @@ export default async function Admin({
             </div>
           ))}
         </div>
-        <p className="text-xs text-white/40 mt-3">Tymczasowe hasło widoczne tylko teraz. Podaj kumplowi i powiedz żeby je zmienił (nie ma jeszcze funkcji zmiany hasła - TODO).</p>
+        <p className="text-xs text-app-subtle mt-3">Tymczasowe hasło widoczne tylko teraz. Podaj kumplowi i powiedz żeby je zmienił (nie ma jeszcze funkcji zmiany hasła - TODO).</p>
       </section>
     );
   }
@@ -188,7 +188,7 @@ export default async function Admin({
         {matches.map((m) => (
           <form key={m.id} action={setResult} className="card p-4">
             <input type="hidden" name="matchId" value={m.id} />
-            <div className="flex items-center justify-between mb-2 text-sm text-white/50">
+            <div className="flex items-center justify-between mb-2 text-sm text-app-subtle">
               <span>{m.stage} · Kolejka {m.matchday}</span>
               <span>{fmtDateTimeLong(m.kickoff)}</span>
             </div>
@@ -232,7 +232,7 @@ function AdminTabs({ active }: { active: "matches" | "users" | "champion" }) {
         <a
           key={t.key}
           href={t.href}
-          className={`px-3 py-1.5 rounded-xl text-sm font-bold ${active === t.key ? "bg-wc-red text-white" : "bg-white/5 text-white/60"}`}
+          className={`px-3 py-1.5 rounded-xl text-sm font-bold ${active === t.key ? "bg-wc-red text-white" : "bg-app-hover text-app-muted"}`}
         >
           {t.label}
         </a>

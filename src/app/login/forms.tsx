@@ -22,7 +22,7 @@ export function LoginForm({ action }: { action: Action }) {
       <button disabled={pending} className="btn-primary w-full disabled:opacity-50">
         {pending ? "Loguję..." : "Wejdź"}
       </button>
-      <p className="text-xs text-white/40 text-center">
+      <p className="text-xs text-app-subtle text-center">
         Nie masz konta? <Link href="/login?mode=signup" className="text-wc-red font-bold">Załóż je</Link>
         <br />
         Nie pamiętasz hasła? Poproś admina o reset.
@@ -51,7 +51,7 @@ export function SignUpForm({ action, avatars, teams }: { action: Action; avatars
         <input name="inviteCode" required className="input mt-1 uppercase" placeholder="MUNDIAL2026" />
       </div>
       <div>
-        <label className="text-sm font-semibold">Mistrz turnieju 🏆 <span className="text-white/40 font-normal">(+10 pkt jeśli trafisz)</span></label>
+        <label className="text-sm font-semibold">Mistrz turnieju 🏆 <span className="text-app-subtle font-normal">(+10 pkt jeśli trafisz)</span></label>
         <select name="predictedChampionId" required defaultValue="" className="input mt-1">
           <option value="" disabled>- wybierz drużynę -</option>
           {teams.map((t) => (
@@ -65,7 +65,7 @@ export function SignUpForm({ action, avatars, teams }: { action: Action; avatars
           {avatars.map((a, i) => (
             <label key={a} className="cursor-pointer">
               <input type="radio" name="avatar" value={a} defaultChecked={i === 0} className="peer sr-only" />
-              <span className="flex items-center justify-center aspect-square text-3xl rounded-xl border border-white/10 peer-checked:border-wc-red peer-checked:bg-wc-red/10">{a}</span>
+              <span className="flex items-center justify-center aspect-square text-3xl rounded-xl border border-app peer-checked:border-wc-red peer-checked:bg-wc-red/10">{a}</span>
             </label>
           ))}
         </div>
@@ -74,8 +74,8 @@ export function SignUpForm({ action, avatars, teams }: { action: Action; avatars
       <button disabled={pending} className="btn-primary w-full disabled:opacity-50">
         {pending ? "Tworzę..." : "Wskakuję do gry"}
       </button>
-      <p className="text-xs text-white/40 text-center">
-        Demo kod ligi: <code className="bg-white/5 px-1.5 py-0.5 rounded">MUNDIAL2026</code>
+      <p className="text-xs text-app-subtle text-center">
+        Demo kod ligi: <code className="bg-app-hover px-1.5 py-0.5 rounded">MUNDIAL2026</code>
       </p>
     </form>
   );

@@ -4,27 +4,60 @@
 
 :root {
   color-scheme: dark;
+  --bg: #0B0F19;
+  --text: #F5F7FA;
+  --text-muted: rgba(245, 247, 250, 0.6);
+  --text-subtle: rgba(245, 247, 250, 0.4);
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.20);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --header-bg: rgba(11, 15, 25, 0.7);
+  --chip-bg: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #FAF7F2;
+  --text: #0B0F19;
+  --text-muted: rgba(11, 15, 25, 0.65);
+  --text-subtle: rgba(11, 15, 25, 0.4);
+  --card-bg: #ffffff;
+  --border: rgba(11, 15, 25, 0.08);
+  --border-strong: rgba(11, 15, 25, 0.16);
+  --input-bg: #ffffff;
+  --hover-bg: rgba(11, 15, 25, 0.05);
+  --header-bg: rgba(250, 247, 242, 0.85);
+  --chip-bg: rgba(11, 15, 25, 0.06);
 }
 
 html, body {
-  background: #0B0F19;
-  color: #F5F7FA;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
-  /* Wsparcie safe area dla iOS w trybie PWA */
   padding-top: env(safe-area-inset-top);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* subtle stadium-lights backdrop */
 body {
   background-image:
-    radial-gradient(1000px 500px at 10% -10%, rgba(228,0,43,0.12), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgba(10,49,97,0.25), transparent 60%),
-    radial-gradient(700px 400px at 50% 110%, rgba(0,104,71,0.18), transparent 60%);
+    radial-gradient(1000px 500px at 10% -10%, rgba(228,0,43,0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(10,49,97,0.18), transparent 60%),
+    radial-gradient(700px 400px at 50% 110%, rgba(0,104,71,0.14), transparent 60%);
   background-attachment: fixed;
 }
 
+:root[data-theme="light"] body {
+  background-image:
+    radial-gradient(1000px 500px at 10% -10%, rgba(228,0,43,0.06), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(10,49,97,0.08), transparent 60%);
+}
+
 .card {
-  @apply bg-white/[0.04] rounded-2xl border border-white/10 shadow-xl backdrop-blur;
+  @apply rounded-2xl shadow-xl backdrop-blur;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
 }
 
 .btn {
@@ -36,17 +69,42 @@ body {
 }
 
 .btn-ghost {
-  @apply btn bg-white/5 text-white hover:bg-white/10 border border-white/10;
+  @apply btn;
+  background: var(--hover-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  background: var(--border);
 }
 
 .input {
-  @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-white/30 outline-none focus:border-wc-red focus:ring-2 focus:ring-wc-red/30;
+  @apply w-full rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-wc-red/30;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
-.input option, .input optgroup {
-  @apply bg-wc-ink text-white;
+.input::placeholder { color: var(--text-subtle); }
+.input:focus { border-color: theme('colors.wc.red'); }
+
+:root[data-theme="dark"] .input option,
+:root[data-theme="dark"] .input optgroup,
+:root .input option,
+:root .input optgroup {
+  background: var(--bg);
+  color: var(--text);
 }
 
 .chip {
   @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
 }
+
+/* Pomocnicze klasy mapujące na zmienne — żeby nie używać var() w JSX */
+.text-app { color: var(--text); }
+.text-app-muted { color: var(--text-muted); }
+.text-app-subtle { color: var(--text-subtle); }
+.bg-app-card { background: var(--card-bg); }
+.bg-app-hover { background: var(--hover-bg); }
+.border-app { border-color: var(--border); }

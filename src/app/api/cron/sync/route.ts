@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { scorePrediction } from "@/lib/scoring";
+import { sendPushToAll } from "@/lib/push";
 
 const TOKEN = process.env.FOOTBALL_DATA_TOKEN;
 const BASE = "https://api.football-data.org/v4";
@@ -79,5 +80,24 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, updated, scoredPredictions, ts: new Date().toISOString() });
+  // Codzienne powiadomienie push: ile meczów dziś + przypomnienie o boostach
+  const now = new Date();
+  const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 3600 * 1000);
+  const todayCount = await prisma.match.count({
+    where: { kickoff: { gte: startOfDay, lt: endOfDay } },
+  });
+  let pushResult = { sent: 0, removed: 0 };
+  if (updated > 0 || todayCount > 0) {
+    const parts: string[] = [];
+    if (updated > 0) parts.push(`⚽ Wczoraj rozegrane: ${updated}, punkty przeliczone`);
+    if (todayCount > 0) parts.push(`📅 Dziś ${todayCount} ${todayCount === 1 ? "mecz" : "meczy"} - typuj!`);
+    pushResult = await sendPushToAll({
+      title: "WC Predictor 2026",
+      body: parts.join(" · "),
+      url: "/dashboard",
+    });
+  }
+
+  return NextResponse.json({ ok: true, updated, scoredPredictions, push: pushResult, ts: new Date().toISOString() });
 }

@@ -29,7 +29,7 @@ export function Countdown() {
 
   return (
     <div className="card p-6">
-      <div className="text-xs uppercase tracking-wider text-white/40 mb-3 text-center">
+      <div className="text-xs uppercase tracking-wider text-app-subtle mb-3 text-center">
         Do meczu otwarcia · 🇲🇽 Estadio Banorte, Ciudad de México
       </div>
       <div className="grid grid-cols-4 gap-2">
@@ -45,14 +45,14 @@ export function Countdown() {
 function Cell({ value, label, pulse }: { value: number; label: string; pulse?: boolean }) {
   const str = String(value).padStart(2, "0");
   return (
-    <div className="rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 p-3 text-center">
+    <div className="rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-app p-3 text-center">
       <div
         className={`text-4xl md:text-5xl font-black tabular-nums tracking-tight ${pulse ? "text-wc-red" : "text-white"}`}
         style={pulse ? { animation: "wcPulse 1s ease-in-out infinite" } : undefined}
       >
         {str}
       </div>
-      <div className="text-[10px] uppercase tracking-widest text-white/40 mt-1">{label}</div>
+      <div className="text-[10px] uppercase tracking-widest text-app-subtle mt-1">{label}</div>
       <style>{`@keyframes wcPulse { 0%,100% { opacity: 1 } 50% { opacity: 0.55 } }`}</style>
     </div>
   );

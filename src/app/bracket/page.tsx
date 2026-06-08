@@ -45,13 +45,13 @@ export default async function BracketPage() {
   return (
     <section>
       <h1 className="text-3xl font-black mb-1">Drabinka pucharowa 🏆</h1>
-      <p className="text-white/60 mb-6">Wszystkie mecze fazy pucharowej. Awansy będą się pojawiać automatycznie z API.</p>
+      <p className="text-app-muted mb-6">Wszystkie mecze fazy pucharowej. Awansy będą się pojawiać automatycznie z API.</p>
 
       {stages.length === 0 ? (
         <div className="card p-10 text-center">
           <div className="text-5xl mb-3">🌳</div>
           <div className="font-bold">Drabinka jeszcze pusta</div>
-          <p className="text-sm text-white/50 mt-1">Mecze pucharowe pojawią się po fazie grupowej.</p>
+          <p className="text-sm text-app-subtle mt-1">Mecze pucharowe pojawią się po fazie grupowej.</p>
         </div>
       ) : (
         <div className="overflow-x-auto -mx-4 px-4">
@@ -60,7 +60,7 @@ export default async function BracketPage() {
               const list = byStage.get(s) ?? [];
               return (
                 <div key={s} className="flex flex-col gap-3 min-w-[240px]">
-                  <div className="text-xs uppercase tracking-wider text-white/40 sticky top-0 bg-wc-ink/80 backdrop-blur py-2 px-3 rounded-lg">
+                  <div className="text-xs uppercase tracking-wider text-app-subtle sticky top-0 bg-[var(--header-bg)] backdrop-blur py-2 px-3 rounded-lg">
                     {COLUMN_LABEL[s] ?? s} · {list.length}
                   </div>
                   <div className="flex flex-col gap-3 justify-around flex-1">
@@ -74,7 +74,7 @@ export default async function BracketPage() {
                           href={`/match/${m.id}`}
                           className="card p-3 hover:border-wc-red/40 transition block"
                         >
-                          <div className="text-[10px] text-white/40">{fmtDateTime(m.kickoff)}</div>
+                          <div className="text-[10px] text-app-subtle">{fmtDateTime(m.kickoff)}</div>
                           <div className={`flex items-center justify-between mt-1 ${awayWon ? "opacity-50" : ""}`}>
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-lg">{m.homeTeam.flag}</span>

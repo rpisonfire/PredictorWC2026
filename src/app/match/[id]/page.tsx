@@ -109,7 +109,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     <section className="max-w-2xl mx-auto">
       {live && <AutoRefresh intervalSec={60} />}
       <div className="card p-6">
-        <div className="flex justify-between items-center text-xs text-white/40">
+        <div className="flex justify-between items-center text-xs text-app-subtle">
           <span>{match.stage} · Kolejka {match.matchday}</span>
           <div className="flex items-center gap-2">
             {live && <LiveChip small />}
@@ -121,7 +121,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <div className="text-5xl">{match.homeTeam.flag}</div>
             <div className="font-black mt-1">{match.homeTeam.name}</div>
           </div>
-          <div className="px-3 text-3xl font-black text-white/30">
+          <div className="px-3 text-3xl font-black text-app-subtle">
             {finished ? `${match.homeScore} : ${match.awayScore}` : "vs"}
           </div>
           <div className="flex-1">
@@ -169,7 +169,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                     defaultChecked={pred?.firstScorerTeam === opt.val}
                     className="peer sr-only"
                   />
-                  <span className="block text-center font-bold py-2 rounded-xl border border-white/10 peer-checked:bg-wc-blue peer-checked:text-white peer-checked:border-wc-blue">
+                  <span className="block text-center font-bold py-2 rounded-xl border border-app peer-checked:bg-wc-blue peer-checked:text-white peer-checked:border-wc-blue">
                     {opt.label}
                   </span>
                 </label>
@@ -192,11 +192,11 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           </div>
 
           {boostLocked && !boostOnThisMatch ? (
-            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 opacity-60">
+            <div className="flex items-center gap-3 rounded-xl border border-app bg-app-hover p-4 opacity-60">
               <div className="text-2xl">🔒</div>
               <div className="text-sm">
                 <div className="font-black">Boost już użyty w kolejce {match.matchday}</div>
-                <div className="text-white/60">
+                <div className="text-app-muted">
                   Na meczu{" "}
                   <a href={`/match/${matchdayBoost.matchId}`} className="text-wc-gold underline">
                     {matchdayBoost.match.homeTeam.flag} {matchdayBoost.match.homeTeam.shortCode} vs {matchdayBoost.match.awayTeam.shortCode} {matchdayBoost.match.awayTeam.flag}
@@ -211,20 +211,20 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <div className="text-2xl">⚡</div>
               <div className="text-sm">
                 <div className="font-black text-wc-gold">Boost x3 aktywny na tym meczu</div>
-                <div className="text-white/60">Zablokowany - nie można cofnąć w tej kolejce.</div>
+                <div className="text-app-muted">Zablokowany - nie można cofnąć w tej kolejce.</div>
               </div>
             </div>
           ) : (
-            <label className="flex items-center gap-3 rounded-xl border border-dashed border-wc-gold/60 bg-white/5 p-4 cursor-pointer hover:bg-white/10">
+            <label className="flex items-center gap-3 rounded-xl border border-dashed border-wc-gold/60 bg-app-hover p-4 cursor-pointer hover:bg-app-hover">
               <input type="checkbox" name="boost" className="h-5 w-5 accent-wc-red" />
               <div>
                 <div className="font-black text-wc-red">Boost x3 ⚡</div>
-                <div className="text-xs text-white/60">Pomnóż punkty z tego meczu razy 3. Jeden boost na kolejkę - <b>raz wybrany, zablokowany</b>.</div>
+                <div className="text-xs text-app-muted">Pomnóż punkty z tego meczu razy 3. Jeden boost na kolejkę - <b>raz wybrany, zablokowany</b>.</div>
               </div>
             </label>
           )}
 
-          <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-xs text-white/60">
+          <div className="rounded-xl bg-app-hover border border-app p-3 text-xs text-app-muted">
             💡 <b>Wskazówka:</b> wybierz <b>pierwszą drużynę</b> która strzeli (+2 pkt) i <b>strzelca</b> pierwszego gola (+5 pkt) żeby zmaksymalizować punkty z meczu.
           </div>
 
@@ -250,19 +250,19 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               const opBoosted = boostedUserIds.has(op.userId);
               const opPts = opBoosted ? op.pointsAwarded * 3 : op.pointsAwarded;
               return (
-                <li key={op.id} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
+                <li key={op.id} className="flex items-center gap-3 py-2 border-b border-app last:border-0">
                   <span className="text-xl">{op.user.avatar}</span>
                   <span className="font-bold flex-1">{op.user.nickname}</span>
                   <span className="font-black text-lg">{op.homeScore} : {op.awayScore}</span>
                   {op.player && (
-                    <span className="hidden sm:flex items-center gap-1.5 chip bg-white/5">
+                    <span className="hidden sm:flex items-center gap-1.5 chip bg-app-hover">
                       <PlayerAvatar name={op.player.name} photoUrl={op.player.photoUrl} size={18} />
                       <span className="text-xs">{op.player.name}</span>
                     </span>
                   )}
                   {opBoosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3</span>}
                   {finished && (
-                    <span className={`chip ${opPts > 0 ? "bg-wc-green/15 text-wc-green" : "bg-white/5 text-white/40"}`}>
+                    <span className={`chip ${opPts > 0 ? "bg-wc-green/15 text-wc-green" : "bg-app-hover text-app-subtle"}`}>
                       {opPts} pkt
                     </span>
                   )}
@@ -282,7 +282,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </form>
         <ul className="space-y-3">
           {match.comments.length === 0 && (
-            <li className="text-sm text-white/40">Brak komentarzy. Rzuć pierwszą zaczepkę 🔥</li>
+            <li className="text-sm text-app-subtle">Brak komentarzy. Rzuć pierwszą zaczepkę 🔥</li>
           )}
           {match.comments.map((c) => (
             <li key={c.id} className="flex gap-3">
@@ -290,7 +290,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <div>
                 <div className="text-sm">
                   <b>{c.user.nickname}</b>
-                  <span className="text-white/30 ml-2">{fmtDateTime(c.createdAt)}</span>
+                  <span className="text-app-subtle ml-2">{fmtDateTime(c.createdAt)}</span>
                 </div>
                 <div className="text-sm">{c.body}</div>
               </div>

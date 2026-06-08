@@ -62,13 +62,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="flex gap-2 mb-6">
         <Link
           href="/login"
-          className={`flex-1 text-center py-2 rounded-xl font-bold ${!isSignUp ? "bg-wc-red text-white" : "bg-white/5 text-white/60"}`}
+          className={`flex-1 text-center py-2 rounded-xl font-bold ${!isSignUp ? "bg-wc-red text-white" : "bg-app-hover text-app-muted"}`}
         >
           Logowanie
         </Link>
         <Link
           href="/login?mode=signup"
-          className={`flex-1 text-center py-2 rounded-xl font-bold ${isSignUp ? "bg-wc-red text-white" : "bg-white/5 text-white/60"}`}
+          className={`flex-1 text-center py-2 rounded-xl font-bold ${isSignUp ? "bg-wc-red text-white" : "bg-app-hover text-app-muted"}`}
         >
           Rejestracja
         </Link>

@@ -25,7 +25,7 @@ export default async function Home() {
             <span className="text-wc-red">Zgarniaj</span> punkty.<br />
             <span className="text-wc-gold">Pokonaj</span> ekipę.
           </h1>
-          <p className="mt-5 text-white/60 text-lg max-w-md">
+          <p className="mt-5 text-app-muted text-lg max-w-md">
             Prywatna liga typerska dla ciebie i znajomych. Strzelaj wyniki,
             wybieraj pierwszego strzelca i ustawiaj <b>boost x3</b> na pewniaka kolejki.
           </p>
@@ -35,7 +35,7 @@ export default async function Home() {
           </div>
         </div>
         <div className="card p-6">
-          <div className="text-xs uppercase tracking-wider text-white/40 mb-2">Punktacja</div>
+          <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">Punktacja</div>
           <ul className="space-y-2 text-sm">
             <Row label="Dokładny wynik" pts={5} color="bg-wc-red" />
             <Row label="Różnica bramek" pts={3} color="bg-wc-blue" />

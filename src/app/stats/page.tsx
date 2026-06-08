@@ -59,12 +59,12 @@ export default async function StatsPage() {
   return (
     <section className="max-w-3xl mx-auto">
       <h1 className="text-3xl font-black mb-1">Statystyki turnieju 🌍</h1>
-      <p className="text-white/60 mb-6">Co typują kumple - agregaty z całej apki.</p>
+      <p className="text-app-muted mb-6">Co typują kumple - agregaty z całej apki.</p>
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="card p-5">
           <h2 className="text-lg font-black mb-3">🏆 Najczęstszy typ na mistrza</h2>
-          {champRows.length === 0 && <div className="text-white/40 text-sm">Nikt jeszcze nie wybrał.</div>}
+          {champRows.length === 0 && <div className="text-app-subtle text-sm">Nikt jeszcze nie wybrał.</div>}
           <ul className="space-y-2">
             {champRows.map(({ team, count }) => {
               const pct = totalUsers ? (count / totalUsers) * 100 : 0;
@@ -74,9 +74,9 @@ export default async function StatsPage() {
                     <span className="text-xl">{team.flag}</span>
                     <span className="font-bold flex-1 truncate">{team.name}</span>
                     <span className="text-sm font-black text-wc-gold tabular-nums">{pct.toFixed(0)}%</span>
-                    <span className="text-xs text-white/40">({count})</span>
+                    <span className="text-xs text-app-subtle">({count})</span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-app-hover overflow-hidden">
                     <div className="h-full bg-wc-gold" style={{ width: `${pct}%` }} />
                   </div>
                 </li>
@@ -87,14 +87,14 @@ export default async function StatsPage() {
 
         <div className="card p-5">
           <h2 className="text-lg font-black mb-3">⚽ Najczęstszy strzelec</h2>
-          {scorerRows.length === 0 && <div className="text-white/40 text-sm">Brak typów na strzelców.</div>}
+          {scorerRows.length === 0 && <div className="text-app-subtle text-sm">Brak typów na strzelców.</div>}
           <ul className="space-y-2">
             {scorerRows.map(({ player, count }) => player ? (
               <li key={player.id} className="flex items-center gap-2">
                 <PlayerAvatar name={player.name} photoUrl={player.photoUrl} size={28} />
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-sm truncate">{player.name}</div>
-                  <div className="text-xs text-white/40">{player.team.flag} {player.team.name}</div>
+                  <div className="text-xs text-app-subtle">{player.team.flag} {player.team.name}</div>
                 </div>
                 <div className="chip bg-wc-gold/15 text-wc-gold">{count}×</div>
               </li>
@@ -105,17 +105,17 @@ export default async function StatsPage() {
         <div className="card p-5">
           <h2 className="text-lg font-black mb-3">📊 Średnia w typach</h2>
           <div className="text-4xl font-black text-wc-gold tabular-nums">{avgGoals}</div>
-          <p className="text-sm text-white/60 mt-1">bramek na mecz (średnia z {allPreds.length} typów)</p>
+          <p className="text-sm text-app-muted mt-1">bramek na mecz (średnia z {allPreds.length} typów)</p>
         </div>
 
         <div className="card p-5">
           <h2 className="text-lg font-black mb-3">🎯 Top wyniki typowane</h2>
-          {topScores.length === 0 && <div className="text-white/40 text-sm">Brak typów.</div>}
+          {topScores.length === 0 && <div className="text-app-subtle text-sm">Brak typów.</div>}
           <ul className="space-y-2">
             {topScores.map(([score, n]) => (
               <li key={score} className="flex items-center justify-between">
                 <span className="text-xl font-black tabular-nums">{score}</span>
-                <span className="text-sm text-white/40">{n} {n === 1 ? "typ" : n < 5 ? "typy" : "typów"}</span>
+                <span className="text-sm text-app-subtle">{n} {n === 1 ? "typ" : n < 5 ? "typy" : "typów"}</span>
               </li>
             ))}
           </ul>

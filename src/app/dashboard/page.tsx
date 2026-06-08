@@ -67,14 +67,14 @@ export default async function Dashboard({
       )}
 
       <h1 className="text-3xl font-black mb-1">Mecze</h1>
-      <p className="text-white/60 mb-6">Cześć <b>{user.nickname}</b> - typuj poniżej. Blokada 5 minut przed gwizdkiem.</p>
+      <p className="text-app-muted mb-6">Cześć <b>{user.nickname}</b> - typuj poniżej. Blokada 5 minut przed gwizdkiem.</p>
 
       {needsChampionPick && (
-        <Link href="/champion" className="card p-4 mb-6 border-wc-gold/40 flex items-center gap-4 hover:bg-white/5">
+        <Link href="/champion" className="card p-4 mb-6 border-wc-gold/40 flex items-center gap-4 hover:bg-app-hover">
           <div className="text-3xl">🏆</div>
           <div className="flex-1">
             <div className="font-black">Wybierz mistrza turnieju</div>
-            <div className="text-sm text-white/60">+10 pkt jeśli trafisz. Można zmieniać do końca fazy grupowej.</div>
+            <div className="text-sm text-app-muted">+10 pkt jeśli trafisz. Można zmieniać do końca fazy grupowej.</div>
           </div>
           <div className="chip bg-wc-gold/15 text-wc-gold">Wybierz →</div>
         </Link>
@@ -84,13 +84,13 @@ export default async function Dashboard({
       <div className="mb-10">
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-2xl font-black">Dzisiejsze mecze 🔥</h2>
-          <span className="text-xs text-white/40">{todayKey}</span>
+          <span className="text-xs text-app-subtle">{todayKey}</span>
         </div>
         {todayMatches.length === 0 ? (
           <div className="card p-8 text-center">
             <div className="text-4xl mb-2">🌴</div>
             <div className="font-black">Hola hola, mundial się jeszcze nie zaczął</div>
-            <p className="text-sm text-white/50 mt-1">Dziś nie ma żadnego meczu. Wracaj za parę dni 😎</p>
+            <p className="text-sm text-app-subtle mt-1">Dziś nie ma żadnego meczu. Wracaj za parę dni 😎</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -114,7 +114,7 @@ export default async function Dashboard({
             <div className="font-black">
               Najbliższy mecz: {nextMatch.homeTeam.flag} {nextMatch.homeTeam.shortCode} vs {nextMatch.awayTeam.shortCode} {nextMatch.awayTeam.flag}
             </div>
-            <div className="text-sm text-white/60">
+            <div className="text-sm text-app-muted">
               {hoursToNext < 1
                 ? `Za ${Math.ceil(hoursToNext * 60)} min`
                 : `Za ${Math.floor(hoursToNext)}h ${Math.round((hoursToNext % 1) * 60)}min`}
@@ -131,7 +131,7 @@ export default async function Dashboard({
         <div className="card p-10 text-center mb-10">
           <div className="text-5xl mb-3">📅</div>
           <div className="font-bold">Brak meczów w bazie</div>
-          <p className="text-sm text-white/50 mt-1">Admin doda terminarz przed startem turnieju.</p>
+          <p className="text-sm text-app-subtle mt-1">Admin doda terminarz przed startem turnieju.</p>
         </div>
       )}
 
@@ -160,7 +160,7 @@ export default async function Dashboard({
       <div className="mt-12">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-2xl font-black">Stadiony Mundialu 🏟️</h2>
-          <span className="text-xs text-white/40">{STADIUMS.length} aren · 3 kraje</span>
+          <span className="text-xs text-app-subtle">{STADIUMS.length} aren · 3 kraje</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
           {STADIUMS.map((s) => (
@@ -169,7 +169,7 @@ export default async function Dashboard({
                 <div className="font-black leading-tight text-sm">{s.name}</div>
                 <span className="text-lg shrink-0">{s.flag}</span>
               </div>
-              <div className="text-xs text-white/60 mt-0.5 truncate">{s.city}</div>
+              <div className="text-xs text-app-muted mt-0.5 truncate">{s.city}</div>
               <div className="mt-2 text-base font-black text-wc-gold tabular-nums">
                 {s.capacity.toLocaleString("pl-PL")}
               </div>
@@ -197,7 +197,7 @@ function MatchCard({
       href={`/match/${m.id}`}
       className={`card p-3 sm:p-4 hover:border-wc-red/40 transition ${highlight ? "border-wc-red/20" : ""}`}
     >
-      <div className="flex items-center justify-between text-[11px] sm:text-xs text-white/40">
+      <div className="flex items-center justify-between text-[11px] sm:text-xs text-app-subtle">
         <span className="truncate">{m.stage}</span>
         <span className="shrink-0 ml-2">{fmtDateTime(m.kickoff)}</span>
       </div>
@@ -221,7 +221,7 @@ function MatchCard({
       </div>
 
       {finished && pred && (
-        <div className="mt-1.5 text-[10px] text-white/40 uppercase tracking-wider">
+        <div className="mt-1.5 text-[10px] text-app-subtle uppercase tracking-wider">
           twój typ: {pred.homeScore}:{pred.awayScore}
         </div>
       )}
@@ -236,9 +236,9 @@ function MatchCard({
           <span className="chip bg-wc-red/10 text-wc-red text-[10px]">Brak typu</span>
         )}
         {boosted && <span className="chip bg-wc-gold/15 text-wc-gold text-[10px]">x3 ⚡</span>}
-        {locked && !finished && !live && <span className="chip bg-white/10 text-white/60 text-[10px]">🔒</span>}
+        {locked && !finished && !live && <span className="chip bg-app-hover text-app-muted text-[10px]">🔒</span>}
         {finished && pred && (
-          <span className={`chip text-[10px] ${pred.pointsAwarded > 0 ? "bg-wc-green/15 text-wc-green" : "bg-white/5 text-white/40"}`}>
+          <span className={`chip text-[10px] ${pred.pointsAwarded > 0 ? "bg-wc-green/15 text-wc-green" : "bg-app-hover text-app-subtle"}`}>
             {boosted ? pred.pointsAwarded * 3 : pred.pointsAwarded} pkt
           </span>
         )}

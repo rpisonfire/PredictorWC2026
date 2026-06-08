@@ -4,6 +4,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { MobileNav } from "@/components/MobileNav";
 import { RegisterSW } from "@/components/RegisterSW";
+import { Sidebar } from "@/components/Sidebar";
+import { ThemeInitScript, ThemeToggle } from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "WC Predictor 2026",
@@ -32,35 +34,38 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const user = await getCurrentUser();
   return (
     <html lang="pl">
+      <head><ThemeInitScript /></head>
       <body>
-        <header className="sticky top-0 z-30 bg-wc-ink/70 backdrop-blur border-b border-white/10">
+        {user && <Sidebar nickname={user.nickname} avatar={user.avatar} isAdmin={user.isAdmin} />}
+
+        {/* Mobile / niezalogowani: górny pasek */}
+        <header className={`sticky top-0 z-20 backdrop-blur border-b border-app ${user ? "md:hidden" : ""}`} style={{ background: "var(--header-bg)" }}>
           <nav className="mx-auto max-w-5xl flex items-center justify-between px-4 py-3">
             <Link href="/" className="flex items-center gap-2 font-black text-lg">
               <span className="text-2xl leading-none">⚽</span>
               <span>WC Predictor <span className="text-wc-lime">2026</span></span>
             </Link>
             {user ? (
-              <div className="hidden md:flex items-center gap-4 text-sm">
-                <Link href="/dashboard" className="hover:underline">Mecze</Link>
-                <Link href="/my-predictions" className="hover:underline">Moje typy</Link>
-                <Link href="/champion" className="hover:underline">Typ na mistrza 🏆</Link>
-                <Link href="/groups" className="hover:underline">Grupy 📊</Link>
-                <Link href="/bracket" className="hover:underline">Drabinka 🌳</Link>
-                <Link href="/leaderboard" className="hover:underline">Ranking</Link>
-                <Link href="/stats" className="hover:underline">Statystyki 🌍</Link>
-                <Link href="/leagues" className="hover:underline">Ligi</Link>
-                {user.isAdmin && <Link href="/admin" className="hover:underline text-wc-gold">Admin</Link>}
-                <Link href="/profile" className="hover:underline">{user.avatar} {user.nickname}</Link>
+              <div className="flex items-center gap-2">
+                <ThemeToggle compact />
               </div>
             ) : (
-              <Link href="/login" className="btn-primary text-sm">Zaloguj się</Link>
+              <div className="flex items-center gap-2">
+                <ThemeToggle compact />
+                <Link href="/login" className="btn-primary text-sm">Zaloguj się</Link>
+              </div>
             )}
           </nav>
         </header>
-        <main className="mx-auto max-w-5xl px-4 py-6 pb-24 md:pb-6">{children}</main>
-        <footer className="mx-auto max-w-5xl px-4 py-10 pb-28 md:pb-10 text-center text-xs text-white/40">
+
+        <main className={`mx-auto max-w-5xl px-4 py-6 pb-24 md:pb-6 ${user ? "md:pl-64" : ""}`}>
+          {children}
+        </main>
+
+        <footer className={`mx-auto max-w-5xl px-4 py-10 pb-28 md:pb-10 text-center text-xs ${user ? "md:pl-64" : ""}`} style={{ color: "var(--text-subtle)" }}>
           Aplikacja wykonana przez rpisonfire &amp; Claude Code na Mistrzostwa Świata 2026 w piłce nożnej ⚽
         </footer>
+
         {user && <MobileNav isAdmin={user.isAdmin} />}
         <RegisterSW />
       </body>

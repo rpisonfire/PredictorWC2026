@@ -17,7 +17,7 @@ export function PlayerAvatar({
         src={photoUrl}
         alt={name}
         style={dim}
-        className="rounded-full object-cover bg-white/10 border border-white/10 shrink-0"
+        className="rounded-full object-cover bg-app-hover border border-app shrink-0"
         loading="lazy"
       />
     );
@@ -25,7 +25,7 @@ export function PlayerAvatar({
   return (
     <span
       style={{ ...dim, fontSize: size * 0.4 }}
-      className="rounded-full bg-wc-blue/30 border border-white/10 inline-flex items-center justify-center font-black text-white shrink-0"
+      className="rounded-full bg-wc-blue/30 border border-app inline-flex items-center justify-center font-black text-white shrink-0"
     >
       {initials}
     </span>

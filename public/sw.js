@@ -1,5 +1,5 @@
-// Minimalny service worker - offline cache dla statyków + fallback do sieci dla danych
-const CACHE = "wcp-v1";
+// WC Predictor SW - offline cache + push notifications
+const CACHE = "wcp-v2";
 const PRECACHE = ["/", "/dashboard", "/icons/icon.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
@@ -20,12 +20,9 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-
-  // Nigdy nie cache'ujemy API / auth / dynamicznych route'ów
   if (url.pathname.startsWith("/api/")) return;
   if (url.pathname.startsWith("/_next/data/")) return;
 
-  // Stale-while-revalidate dla obrazków i statyków
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     e.respondWith(
       caches.open(CACHE).then(async (cache) => {
@@ -40,7 +37,6 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Network-first dla stron HTML, fallback do cache jak offline
   if (req.mode === "navigate") {
     e.respondWith(
       fetch(req).then((res) => {
@@ -50,4 +46,31 @@ self.addEventListener("fetch", (e) => {
       }).catch(() => caches.match(req).then((m) => m || caches.match("/dashboard")))
     );
   }
+});
+
+// Push notifications
+self.addEventListener("push", (e) => {
+  let data = { title: "WC Predictor", body: "Nowe powiadomienie" };
+  try { if (e.data) data = e.data.json(); } catch {}
+  const opts = {
+    body: data.body,
+    icon: "/icons/icon.svg",
+    badge: "/icons/icon.svg",
+    data: { url: data.url || "/dashboard" },
+    vibrate: [200, 100, 200],
+  };
+  e.waitUntil(self.registration.showNotification(data.title, opts));
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = e.notification.data?.url || "/dashboard";
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const client of list) {
+        if ("focus" in client) { client.navigate(url); return client.focus(); }
+      }
+      return clients.openWindow(url);
+    })
+  );
 });
