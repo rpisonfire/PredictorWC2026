@@ -10,6 +10,8 @@ import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
 import { sendPushToAll, sendPushToUser } from "@/lib/push";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 async function setResult(formData: FormData) {
   "use server";
   const matchId = String(formData.get("matchId"));
