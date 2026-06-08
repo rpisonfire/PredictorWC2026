@@ -40,7 +40,7 @@ export function PlayerPicker({
       </button>
 
       {open && (
-        <div className="mt-2 w-full max-h-80 overflow-y-auto rounded-xl bg-wc-ink border border-app shadow-2xl">
+        <div className="mt-2 w-full max-h-80 overflow-y-auto rounded-xl border border-app shadow-2xl" style={{ background: "var(--bg)" }}>
           <button
             type="button"
             onClick={() => { setSelected(""); setOpen(false); }}
