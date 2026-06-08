@@ -33,10 +33,18 @@ export function Sidebar({
             <li key={it.href}>
               <Link
                 href={it.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--hover-bg)] transition ${it.gold ? "text-wc-gold" : ""}`}
+                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl overflow-hidden transition-all duration-300 ${it.gold ? "text-wc-gold" : ""}`}
               >
-                <span className="text-lg w-6 text-center">{it.emoji}</span>
-                <span className="font-bold text-sm">{it.label}</span>
+                <span
+                  aria-hidden
+                  className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-[var(--accent-bg)] via-[var(--hover-bg)] to-transparent transition-transform duration-500 ease-out"
+                />
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-0 group-hover:h-2/3 w-[3px] rounded-r bg-[var(--accent)] transition-all duration-300"
+                />
+                <span className="relative text-lg w-6 text-center transition-transform duration-300 group-hover:scale-110">{it.emoji}</span>
+                <span className="relative font-bold text-sm transition-transform duration-300 group-hover:translate-x-0.5">{it.label}</span>
               </Link>
             </li>
           ))}
