@@ -47,7 +47,7 @@ function Cell({ value, label, pulse }: { value: number; label: string; pulse?: b
   return (
     <div className="rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-app p-3 text-center">
       <div
-        className={`text-4xl md:text-5xl font-black tabular-nums tracking-tight ${pulse ? "text-wc-red" : "text-white"}`}
+        className={`text-4xl md:text-5xl font-black tabular-nums tracking-tight ${pulse ? "text-wc-red" : "text-app"}`}
         style={pulse ? { animation: "wcPulse 1s ease-in-out infinite" } : undefined}
       >
         {str}

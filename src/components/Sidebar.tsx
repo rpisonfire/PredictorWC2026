@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "./ThemeToggle";
 
 type Item = { href: string; label: string; emoji: string; gold?: boolean };
 
@@ -42,16 +43,19 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <Link
-        href="/profile"
-        className="flex items-center gap-3 px-5 py-4 border-t border-[var(--border)] hover:bg-[var(--hover-bg)] transition"
-      >
-        <span className="text-2xl">{avatar}</span>
-        <div className="min-w-0">
-          <div className="font-bold truncate">{nickname}</div>
-          <div className="text-xs text-[var(--text-muted)]">Profil</div>
-        </div>
-      </Link>
+      <div className="border-t border-[var(--border)] flex items-center pr-2">
+        <Link
+          href="/profile"
+          className="flex items-center gap-3 px-5 py-3 hover:bg-[var(--hover-bg)] transition flex-1 min-w-0"
+        >
+          <span className="text-2xl">{avatar}</span>
+          <div className="min-w-0">
+            <div className="font-bold truncate">{nickname}</div>
+            <div className="text-xs text-[var(--text-muted)]">Profil</div>
+          </div>
+        </Link>
+        <ThemeToggle compact />
+      </div>
     </aside>
   );
 }
