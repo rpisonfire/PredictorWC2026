@@ -123,7 +123,10 @@ export default async function StatsPage() {
     : null;
 
   const bold = boldPreds[0];
-  const progressPct = totalMatches ? (finishedMatches / totalMatches) * 100 : 0;
+  // MŚ 2026: 104 mecze (72 grupowe + 32 fazy pucharowej)
+  const TOTAL_WC_MATCHES = 104;
+  const progressPct = (finishedMatches / TOTAL_WC_MATCHES) * 100;
+  const BAR_COLORS = ["bg-wc-gold", "bg-wc-blue", "bg-wc-green", "bg-accent", "bg-wc-lime"];
 
   return (
     <section className="max-w-4xl mx-auto">
@@ -134,7 +137,7 @@ export default async function StatsPage() {
       <div className="card p-5 mb-4">
         <div className="flex items-baseline justify-between mb-2">
           <div className="text-sm uppercase tracking-wider text-app-subtle">Przebieg turnieju</div>
-          <div className="text-sm text-app-muted"><b className="text-app">{finishedMatches}</b> / {totalMatches} meczów</div>
+          <div className="text-sm text-app-muted"><b className="text-app">{finishedMatches}</b> / {TOTAL_WC_MATCHES} meczów</div>
         </div>
         <div className="h-3 rounded-full bg-app-hover overflow-hidden">
           <div className="h-full bg-gradient-to-r from-wc-red via-wc-gold to-wc-green" style={{ width: `${progressPct}%` }} />
@@ -176,18 +179,19 @@ export default async function StatsPage() {
           <h2 className="text-lg font-black mb-3">🏆 Najczęstszy typ na mistrza</h2>
           {champRows.length === 0 && <div className="text-app-subtle text-sm">Nikt jeszcze nie wybrał.</div>}
           <ul className="space-y-3">
-            {champRows.map(({ team, count }) => {
+            {champRows.map(({ team, count }, i) => {
               const pct = totalUsers ? (count / totalUsers) * 100 : 0;
+              const color = BAR_COLORS[i % BAR_COLORS.length];
               return team ? (
                 <li key={team.id}>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xl">{team.flag}</span>
                     <span className="font-bold flex-1 truncate">{team.name}</span>
-                    <span className="text-sm font-black text-wc-gold tabular-nums">{pct.toFixed(0)}%</span>
+                    <span className={`text-sm font-black tabular-nums ${color.replace("bg-", "text-")}`}>{pct.toFixed(0)}%</span>
                     <span className="text-xs text-app-subtle w-8 text-right">({count})</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-app-hover overflow-hidden">
-                    <div className="h-full bg-wc-gold" style={{ width: `${pct}%` }} />
+                    <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
                   </div>
                 </li>
               ) : null;
@@ -232,12 +236,13 @@ export default async function StatsPage() {
             {topScores.map(([score, n], i) => {
               const maxN = topScores[0][1];
               const pct = (n / maxN) * 100;
+              const color = BAR_COLORS[i % BAR_COLORS.length];
               return (
                 <li key={score}>
                   <div className="flex items-center gap-3">
                     <span className="text-xl font-black tabular-nums w-12">{score}</span>
                     <div className="flex-1 h-2 rounded-full bg-app-hover overflow-hidden">
-                      <div className="h-full bg-wc-blue" style={{ width: `${pct}%` }} />
+                      <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
                     </div>
                     <span className="text-sm text-app-muted tabular-nums w-8 text-right">{n}</span>
                   </div>
