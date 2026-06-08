@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             ) : (
               <div className="flex items-center gap-2">
                 <ThemeToggle compact />
-                <Link href="/login" className="btn-primary text-sm">Zaloguj się</Link>
+                <Link href="/login" className="btn-primary text-sm whitespace-nowrap">Zaloguj</Link>
               </div>
             )}
           </nav>
