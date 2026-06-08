@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 
+export const dynamic = "force-dynamic";
+
 export default async function StatsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
