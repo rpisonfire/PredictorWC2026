@@ -7,6 +7,8 @@ import { scorePrediction } from "@/lib/scoring";
 import { hashPassword } from "@/lib/password";
 import { getCurrentUser } from "@/lib/session";
 import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
+import { sendPushToAll, sendPushToUser } from "@/lib/push";
+import { cookies } from "next/headers";
 
 async function setResult(formData: FormData) {
   "use server";
@@ -52,6 +54,25 @@ async function setChampion(formData: FormData) {
   revalidatePath("/profile");
 }
 
+async function sendPush(formData: FormData) {
+  "use server";
+  const me = await getCurrentUser();
+  if (!me?.isAdmin) return;
+  const title = String(formData.get("title") ?? "").trim() || "WC Predictor 2026";
+  const body = String(formData.get("body") ?? "").trim();
+  const url = String(formData.get("url") ?? "/dashboard").trim() || "/dashboard";
+  const target = String(formData.get("target") ?? "all");
+  if (!body) return;
+
+  const result = target === "all"
+    ? await sendPushToAll({ title, body, url })
+    : await sendPushToUser(target, { title, body, url });
+
+  const c = await cookies();
+  c.set("wcp_push_result", `${result.sent}:${result.removed}`, { httpOnly: true, path: "/admin", maxAge: 60 });
+  revalidatePath("/admin");
+}
+
 async function resetPassword(formData: FormData) {
   "use server";
   const userId = String(formData.get("userId"));
@@ -81,6 +102,73 @@ export default async function Admin({
 
   const { tab } = await searchParams;
   const activeTab = tab === "users" ? "users" : "matches";
+
+  if (tab === "push") {
+    const usersWithSubs = await prisma.user.findMany({
+      include: { _count: { select: { pushSubs: true } } },
+      orderBy: { nickname: "asc" },
+    });
+    const subscribed = usersWithSubs.filter((u) => u._count.pushSubs > 0);
+    const c = await cookies();
+    const resultRaw = c.get("wcp_push_result")?.value;
+    const [sent, removed] = resultRaw ? resultRaw.split(":").map(Number) : [0, 0];
+    return (
+      <section>
+        <AdminTabs active="push" />
+        <h1 className="text-3xl font-black mb-2">Powiadomienia push 🔔</h1>
+        <p className="text-app-muted mb-6">
+          Wyślij powiadomienie do wszystkich albo konkretnego użytkownika. Subskrybentów: <b>{subscribed.length}</b> z {usersWithSubs.length}.
+        </p>
+
+        <form action={sendPush} className="card p-5 space-y-4 mb-6">
+          <div>
+            <label className="text-sm font-semibold">Tytuł</label>
+            <input name="title" maxLength={60} className="input mt-1" placeholder="WC Predictor 2026" defaultValue="WC Predictor 2026" />
+          </div>
+          <div>
+            <label className="text-sm font-semibold">Treść *</label>
+            <textarea name="body" required maxLength={200} rows={3} className="input mt-1" placeholder="np. ⚽ Polska gra za godzinę! Nie zapomnij wytypować." />
+          </div>
+          <div>
+            <label className="text-sm font-semibold">Link po kliknięciu</label>
+            <input name="url" className="input mt-1" placeholder="/dashboard" defaultValue="/dashboard" />
+          </div>
+          <div>
+            <label className="text-sm font-semibold">Komu wysłać</label>
+            <select name="target" defaultValue="all" className="input mt-1">
+              <option value="all">📢 Wszyscy subskrybenci ({subscribed.length})</option>
+              {subscribed.map((u) => (
+                <option key={u.id} value={u.id}>{u.avatar} {u.nickname} ({u._count.pushSubs} {u._count.pushSubs === 1 ? "urządzenie" : "urządzeń"})</option>
+              ))}
+            </select>
+          </div>
+          {resultRaw && (
+            <div className="text-sm bg-wc-green/10 text-wc-green border border-wc-green/30 rounded-lg px-3 py-2">
+              ✅ Wysłano do {sent} {sent === 1 ? "urządzenia" : "urządzeń"}{removed > 0 && `, usunięto ${removed} nieaktywnych`}
+            </div>
+          )}
+          <button className="btn-primary w-full">📨 Wyślij</button>
+        </form>
+
+        <h2 className="text-lg font-black mb-3">Kto ma włączone powiadomienia</h2>
+        <div className="card overflow-hidden">
+          {usersWithSubs.map((u) => (
+            <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-app last:border-0">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{u.avatar}</span>
+                <span className="font-bold">{u.nickname}</span>
+              </div>
+              {u._count.pushSubs > 0 ? (
+                <span className="chip bg-wc-green/15 text-wc-green">🔔 {u._count.pushSubs}</span>
+              ) : (
+                <span className="text-xs text-app-subtle">brak</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   if (tab === "champion") {
     const teams = await prisma.team.findMany({ orderBy: { name: "asc" } });
@@ -220,11 +308,12 @@ export default async function Admin({
   );
 }
 
-function AdminTabs({ active }: { active: "matches" | "users" | "champion" }) {
+function AdminTabs({ active }: { active: "matches" | "users" | "champion" | "push" }) {
   const tabs = [
     { key: "matches",  href: "/admin",                label: "Mecze" },
     { key: "users",    href: "/admin?tab=users",      label: "Użytkownicy" },
     { key: "champion", href: "/admin?tab=champion",   label: "Mistrz 🏆" },
+    { key: "push",     href: "/admin?tab=push",       label: "Powiadomienia 🔔" },
   ];
   return (
     <div className="flex gap-2 mb-6 flex-wrap">
