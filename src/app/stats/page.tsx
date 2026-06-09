@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Flag } from "@/components/Flag";
 import { Emoji } from "@/components/Emoji";
+import { RankingChart } from "@/components/RankingChart";
+import { rankingOverTime, matchInsights, userStyles } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +127,15 @@ export default async function StatsPage() {
     : null;
 
   const bold = boldPreds[0];
+  const ranking = await rankingOverTime();
+  const insights = await matchInsights();
+  const styles = await userStyles();
+
+  // Kolory do wykresu - cykliczna paleta
+  const PALETTE = ["#E4002B", "#F1B434", "#0A3161", "#006847", "#A6E22E", "#9333EA", "#06B6D4", "#F97316", "#EC4899", "#10B981"];
+  const rankingSeries = ranking.series
+    .filter((s) => s.points.some((p) => p > 0)) // tylko ci co mają choć trochę pkt
+    .map((s, i) => ({ ...s, color: PALETTE[i % PALETTE.length] }));
   // MŚ 2026: 104 mecze (72 grupowe + 32 fazy pucharowej)
   const TOTAL_WC_MATCHES = 104;
   const progressPct = (finishedMatches / TOTAL_WC_MATCHES) * 100;
@@ -134,6 +145,94 @@ export default async function StatsPage() {
     <section className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-black mb-1">Statystyki turnieju 🌍</h1>
       <p className="text-app-muted mb-6">Agregaty z całej apki - kto, co i jak typuje.</p>
+
+      {rankingSeries.length >= 2 && (
+        <div className="card p-5 mb-4">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-lg font-black">📈 Ranking w czasie</h2>
+            <span className="text-xs text-app-subtle">najedź na imię żeby wyróżnić</span>
+          </div>
+          <RankingChart series={rankingSeries} matchdays={ranking.matchdays} highlightUserId={user.id} />
+        </div>
+      )}
+
+      {(insights.easiest || insights.divisive || insights.killing) && (
+        <div className="grid sm:grid-cols-3 gap-3 mb-4">
+          {insights.easiest && (
+            <div className="card p-4">
+              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">✅ Najprostszy mecz</div>
+              <div className="flex items-center gap-2">
+                <Flag emoji={insights.easiest.match.homeTeam.flag} size="sm" />
+                <span className="font-bold text-sm">{insights.easiest.match.homeTeam.shortCode}</span>
+                <span className="text-app-subtle text-xs">vs</span>
+                <span className="font-bold text-sm">{insights.easiest.match.awayTeam.shortCode}</span>
+                <Flag emoji={insights.easiest.match.awayTeam.flag} size="sm" />
+              </div>
+              <div className="text-2xl font-black text-wc-green mt-2 tabular-nums">{(insights.easiest.hitRate * 100).toFixed(0)}%</div>
+              <div className="text-[10px] text-app-subtle">graczy zdobyło punkty</div>
+            </div>
+          )}
+          {insights.divisive && (
+            <div className="card p-4">
+              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">🤯 Najbardziej kontrowersyjny</div>
+              <div className="flex items-center gap-2">
+                <Flag emoji={insights.divisive.match.homeTeam.flag} size="sm" />
+                <span className="font-bold text-sm">{insights.divisive.match.homeTeam.shortCode}</span>
+                <span className="text-app-subtle text-xs">vs</span>
+                <span className="font-bold text-sm">{insights.divisive.match.awayTeam.shortCode}</span>
+                <Flag emoji={insights.divisive.match.awayTeam.flag} size="sm" />
+              </div>
+              <div className="text-2xl font-black text-wc-blue mt-2 tabular-nums">{insights.divisive.uniqueScores}</div>
+              <div className="text-[10px] text-app-subtle">różnych typów z {insights.divisive.total} graczy</div>
+            </div>
+          )}
+          {insights.killing && (
+            <div className="card p-4">
+              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">💀 Killing field</div>
+              <div className="flex items-center gap-2">
+                <Flag emoji={insights.killing.match.homeTeam.flag} size="sm" />
+                <span className="font-bold text-sm">{insights.killing.match.homeTeam.shortCode}</span>
+                <span className="text-app-subtle text-xs">vs</span>
+                <span className="font-bold text-sm">{insights.killing.match.awayTeam.shortCode}</span>
+                <Flag emoji={insights.killing.match.awayTeam.flag} size="sm" />
+              </div>
+              <div className="text-2xl font-black text-accent mt-2 tabular-nums">0 pkt</div>
+              <div className="text-[10px] text-app-subtle">wszyscy ({insights.killing.total}) na zero</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {styles.length > 0 && (
+        <div className="card p-5 mb-4">
+          <h2 className="text-lg font-black mb-3">🎨 Style typowania</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {styles.map((s) => (
+              <div key={s.userId} className="flex items-center gap-3 p-3 rounded-xl bg-app-hover">
+                <Emoji char={s.avatar} size="md" alt={s.nickname} />
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold truncate">{s.nickname}</div>
+                  <div className="text-[10px] text-app-subtle">
+                    śr. {s.avgGoals.toFixed(1)} br · remisy {(s.drawRate * 100).toFixed(0)}%
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl leading-none">{s.style.emoji}</div>
+                  <div className="text-[10px] font-bold mt-0.5">{s.style.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 text-[10px] text-app-subtle flex flex-wrap gap-2">
+            <span>🧱 Beton (≥40% remisów)</span>
+            <span>🌈 Optymista (≥3.5 br/mecz)</span>
+            <span>🧊 Pesymista (≤1.5 br/mecz)</span>
+            <span>🎰 Hazardzista (≥30% wysokich wyników)</span>
+            <span>⚖️ Realista (środek)</span>
+          </div>
+        </div>
+      )}
+
 
       {/* HERO: progress bar */}
       <div className="card p-5 mb-4">

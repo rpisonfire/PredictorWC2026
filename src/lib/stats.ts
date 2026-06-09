@@ -213,6 +213,106 @@ export async function leagueAggregateStats(leagueId: string) {
   };
 }
 
+/** Skumulowane punkty per kolejka dla każdego gracza - do wykresu liniowego */
+export async function rankingOverTime(leagueId?: string) {
+  const users = await prisma.user.findMany({
+    where: leagueId ? { memberships: { some: { leagueId } } } : undefined,
+    include: {
+      predictions: { include: { match: true } },
+      boosts: true,
+    },
+  });
+  const league = leagueId ? await prisma.league.findUnique({ where: { id: leagueId } }) : null;
+  const matchdays = await prisma.match.findMany({
+    select: { matchday: true },
+    distinct: ["matchday"],
+    orderBy: { matchday: "asc" },
+  });
+  const mds = matchdays.map((m) => m.matchday);
+
+  const series = users.map((u) => {
+    const boostMatchIds = new Set(u.boosts.map((b) => b.matchId));
+    const ptsPerMd = new Map<number, number>();
+    for (const p of u.predictions) {
+      if (p.match.homeScore == null) continue;
+      const pts = boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
+      ptsPerMd.set(p.match.matchday, (ptsPerMd.get(p.match.matchday) ?? 0) + pts);
+    }
+    const champBonus = league?.actualChampionId && u.predictedChampionId === league.actualChampionId ? CHAMPION_BONUS : 0;
+    // cumulative
+    let cum = champBonus;
+    const points = mds.map((md) => {
+      cum += ptsPerMd.get(md) ?? 0;
+      return cum;
+    });
+    return { userId: u.id, nickname: u.nickname, avatar: u.avatar, points };
+  });
+
+  return { series, matchdays: mds };
+}
+
+/** Statystyki interesujących meczów */
+export async function matchInsights() {
+  const matches = await prisma.match.findMany({
+    where: { homeScore: { not: null } },
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+      predictions: true,
+    },
+  });
+
+  let easiest: { match: any; hitRate: number } | null = null;
+  let killing: { match: any; total: number } | null = null;
+  let divisive: { match: any; uniqueScores: number; total: number } | null = null;
+
+  for (const m of matches) {
+    if (m.predictions.length === 0) continue;
+    const withPts = m.predictions.filter((p) => p.pointsAwarded > 0).length;
+    const hitRate = withPts / m.predictions.length;
+    if (!easiest || hitRate > easiest.hitRate) easiest = { match: m, hitRate };
+    if (withPts === 0 && m.predictions.length >= 2) {
+      if (!killing || m.predictions.length > killing.total) killing = { match: m, total: m.predictions.length };
+    }
+    const uniqueScores = new Set(m.predictions.map((p) => `${p.homeScore}:${p.awayScore}`)).size;
+    if (!divisive || uniqueScores > divisive.uniqueScores) divisive = { match: m, uniqueScores, total: m.predictions.length };
+  }
+
+  return { easiest, killing, divisive };
+}
+
+/** Styl typowania - "Optymista / Pesymista / Beton" + radar */
+export async function userStyles() {
+  const users = await prisma.user.findMany({
+    include: { predictions: true },
+  });
+  return users
+    .filter((u) => u.predictions.length >= 3)
+    .map((u) => {
+      const total = u.predictions.length;
+      const goalsSum = u.predictions.reduce((s, p) => s + p.homeScore + p.awayScore, 0);
+      const avgGoals = goalsSum / total;
+      const draws = u.predictions.filter((p) => p.homeScore === p.awayScore).length;
+      const drawRate = draws / total;
+      const highScoring = u.predictions.filter((p) => p.homeScore + p.awayScore >= 4).length;
+      const highRate = highScoring / total;
+
+      let style: { emoji: string; label: string };
+      if (drawRate >= 0.4) style = { emoji: "🧱", label: "Beton" };
+      else if (avgGoals >= 3.5) style = { emoji: "🌈", label: "Optymista" };
+      else if (avgGoals <= 1.5) style = { emoji: "🧊", label: "Pesymista" };
+      else if (highRate >= 0.3) style = { emoji: "🎰", label: "Hazardzista" };
+      else style = { emoji: "⚖️", label: "Realista" };
+
+      return {
+        userId: u.id, nickname: u.nickname, avatar: u.avatar,
+        total, avgGoals, drawRate, highRate,
+        style,
+      };
+    })
+    .sort((a, b) => b.total - a.total);
+}
+
 /** Ranking dla konkretnej kolejki - jedno query */
 export async function leaderboardForMatchday(matchday: number, leagueId?: string) {
   const users = await prisma.user.findMany({

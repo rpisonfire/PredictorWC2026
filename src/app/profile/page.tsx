@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { clearSession, getCurrentUser } from "@/lib/session";
 import Link from "next/link";
-import { statsForUser, badgesFor, championBonusForUser, CHAMPION_BONUS } from "@/lib/stats";
+import { statsForUser, badgesFor, championBonusForUser, CHAMPION_BONUS, userStyles } from "@/lib/stats";
 import { championPickIsLocked } from "@/lib/championLock";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { ChangePasswordForm } from "./change-password";
@@ -58,6 +58,8 @@ export default async function Profile() {
     : null;
   const champBonus = await championBonusForUser(user.id);
   const champLock = await championPickIsLocked();
+  const allStyles = await userStyles();
+  const myStyle = allStyles.find((s) => s.userId === user.id);
 
   return (
     <section className="max-w-md mx-auto">
@@ -104,6 +106,21 @@ export default async function Profile() {
           )}
         </div>
 
+
+        {myStyle && (
+          <div className="mt-5 pt-5 border-t border-app">
+            <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">Twój styl typowania</div>
+            <div className="flex items-center gap-3">
+              <div className="text-4xl">{myStyle.style.emoji}</div>
+              <div className="flex-1">
+                <div className="font-black text-lg">{myStyle.style.label}</div>
+                <div className="text-xs text-app-subtle">
+                  śr. {myStyle.avgGoals.toFixed(1)} br/mecz · {(myStyle.drawRate * 100).toFixed(0)}% remisów · {(myStyle.highRate * 100).toFixed(0)}% wysokich
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {badges.length > 0 && (
           <div className="mt-5 pt-5 border-t border-app">
