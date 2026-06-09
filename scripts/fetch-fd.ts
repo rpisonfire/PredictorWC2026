@@ -78,16 +78,23 @@ type ApiMatch = {
 };
 
 async function main() {
-  console.log("🧹 Czyszczę stare drużyny/mecze/typy (users + ligi zostają)...");
-  await prisma.prediction.deleteMany({});
-  await prisma.boost.deleteMany({});
-  await prisma.comment.deleteMany({});
-  await prisma.match.deleteMany({});
-  // Reset predictedChampion na userach żeby nie blokowało usunięcia teamów
-  await prisma.user.updateMany({ data: { predictedChampionId: null } });
-  await prisma.league.updateMany({ data: { actualChampionId: null } });
-  await prisma.player.deleteMany({});
-  await prisma.team.deleteMany({});
+  // Tryb bezpieczny (default): tylko upsert - zero usuwania.
+  // Z flagą --wipe: pełne wyczyszczenie (do testów/setupu, NIE używać w trakcie turnieju)
+  const WIPE = process.argv.includes("--wipe");
+
+  if (WIPE) {
+    console.log("🧹 --wipe: czyszczę WSZYSTKO (predykcje/typy/komentarze/mecze/zawodnicy/drużyny)...");
+    await prisma.prediction.deleteMany({});
+    await prisma.boost.deleteMany({});
+    await prisma.comment.deleteMany({});
+    await prisma.match.deleteMany({});
+    await prisma.user.updateMany({ data: { predictedChampionId: null } });
+    await prisma.league.updateMany({ data: { actualChampionId: null } });
+    await prisma.player.deleteMany({});
+    await prisma.team.deleteMany({});
+  } else {
+    console.log("♻️  Tryb bezpieczny - tylko upsert. Predykcje, typy, komentarze ZOSTAJĄ. (Użyj --wipe żeby wyczyścić wszystko.)");
+  }
 
   console.log("🌍 Pobieram drużyny MŚ 2026...");
   const tj = await api<{ teams: ApiTeam[] }>("/competitions/WC/teams?season=2026");
