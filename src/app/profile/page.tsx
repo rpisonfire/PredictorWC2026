@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { clearSession, getCurrentUser } from "@/lib/session";
 import Link from "next/link";
-import { statsForUser, badgesFor, championBonusForUser, CHAMPION_BONUS, userStyles } from "@/lib/stats";
+import { statsForUser, badgesFor, championBonusForUser, CHAMPION_BONUS, singleUserStyle } from "@/lib/stats";
 import { championPickIsLocked } from "@/lib/championLock";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { ChangePasswordForm } from "./change-password";
@@ -51,15 +51,17 @@ export default async function Profile() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const stats = await statsForUser(user.id);
+  // Wszystko równolegle zamiast 6 sequential awaits
+  const [stats, champ, champBonus, champLock, myStyle] = await Promise.all([
+    statsForUser(user.id),
+    user.predictedChampionId
+      ? prisma.team.findUnique({ where: { id: user.predictedChampionId } })
+      : Promise.resolve(null),
+    championBonusForUser(user.id),
+    championPickIsLocked(),
+    singleUserStyle(user.id),
+  ]);
   const badges = badgesFor(stats);
-  const champ = user.predictedChampionId
-    ? await prisma.team.findUnique({ where: { id: user.predictedChampionId } })
-    : null;
-  const champBonus = await championBonusForUser(user.id);
-  const champLock = await championPickIsLocked();
-  const allStyles = await userStyles();
-  const myStyle = allStyles.find((s) => s.userId === user.id);
 
   return (
     <section className="max-w-md mx-auto">

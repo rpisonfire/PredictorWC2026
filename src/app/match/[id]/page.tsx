@@ -100,27 +100,27 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const boosted = match.boosts.length > 0;
   const locked = match.kickoff.getTime() - Date.now() < 5 * 60 * 1000;
   const finished = match.homeScore !== null && match.awayScore !== null;
+  const revealOthers = locked || finished;
 
-  // Boost lock state for the matchday
-  const matchdayBoost = await prisma.boost.findUnique({
-    where: { userId_matchday: { userId: user.id, matchday: match.matchday } },
-    include: { match: { include: { homeTeam: true, awayTeam: true } } },
-  });
+  // Wszystkie dodatkowe równolegle
+  const [matchdayBoost, othersPredictions, allBoostsForMatch] = await Promise.all([
+    prisma.boost.findUnique({
+      where: { userId_matchday: { userId: user.id, matchday: match.matchday } },
+      include: { match: { include: { homeTeam: true, awayTeam: true } } },
+    }),
+    revealOthers
+      ? prisma.prediction.findMany({
+          where: { matchId: match.id, NOT: { userId: user.id } },
+          include: { user: true, player: true },
+          orderBy: { pointsAwarded: "desc" },
+        })
+      : Promise.resolve([] as any[]),
+    revealOthers
+      ? prisma.boost.findMany({ where: { matchId: match.id } })
+      : Promise.resolve([] as any[]),
+  ]);
   const boostLocked = !!matchdayBoost;
   const boostOnThisMatch = matchdayBoost?.matchId === match.id;
-
-  // Show others' predictions once locked (or finished)
-  const revealOthers = locked || finished;
-  const othersPredictions = revealOthers
-    ? await prisma.prediction.findMany({
-        where: { matchId: match.id, NOT: { userId: user.id } },
-        include: { user: true, player: true },
-        orderBy: { pointsAwarded: "desc" },
-      })
-    : [];
-  const allBoostsForMatch = revealOthers
-    ? await prisma.boost.findMany({ where: { matchId: match.id } })
-    : [];
   const boostedUserIds = new Set(allBoostsForMatch.map((b) => b.userId));
   const allPlayers = [...match.homeTeam.players, ...match.awayTeam.players];
 

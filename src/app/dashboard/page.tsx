@@ -19,15 +19,19 @@ export default async function Dashboard({
   if (!user) redirect("/login");
   const { saved } = await searchParams;
 
-  const matches = await prisma.match.findMany({
-    orderBy: { kickoff: "asc" },
-    include: {
-      homeTeam: true,
-      awayTeam: true,
-      predictions: { where: { userId: user.id } },
-      boosts: { where: { userId: user.id } },
-    },
-  });
+  // Równolegle - 2 query w jednym round-tripie
+  const [matches, champLock] = await Promise.all([
+    prisma.match.findMany({
+      orderBy: { kickoff: "asc" },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        predictions: { where: { userId: user.id } },
+        boosts: { where: { userId: user.id } },
+      },
+    }),
+    championPickIsLocked(),
+  ]);
 
   const byMatchday = matches.reduce<Record<number, typeof matches>>((acc, m) => {
     (acc[m.matchday] ||= []).push(m);
@@ -37,7 +41,6 @@ export default async function Dashboard({
   const now = new Date();
   const WC_KICKOFF = new Date("2026-06-11T21:00:00+02:00");
   const preWorldCup = now < WC_KICKOFF;
-  const champLock = await championPickIsLocked();
   const needsChampionPick = !user.predictedChampionId && !champLock.locked;
 
   const todayKey = dayKey(now);

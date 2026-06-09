@@ -294,6 +294,38 @@ export const STYLE_RULES = [
   { key: "snajper",     emoji: "🎯", label: "Snajper",     desc: "Trafia dokładny wynik ≥25% rozegranych" },
 ] as const;
 
+/** Styl dla 1 usera - bez ładowania całej bazy */
+export async function singleUserStyle(userId: string) {
+  const predictions = await prisma.prediction.findMany({
+    where: { userId },
+    select: {
+      homeScore: true, awayScore: true, firstGoalPlayerId: true,
+      match: { select: { homeScore: true, awayScore: true, firstGoalPlayerId: true } },
+    },
+  });
+  if (predictions.length < 3) return null;
+  const total = predictions.length;
+  const goalsSum = predictions.reduce((s, p) => s + p.homeScore + p.awayScore, 0);
+  const avgGoals = goalsSum / total;
+  const drawRate = predictions.filter((p) => p.homeScore === p.awayScore).length / total;
+  const highRate = predictions.filter((p) => p.homeScore + p.awayScore >= 4).length / total;
+  const finished = predictions.filter((p) => p.match.homeScore !== null);
+  const exact = finished.filter((p) => p.homeScore === p.match.homeScore && p.awayScore === p.match.awayScore).length;
+  const exactRate = finished.length >= 3 ? exact / finished.length : 0;
+
+  const scores: Record<string, number> = {
+    snajper:     exactRate >= 0.25 ? exactRate * 5 : 0,
+    hazardzista: highRate >= 0.25 ? highRate * 3 : 0,
+    beton:       drawRate >= 0.30 ? drawRate * 3 : 0,
+    pesymista:   avgGoals <= 1.5 ? (1.5 - avgGoals) * 2 : 0,
+    optymista:   avgGoals >= 2.8 ? (avgGoals - 2.5) * 1.5 : 0,
+    realista:    avgGoals > 1.5 && avgGoals < 2.8 && drawRate < 0.3 && highRate < 0.25 ? 1 : 0,
+  };
+  const winner = (Object.entries(scores) as [string, number][]).sort((a, b) => b[1] - a[1])[0];
+  const styleRule = STYLE_RULES.find((s) => s.key === winner[0]) ?? STYLE_RULES.find((s) => s.key === "realista")!;
+  return { total, avgGoals, drawRate, highRate, exactRate, style: { emoji: styleRule.emoji, label: styleRule.label, desc: styleRule.desc } };
+}
+
 export async function userStyles() {
   const users = await prisma.user.findMany({
     include: { predictions: { include: { match: true } } },
