@@ -27,6 +27,7 @@ export default async function StatsPage() {
     boldPreds,
     matchesWithPicks,
     boostUsage,
+    allBoosts,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.prediction.count(),
@@ -68,6 +69,12 @@ export default async function StatsPage() {
       _count: { _all: true },
       orderBy: { _count: { matchId: "desc" } },
       take: 1,
+    }),
+    prisma.boost.findMany({
+      include: {
+        user: true,
+        match: { include: { homeTeam: true, awayTeam: true } },
+      },
     }),
   ]);
 
@@ -127,6 +134,20 @@ export default async function StatsPage() {
     : null;
 
   const bold = boldPreds[0];
+
+  // Złoty boost: najlepiej wykorzystany boost (mecz rozegrany, najwięcej punktów x3)
+  let goldenBoost: { user: any; match: any; basePoints: number; boostedPoints: number } | null = null;
+  for (const b of allBoosts) {
+    if (b.match.homeScore == null) continue;
+    const pred = await prisma.prediction.findUnique({
+      where: { userId_matchId: { userId: b.userId, matchId: b.matchId } },
+    });
+    if (!pred || pred.pointsAwarded <= 0) continue;
+    const boostedPts = pred.pointsAwarded * 3;
+    if (!goldenBoost || boostedPts > goldenBoost.boostedPoints) {
+      goldenBoost = { user: b.user, match: b.match, basePoints: pred.pointsAwarded, boostedPoints: boostedPts };
+    }
+  }
   const ranking = await rankingOverTime();
   const insights = await matchInsights();
   const styles = await userStyles();
@@ -200,36 +221,6 @@ export default async function StatsPage() {
               <div className="text-[10px] text-app-subtle">wszyscy ({insights.killing.total}) na zero</div>
             </div>
           )}
-        </div>
-      )}
-
-      {styles.length > 0 && (
-        <div className="card p-5 mb-4">
-          <h2 className="text-lg font-black mb-3">🎨 Style typowania</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {styles.map((s) => (
-              <div key={s.userId} className="flex items-center gap-3 p-3 rounded-xl bg-app-hover">
-                <Emoji char={s.avatar} size="md" alt={s.nickname} />
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate">{s.nickname}</div>
-                  <div className="text-[10px] text-app-subtle">
-                    śr. {s.avgGoals.toFixed(1)} br · remisy {(s.drawRate * 100).toFixed(0)}%
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl leading-none">{s.style.emoji}</div>
-                  <div className="text-[10px] font-bold mt-0.5">{s.style.label}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 text-[10px] text-app-subtle flex flex-wrap gap-2">
-            <span>🧱 Beton (≥40% remisów)</span>
-            <span>🌈 Optymista (≥3.5 br/mecz)</span>
-            <span>🧊 Pesymista (≤1.5 br/mecz)</span>
-            <span>🎰 Hazardzista (≥30% wysokich wyników)</span>
-            <span>⚖️ Realista (środek)</span>
-          </div>
         </div>
       )}
 
@@ -386,6 +377,26 @@ export default async function StatsPage() {
           </div>
         )}
 
+        {/* Złoty boost */}
+        {goldenBoost && (
+          <div className="card p-5">
+            <h2 className="text-lg font-black mb-3">💎 Złoty boost</h2>
+            <div className="flex items-center gap-3">
+              <Emoji char={goldenBoost.user.avatar} size="xl" alt={goldenBoost.user.nickname} />
+              <div className="flex-1 min-w-0">
+                <div className="font-black truncate">{goldenBoost.user.nickname}</div>
+                <div className="text-xs text-app-subtle truncate">
+                  {goldenBoost.match.homeTeam.shortCode} vs {goldenBoost.match.awayTeam.shortCode} · {goldenBoost.match.stage}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-black text-wc-gold tabular-nums">+{goldenBoost.boostedPoints}</div>
+                <div className="text-[10px] text-app-subtle">z {goldenBoost.basePoints} ⚡</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Most boosted match */}
         {boostMatch && (
           <div className="card p-5">
@@ -402,6 +413,51 @@ export default async function StatsPage() {
           </div>
         )}
       </div>
+
+      {styles.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="text-2xl font-black">🎨 Style typowania ekipy</h2>
+            <span className="text-xs text-app-subtle">profile graczy</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {styles.map((s) => (
+              <div key={s.userId} className="card p-4 text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Emoji char={s.avatar} size="md" alt={s.nickname} />
+                  <span className="font-black text-sm truncate">{s.nickname}</span>
+                </div>
+                <div className="text-5xl leading-none mb-2">{s.style.emoji}</div>
+                <div className="font-black text-base text-accent">{s.style.label}</div>
+                <div className="mt-3 pt-3 border-t border-app grid grid-cols-3 gap-1">
+                  <div>
+                    <div className="text-sm font-black tabular-nums">{s.avgGoals.toFixed(1)}</div>
+                    <div className="text-[9px] uppercase tracking-wider text-app-subtle">br/mecz</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-black tabular-nums">{(s.drawRate * 100).toFixed(0)}%</div>
+                    <div className="text-[9px] uppercase tracking-wider text-app-subtle">remisy</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-black tabular-nums">{s.total}</div>
+                    <div className="text-[9px] uppercase tracking-wider text-app-subtle">typów</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 card p-4">
+            <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">Legenda stylów</div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+              <div className="flex items-center gap-2"><span className="text-xl">🧱</span><div><div className="font-bold">Beton</div><div className="text-[10px] text-app-subtle">≥40% remisów</div></div></div>
+              <div className="flex items-center gap-2"><span className="text-xl">🌈</span><div><div className="font-bold">Optymista</div><div className="text-[10px] text-app-subtle">≥3.5 br/mecz</div></div></div>
+              <div className="flex items-center gap-2"><span className="text-xl">🧊</span><div><div className="font-bold">Pesymista</div><div className="text-[10px] text-app-subtle">≤1.5 br/mecz</div></div></div>
+              <div className="flex items-center gap-2"><span className="text-xl">🎰</span><div><div className="font-bold">Hazardzista</div><div className="text-[10px] text-app-subtle">≥30% wysokich</div></div></div>
+              <div className="flex items-center gap-2"><span className="text-xl">⚖️</span><div><div className="font-bold">Realista</div><div className="text-[10px] text-app-subtle">środek</div></div></div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
