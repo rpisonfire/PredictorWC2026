@@ -107,6 +107,7 @@ body {
 
 /* Pomocnicze klasy mapujące na zmienne — żeby nie używać var() w JSX */
 .text-accent { color: var(--accent); }
+.bg-accent { background-color: var(--accent); }
 .bg-accent-soft { background: var(--accent-bg); }
 .border-accent { border-color: var(--accent); }
 .text-app { color: var(--text); }
