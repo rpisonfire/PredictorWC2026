@@ -35,6 +35,12 @@ const FLAGS: Record<string, string> = {
   Ghana: "🇬🇭", Nigeria: "🇳🇬", Cameroon: "🇨🇲", "South Africa": "🇿🇦",
   "New Zealand": "🇳🇿", Uzbekistan: "🇺🇿", Jordan: "🇯🇴",
   Wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "Costa Rica": "🇨🇷",
+  // Dodatkowe kraje WC 2026 i ich warianty nazw z football-data.org
+  Czechia: "🇨🇿", "Czech Republic": "🇨🇿",
+  "Bosnia-Herzegovina": "🇧🇦", "Bosnia and Herzegovina": "🇧🇦",
+  Haiti: "🇭🇹", Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Curaçao": "🇨🇼", "Curacao": "🇨🇼",
+  Sweden: "🇸🇪", Panama: "🇵🇦", "Cape Verde Islands": "🇨🇻", "Cape Verde": "🇨🇻",
+  "Congo DR": "🇨🇩", "DR Congo": "🇨🇩", Iraq: "🇮🇶",
 };
 
 const SHORT: Record<string, string> = {
