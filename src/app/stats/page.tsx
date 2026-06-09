@@ -15,28 +15,30 @@ export default async function StatsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  // Wszystkie zapytania w 1 wsadzie równolegle (zamiast sequence await)
   const [
     totalUsers,
     totalPredictions,
     totalComments,
     totalBoosts,
     finishedMatches,
-    totalMatches,
     championPicks,
     scorerPicks,
     allPreds,
-    topScorerUser,
+    allUsersForLeader,
     boldPreds,
     matchesWithPicks,
     boostUsage,
     allBoosts,
+    ranking,
+    insights,
+    styles,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.prediction.count(),
     prisma.comment.count(),
     prisma.boost.count(),
     prisma.match.count({ where: { homeScore: { not: null } } }),
-    prisma.match.count(),
     prisma.user.groupBy({
       by: ["predictedChampionId"],
       where: { predictedChampionId: { not: null } },
@@ -53,7 +55,11 @@ export default async function StatsPage() {
     }),
     prisma.prediction.findMany({ select: { homeScore: true, awayScore: true, pointsAwarded: true, userId: true, matchId: true } }),
     prisma.user.findMany({
-      include: { predictions: true, boosts: true },
+      select: {
+        id: true, nickname: true, avatar: true,
+        predictions: { select: { pointsAwarded: true, matchId: true } },
+        boosts: { select: { matchId: true } },
+      },
     }),
     prisma.prediction.findMany({
       orderBy: [{ homeScore: "desc" }, { awayScore: "desc" }],
@@ -64,7 +70,7 @@ export default async function StatsPage() {
       by: ["matchId"],
       _count: { _all: true },
       orderBy: { _count: { matchId: "desc" } },
-      take: 3,
+      take: 1,
     }),
     prisma.boost.groupBy({
       by: ["matchId"],
@@ -72,24 +78,49 @@ export default async function StatsPage() {
       orderBy: { _count: { matchId: "desc" } },
       take: 1,
     }),
+    // Boosty - tylko na rozegranych meczach (do "złotego boosta")
     prisma.boost.findMany({
+      where: { match: { homeScore: { not: null } } },
       include: {
         user: true,
         match: { include: { homeTeam: true, awayTeam: true } },
       },
     }),
+    rankingOverTime(),
+    matchInsights(),
+    userStyles(),
   ]);
 
-  const [championTeams, scorerPlayers] = await Promise.all([
+  // Drugi wsad: rzeczy które zależą od ID-ów z pierwszego
+  const popularMatchId = matchesWithPicks[0]?.matchId;
+  const boostMatchId = boostUsage[0]?.matchId;
+  const allMatchIdsNeeded = [
+    ...(popularMatchId ? [popularMatchId] : []),
+    ...(boostMatchId ? [boostMatchId] : []),
+  ];
+  const [championTeams, scorerPlayers, extraMatches, boostPredictions] = await Promise.all([
     prisma.team.findMany({ where: { id: { in: championPicks.map((c) => c.predictedChampionId!).filter(Boolean) } } }),
     prisma.player.findMany({
       where: { id: { in: scorerPicks.map((s) => s.firstGoalPlayerId!).filter(Boolean) } },
       include: { team: true },
     }),
+    allMatchIdsNeeded.length > 0
+      ? prisma.match.findMany({ where: { id: { in: allMatchIdsNeeded } }, include: { homeTeam: true, awayTeam: true } })
+      : Promise.resolve([] as any[]),
+    // Wszystkie predykcje dla boostowanych meczów - 1 query zamiast N
+    allBoosts.length > 0
+      ? prisma.prediction.findMany({
+          where: { OR: allBoosts.map((b) => ({ userId: b.userId, matchId: b.matchId })) },
+          select: { userId: true, matchId: true, pointsAwarded: true },
+        })
+      : Promise.resolve([] as any[]),
   ]);
 
-  // Leader (most points)
-  const leader = topScorerUser
+  const popularMatch = extraMatches.find((m) => m.id === popularMatchId) ?? null;
+  const boostMatch = extraMatches.find((m) => m.id === boostMatchId) ?? null;
+
+  // Leader (most points) - liczone w pamięci ze wstępnie wybranych pól
+  const leader = allUsersForLeader
     .map((u) => {
       const boostSet = new Set(u.boosts.map((b) => b.matchId));
       const pts = u.predictions.reduce(
@@ -123,37 +154,22 @@ export default async function StatsPage() {
   }
   const topScores = [...scoreCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-  // Most popular match (most predictions)
-  const popularMatchId = matchesWithPicks[0]?.matchId;
-  const popularMatch = popularMatchId
-    ? await prisma.match.findUnique({ where: { id: popularMatchId }, include: { homeTeam: true, awayTeam: true } })
-    : null;
-
-  // Most boosted match
-  const boostMatchId = boostUsage[0]?.matchId;
-  const boostMatch = boostMatchId
-    ? await prisma.match.findUnique({ where: { id: boostMatchId }, include: { homeTeam: true, awayTeam: true } })
-    : null;
-
   const bold = boldPreds[0];
 
-  // Złoty boost: najlepiej wykorzystany boost (mecz rozegrany, najwięcej punktów x3)
+  // Złoty boost - liczony w pamięci z 1 query (boostPredictions)
+  const predMap = new Map<string, number>();
+  for (const p of boostPredictions) {
+    predMap.set(`${p.userId}:${p.matchId}`, p.pointsAwarded);
+  }
   let goldenBoost: { user: any; match: any; basePoints: number; boostedPoints: number } | null = null;
   for (const b of allBoosts) {
-    if (b.match.homeScore == null) continue;
-    const pred = await prisma.prediction.findUnique({
-      where: { userId_matchId: { userId: b.userId, matchId: b.matchId } },
-    });
-    if (!pred || pred.pointsAwarded <= 0) continue;
-    const boostedPts = pred.pointsAwarded * 3;
+    const pts = predMap.get(`${b.userId}:${b.matchId}`);
+    if (pts == null || pts <= 0) continue;
+    const boostedPts = pts * 3;
     if (!goldenBoost || boostedPts > goldenBoost.boostedPoints) {
-      goldenBoost = { user: b.user, match: b.match, basePoints: pred.pointsAwarded, boostedPoints: boostedPts };
+      goldenBoost = { user: b.user, match: b.match, basePoints: pts, boostedPoints: boostedPts };
     }
   }
-  const ranking = await rankingOverTime();
-  const insights = await matchInsights();
-  const styles = await userStyles();
-
   // Kolory do wykresu - cykliczna paleta
   const PALETTE = ["#E4002B", "#F1B434", "#0A3161", "#006847", "#A6E22E", "#9333EA", "#06B6D4", "#F97316", "#EC4899", "#10B981"];
   const rankingSeries = ranking.series
