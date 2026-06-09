@@ -65,7 +65,7 @@ async function savePrediction(formData: FormData) {
 
   revalidatePath("/dashboard");
   revalidatePath(`/match/${matchId}`);
-  redirect(`/dashboard?saved=1`);
+  redirect(`/dashboard?toast=saved`);
 }
 
 async function postComment(formData: FormData) {
@@ -77,6 +77,7 @@ async function postComment(formData: FormData) {
   if (!body) return;
   await prisma.comment.create({ data: { userId: user.id, matchId, body } });
   revalidatePath(`/match/${matchId}`);
+  redirect(`/match/${matchId}?toast=commented#czat`);
 }
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {

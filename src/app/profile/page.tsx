@@ -20,6 +20,7 @@ async function update(formData: FormData) {
   const avatar = String(formData.get("avatar") ?? user.avatar);
   await prisma.user.update({ where: { id: user.id }, data: { avatar } });
   revalidatePath("/");
+  redirect("/profile?toast=avatarSaved");
 }
 
 export type PwState = { ok?: boolean; error?: string };

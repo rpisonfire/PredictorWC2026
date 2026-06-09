@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { Toast } from "@/components/Toast";
 import { Countdown } from "@/components/Countdown";
 import { STADIUMS } from "@/lib/stadiums";
 import { championPickIsLocked } from "@/lib/championLock";
@@ -12,12 +11,9 @@ import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 
-export default async function Dashboard({
-  searchParams,
-}: { searchParams: Promise<{ saved?: string }> }) {
+export default async function Dashboard() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const { saved } = await searchParams;
 
   // Równolegle - 2 query w jednym round-tripie
   const [matches, champLock] = await Promise.all([
@@ -61,7 +57,6 @@ export default async function Dashboard({
 
   return (
     <section>
-      {saved === "1" && <Toast message="Typ zapisany" />}
       {hasLiveToday && <AutoRefresh intervalSec={60} />}
 
       {preWorldCup && (

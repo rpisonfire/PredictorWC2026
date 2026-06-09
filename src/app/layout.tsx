@@ -4,6 +4,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { MobileNav } from "@/components/MobileNav";
 import { RegisterSW } from "@/components/RegisterSW";
+import { AutoToast } from "@/components/Toast";
+import { Suspense } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeInitScript, ThemeToggle } from "@/components/ThemeToggle";
 import { Emoji } from "@/components/Emoji";
@@ -70,6 +72,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         {user && <MobileNav isAdmin={user.isAdmin} />}
         <RegisterSW />
+        <Suspense fallback={null}><AutoToast /></Suspense>
       </body>
     </html>
   );

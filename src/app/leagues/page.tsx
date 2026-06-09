@@ -17,13 +17,16 @@ async function createLeague(formData: FormData) {
     inviteCode = randomBytes(4).toString("hex").toUpperCase();
   }
 
+  let ok = false;
   try {
     const league = await prisma.league.create({ data: { name, inviteCode } });
     await prisma.membership.create({ data: { userId: user.id, leagueId: league.id } });
+    ok = true;
   } catch (e) {
     // unique conflict - najprawdopodobniej kod zajęty
   }
   revalidatePath("/leagues");
+  if (ok) redirect("/leagues?toast=leagueCreated");
 }
 
 async function joinLeague(formData: FormData) {
@@ -40,6 +43,7 @@ async function joinLeague(formData: FormData) {
     create: { userId: user.id, leagueId: league.id },
   });
   revalidatePath("/leagues");
+  redirect("/leagues?toast=leagueJoined");
 }
 
 async function leaveLeague(formData: FormData) {
@@ -50,6 +54,7 @@ async function leaveLeague(formData: FormData) {
   if (!leagueId) return;
   await prisma.membership.deleteMany({ where: { userId: user.id, leagueId } });
   revalidatePath("/leagues");
+  redirect("/leagues?toast=leagueLeft");
 }
 
 export default async function LeaguesPage() {

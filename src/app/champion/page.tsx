@@ -18,7 +18,7 @@ async function setChampion(formData: FormData) {
   await prisma.user.update({ where: { id: user.id }, data: { predictedChampionId: teamId } });
   revalidatePath("/champion");
   revalidatePath("/profile");
-  redirect("/profile");
+  redirect("/profile?toast=championSaved");
 }
 
 export default async function ChampionPage() {
