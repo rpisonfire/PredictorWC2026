@@ -55,6 +55,7 @@ export async function championBonusForUser(userId: string): Promise<number> {
   return hit ? CHAMPION_BONUS : 0;
 }
 
+/** Statystyki konkretnego usera - używane głównie na profilu, więc OK że robi parę zapytań */
 export async function statsForUser(userId: string, leagueId?: string): Promise<UserStats> {
   const predictions = await prisma.prediction.findMany({
     where: { userId },
@@ -70,6 +71,15 @@ export async function statsForUser(userId: string, leagueId?: string): Promise<U
     ? await championBonusForUserInLeague(userId, leagueId)
     : await championBonusForUser(userId);
 
+  return computeStats(finished, boostMatchIds, bonus, predictions.length);
+}
+
+function computeStats(
+  finished: { homeScore: number; awayScore: number; firstGoalPlayerId: string | null; pointsAwarded: number; matchId: string; match: { homeScore: number | null; awayScore: number | null; firstGoalPlayerId: string | null } }[],
+  boostMatchIds: Set<string>,
+  bonus: number,
+  predictionCount: number,
+): UserStats {
   let totalPoints = bonus;
   let exactScoreHits = 0;
   let scorerHits = 0;
@@ -97,7 +107,7 @@ export async function statsForUser(userId: string, leagueId?: string): Promise<U
   const finishedCount = finished.length;
   return {
     totalPoints,
-    predictionCount: predictions.length,
+    predictionCount,
     finishedCount,
     exactScoreHits,
     scorerHits,
@@ -108,13 +118,23 @@ export async function statsForUser(userId: string, leagueId?: string): Promise<U
   };
 }
 
-/** Ranking dla podanej ligi (lub wszystkich userów, jeśli leagueId pominięte). */
+/** Ranking - jedno zapytanie pobiera WSZYSTKO, reszta jest w pamięci. */
 export async function leaderboard(leagueId?: string) {
-  const users = leagueId
-    ? await prisma.user.findMany({ where: { memberships: { some: { leagueId } } } })
-    : await prisma.user.findMany();
+  // 1. Users + ich predykcje + ich boosty - wszystko w 1 query przez include
+  const users = await prisma.user.findMany({
+    where: leagueId ? { memberships: { some: { leagueId } } } : undefined,
+    include: {
+      predictions: { include: { match: true } },
+      boosts: true,
+    },
+  });
 
-  // Spark per user - punkty per kolejka
+  // 2. League dla bonusu mistrza
+  const league = leagueId
+    ? await prisma.league.findUnique({ where: { id: leagueId } })
+    : null;
+
+  // 3. Lista wszystkich kolejek (do spark)
   const allMatchdays = await prisma.match.findMany({
     select: { matchday: true },
     distinct: ["matchday"],
@@ -122,54 +142,67 @@ export async function leaderboard(leagueId?: string) {
   });
   const mds = allMatchdays.map((m) => m.matchday);
 
-  const rows = await Promise.all(
-    users.map(async (u) => {
-      const stats = await statsForUser(u.id, leagueId);
+  const rows = users.map((u) => {
+    const boostMatchIds = new Set(u.boosts.map((b) => b.matchId));
+    const finished = u.predictions.filter((p) => p.match.homeScore !== null);
 
-      // sparkline: punkty per kolejka (tylko rozegrane mecze)
-      const predictions = await prisma.prediction.findMany({
-        where: { userId: u.id, match: { homeScore: { not: null } } },
-        include: { match: true },
-      });
-      const boosts = await prisma.boost.findMany({ where: { userId: u.id } });
-      const boostSet = new Set(boosts.map((b) => b.matchId));
-      const ptsPerMd = new Map<number, number>();
-      for (const p of predictions) {
-        const pts = boostSet.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
-        ptsPerMd.set(p.match.matchday, (ptsPerMd.get(p.match.matchday) ?? 0) + pts);
-      }
-      const spark = mds.map((n) => ptsPerMd.get(n) ?? 0);
+    const bonus = league?.actualChampionId && u.predictedChampionId === league.actualChampionId
+      ? CHAMPION_BONUS
+      : 0;
 
-      return { userId: u.id, nickname: u.nickname, avatar: u.avatar, stats, badges: badgesFor(stats), spark };
-    })
-  );
+    const stats = computeStats(finished, boostMatchIds, bonus, u.predictions.length);
+
+    // Sparkline: punkty per kolejka
+    const ptsPerMd = new Map<number, number>();
+    for (const p of finished) {
+      const pts = boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
+      ptsPerMd.set(p.match.matchday, (ptsPerMd.get(p.match.matchday) ?? 0) + pts);
+    }
+    const spark = mds.map((n) => ptsPerMd.get(n) ?? 0);
+
+    return { userId: u.id, nickname: u.nickname, avatar: u.avatar, stats, badges: badgesFor(stats), spark };
+  });
+
   return rows.sort((a, b) => b.stats.totalPoints - a.stats.totalPoints);
 }
 
-/** Stats agregowane dla całej ligi */
+/** Stats ligi - liczone z tych samych danych co ranking, ale prościej. */
 export async function leagueAggregateStats(leagueId: string) {
-  const users = await prisma.user.findMany({ where: { memberships: { some: { leagueId } } } });
+  const users = await prisma.user.findMany({
+    where: { memberships: { some: { leagueId } } },
+    include: {
+      predictions: { include: { match: true } },
+      boosts: true,
+    },
+  });
+  const league = await prisma.league.findUnique({ where: { id: leagueId } });
+
   let totalPoints = 0;
   let count = 0;
   let bestMd: { userId: string; nickname: string; matchday: number; points: number } | null = null;
 
-  const matchdays = await prisma.match.findMany({
-    select: { matchday: true }, distinct: ["matchday"], orderBy: { matchday: "asc" },
-  });
-
   for (const u of users) {
-    const stats = await statsForUser(u.id, leagueId);
+    const boostMatchIds = new Set(u.boosts.map((b) => b.matchId));
+    const finished = u.predictions.filter((p) => p.match.homeScore !== null);
+
+    const bonus = league?.actualChampionId && u.predictedChampionId === league.actualChampionId
+      ? CHAMPION_BONUS
+      : 0;
+
+    const stats = computeStats(finished, boostMatchIds, bonus, u.predictions.length);
     totalPoints += stats.totalPoints;
     count++;
-    for (const md of matchdays) {
-      const predictions = await prisma.prediction.findMany({
-        where: { userId: u.id, match: { matchday: md.matchday } },
-      });
-      const boosts = await prisma.boost.findMany({ where: { userId: u.id, matchday: md.matchday } });
-      const boostSet = new Set(boosts.map((b) => b.matchId));
-      let pts = 0;
-      for (const p of predictions) pts += boostSet.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
-      if (!bestMd || pts > bestMd.points) bestMd = { userId: u.id, nickname: u.nickname, matchday: md.matchday, points: pts };
+
+    // Per matchday breakdown
+    const ptsPerMd = new Map<number, number>();
+    for (const p of finished) {
+      const pts = boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
+      ptsPerMd.set(p.match.matchday, (ptsPerMd.get(p.match.matchday) ?? 0) + pts);
+    }
+    for (const [matchday, pts] of ptsPerMd.entries()) {
+      if (!bestMd || pts > bestMd.points) {
+        bestMd = { userId: u.id, nickname: u.nickname, matchday, points: pts };
+      }
     }
   }
 
@@ -180,24 +213,25 @@ export async function leagueAggregateStats(leagueId: string) {
   };
 }
 
+/** Ranking dla konkretnej kolejki - jedno query */
 export async function leaderboardForMatchday(matchday: number, leagueId?: string) {
-  const users = leagueId
-    ? await prisma.user.findMany({ where: { memberships: { some: { leagueId } } } })
-    : await prisma.user.findMany();
-  const rows = await Promise.all(
-    users.map(async (u) => {
-      const predictions = await prisma.prediction.findMany({
-        where: { userId: u.id, match: { matchday } },
-        include: { match: true },
-      });
-      const boosts = await prisma.boost.findMany({ where: { userId: u.id, matchday } });
-      const boostMatchIds = new Set(boosts.map((b) => b.matchId));
+  const users = await prisma.user.findMany({
+    where: leagueId ? { memberships: { some: { leagueId } } } : undefined,
+    include: {
+      predictions: { where: { match: { matchday } } },
+      boosts: { where: { matchday } },
+    },
+  });
+
+  return users
+    .map((u) => {
+      const boostMatchIds = new Set(u.boosts.map((b) => b.matchId));
       let pts = 0;
-      for (const p of predictions) {
+      for (const p of u.predictions) {
         pts += boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
       }
-      return { userId: u.id, nickname: u.nickname, avatar: u.avatar, points: pts, count: predictions.length };
+      return { userId: u.id, nickname: u.nickname, avatar: u.avatar, points: pts, count: u.predictions.length };
     })
-  );
-  return rows.filter((r) => r.count > 0).sort((a, b) => b.points - a.points);
+    .filter((r) => r.count > 0)
+    .sort((a, b) => b.points - a.points);
 }
