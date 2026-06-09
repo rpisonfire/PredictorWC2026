@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { Flag } from "@/components/Flag";
 
 export const dynamic = "force-dynamic";
 
@@ -185,7 +186,7 @@ export default async function StatsPage() {
               return team ? (
                 <li key={team.id}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xl">{team.flag}</span>
+                    <Flag emoji={team.flag} size="md" alt={team.name} />
                     <span className="font-bold flex-1 truncate">{team.name}</span>
                     <span className={`text-sm font-black tabular-nums ${color.replace("bg-", "text-")}`}>{pct.toFixed(0)}%</span>
                     <span className="text-xs text-app-subtle w-8 text-right">({count})</span>
@@ -274,12 +275,12 @@ export default async function StatsPage() {
           <div className="card p-5">
             <h2 className="text-lg font-black mb-3">👥 Najpopularniejszy mecz</h2>
             <div className="flex items-center gap-3">
-              <div className="text-3xl">{popularMatch.homeTeam.flag}</div>
+              <Flag emoji={popularMatch.homeTeam.flag} size="lg" />
               <div className="flex-1">
                 <div className="font-bold">{popularMatch.homeTeam.shortCode} vs {popularMatch.awayTeam.shortCode}</div>
                 <div className="text-xs text-app-subtle">{popularMatch.stage}</div>
               </div>
-              <div className="text-3xl">{popularMatch.awayTeam.flag}</div>
+              <Flag emoji={popularMatch.awayTeam.flag} size="lg" />
               <div className="chip bg-wc-blue/15 text-wc-blue">{matchesWithPicks[0]._count._all} typów</div>
             </div>
           </div>
@@ -290,12 +291,12 @@ export default async function StatsPage() {
           <div className="card p-5">
             <h2 className="text-lg font-black mb-3">⚡ Najczęściej boostowany</h2>
             <div className="flex items-center gap-3">
-              <div className="text-3xl">{boostMatch.homeTeam.flag}</div>
+              <Flag emoji={boostMatch.homeTeam.flag} size="lg" />
               <div className="flex-1">
                 <div className="font-bold">{boostMatch.homeTeam.shortCode} vs {boostMatch.awayTeam.shortCode}</div>
                 <div className="text-xs text-app-subtle">{boostMatch.stage}</div>
               </div>
-              <div className="text-3xl">{boostMatch.awayTeam.flag}</div>
+              <Flag emoji={boostMatch.awayTeam.flag} size="lg" />
               <div className="chip bg-wc-gold/15 text-wc-gold">{boostUsage[0]._count._all}× ⚡</div>
             </div>
           </div>

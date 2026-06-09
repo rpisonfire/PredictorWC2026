@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { championPickIsLocked } from "@/lib/championLock";
 import { fmtDateTimeLong } from "@/lib/dates";
+import { Flag } from "@/components/Flag";
 
 async function setChampion(formData: FormData) {
   "use server";
@@ -43,7 +44,7 @@ export default async function ChampionPage() {
         <div className="card p-4 mb-5 border-wc-gold/40">
           <div className="text-xs uppercase tracking-wider text-app-subtle">Twój aktualny typ</div>
           <div className="mt-1 flex items-center gap-3">
-            <span className="text-3xl">{currentTeam.flag}</span>
+            <Flag emoji={currentTeam.flag} size="lg" alt={currentTeam.name} />
             <span className="font-black text-xl">{currentTeam.name}</span>
           </div>
         </div>
@@ -72,7 +73,7 @@ export default async function ChampionPage() {
                 <label key={t.id} className="cursor-pointer">
                   <input type="radio" name="teamId" value={t.id} defaultChecked={active} className="peer sr-only" />
                   <span className={`flex items-center gap-2 p-3 rounded-xl border border-app peer-checked:border-wc-gold peer-checked:bg-wc-gold/10 hover:bg-app-hover ${active ? "ring-1 ring-wc-gold/30" : ""}`}>
-                    <span className="text-2xl shrink-0">{t.flag}</span>
+                    <Flag emoji={t.flag} size="md" alt={t.name} />
                     <span className="font-bold text-sm truncate">{t.name}</span>
                   </span>
                 </label>

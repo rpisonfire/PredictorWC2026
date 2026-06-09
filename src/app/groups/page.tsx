@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { groupStandings } from "@/lib/groups";
+import { Flag } from "@/components/Flag";
 
 export default async function GroupsPage() {
   const user = await getCurrentUser();
@@ -40,7 +41,7 @@ export default async function GroupsPage() {
                     <td className="pl-3 py-2 text-app-subtle font-black">{i + 1}.</td>
                     <td className="py-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{t.flag}</span>
+                        <Flag emoji={t.flag} size="sm" alt={t.name} />
                         <span className="font-bold truncate">{t.shortCode}</span>
                       </div>
                     </td>

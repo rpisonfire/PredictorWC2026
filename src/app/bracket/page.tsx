@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { fmtDateTime } from "@/lib/dates";
+import { Flag } from "@/components/Flag";
 
 const STAGE_ORDER = [
   "Faza grupowa",
@@ -77,14 +78,14 @@ export default async function BracketPage() {
                           <div className="text-[10px] text-app-subtle">{fmtDateTime(m.kickoff)}</div>
                           <div className={`flex items-center justify-between mt-1 ${awayWon ? "opacity-50" : ""}`}>
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-lg">{m.homeTeam.flag}</span>
+                              <Flag emoji={m.homeTeam.flag} size="sm" />
                               <span className={`font-bold truncate ${homeWon ? "text-wc-gold" : ""}`}>{m.homeTeam.shortCode}</span>
                             </div>
                             <span className={`font-black text-lg tabular-nums ${homeWon ? "text-wc-gold" : ""}`}>{m.homeScore ?? "-"}</span>
                           </div>
                           <div className={`flex items-center justify-between mt-1 ${homeWon ? "opacity-50" : ""}`}>
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-lg">{m.awayTeam.flag}</span>
+                              <Flag emoji={m.awayTeam.flag} size="sm" />
                               <span className={`font-bold truncate ${awayWon ? "text-wc-gold" : ""}`}>{m.awayTeam.shortCode}</span>
                             </div>
                             <span className={`font-black text-lg tabular-nums ${awayWon ? "text-wc-gold" : ""}`}>{m.awayScore ?? "-"}</span>

@@ -10,6 +10,7 @@ import { fmtDateTime, dayKey } from "@/lib/dates";
 import { isLive } from "@/lib/matchStatus";
 import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { Flag } from "@/components/Flag";
 
 export default async function Dashboard({
   searchParams,
@@ -111,8 +112,11 @@ export default async function Dashboard({
         <div className="card p-4 mb-6 flex items-center gap-4 border-wc-gold/30 bg-wc-gold/5">
           <div className="text-3xl">⏰</div>
           <div className="flex-1">
-            <div className="font-black">
-              Najbliższy mecz: {nextMatch.homeTeam.flag} {nextMatch.homeTeam.shortCode} vs {nextMatch.awayTeam.shortCode} {nextMatch.awayTeam.flag}
+            <div className="font-black flex items-center gap-1.5 flex-wrap">
+              <span>Najbliższy mecz:</span>
+              <Flag emoji={nextMatch.homeTeam.flag} size="sm" />
+              <span>{nextMatch.homeTeam.shortCode} vs {nextMatch.awayTeam.shortCode}</span>
+              <Flag emoji={nextMatch.awayTeam.flag} size="sm" />
             </div>
             <div className="text-sm text-app-muted">
               {hoursToNext < 1

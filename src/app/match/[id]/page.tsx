@@ -8,6 +8,7 @@ import { fmtDateTime, fmtDateTimeLong } from "@/lib/dates";
 import { isLive } from "@/lib/matchStatus";
 import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { Flag } from "@/components/Flag";
 
 async function savePrediction(formData: FormData) {
   "use server";
@@ -118,14 +119,14 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </div>
         <div className="mt-3 flex items-center justify-between text-center">
           <div className="flex-1">
-            <div className="text-5xl">{match.homeTeam.flag}</div>
+            <Flag emoji={match.homeTeam.flag} size="xl" alt={match.homeTeam.name} className="mx-auto" />
             <div className="font-black mt-1">{match.homeTeam.name}</div>
           </div>
           <div className="px-3 text-3xl font-black text-app-subtle">
             {finished ? `${match.homeScore} : ${match.awayScore}` : "vs"}
           </div>
           <div className="flex-1">
-            <div className="text-5xl">{match.awayTeam.flag}</div>
+            <Flag emoji={match.awayTeam.flag} size="xl" alt={match.awayTeam.name} className="mx-auto" />
             <div className="font-black mt-1">{match.awayTeam.name}</div>
           </div>
         </div>

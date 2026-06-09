@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Sparkline } from "@/components/Sparkline";
 import { fmtDateTime } from "@/lib/dates";
+import { Flag } from "@/components/Flag";
 
 export default async function MyPredictions() {
   const user = await getCurrentUser();
@@ -92,7 +93,7 @@ function Row({ p, boosted, resolved }: { p: any; boosted: boolean; resolved?: bo
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1">
-          <span className="text-xl">{m.homeTeam.flag}</span>
+          <Flag emoji={m.homeTeam.flag} size="sm" alt={m.homeTeam.name} />
           <span className="font-bold">{m.homeTeam.shortCode}</span>
         </div>
         <div className="text-center px-3">
@@ -103,7 +104,7 @@ function Row({ p, boosted, resolved }: { p: any; boosted: boolean; resolved?: bo
         </div>
         <div className="flex items-center gap-2 flex-1 justify-end">
           <span className="font-bold">{m.awayTeam.shortCode}</span>
-          <span className="text-xl">{m.awayTeam.flag}</span>
+          <Flag emoji={m.awayTeam.flag} size="sm" alt={m.awayTeam.name} />
         </div>
       </div>
       <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
