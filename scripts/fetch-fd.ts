@@ -117,25 +117,45 @@ async function main() {
     });
     process.stdout.write(`  ⚽ ${t.name}: `);
 
-    const dbTeam = await prisma.team.findUnique({
-      where: { apiId: t.id },
-      include: { _count: { select: { players: true } } },
-    });
-    if (dbTeam && dbTeam._count.players > 0) {
-      console.log(`${dbTeam._count.players} (cache, pomijam)`);
-      continue;
-    }
+    const dbTeam = await prisma.team.findUnique({ where: { apiId: t.id } });
+    if (!dbTeam) { console.log("brak teamu w DB?!"); continue; }
 
     try {
       const squadJ = await api<{ squad: ApiPlayer[] }>(`/teams/${t.id}`);
+      const apiPlayerIds = new Set(squadJ.squad.map((p) => p.id));
+
+      // 1. Upsert wszystkich z API
       for (const p of squadJ.squad) {
         await prisma.player.upsert({
           where: { apiId: p.id },
-          update: { name: p.name, position: p.position, teamId: dbTeam!.id },
-          create: { apiId: p.id, name: p.name, position: p.position, teamId: dbTeam!.id },
+          update: { name: p.name, position: p.position, teamId: dbTeam.id },
+          create: { apiId: p.id, name: p.name, position: p.position, teamId: dbTeam.id },
         });
       }
-      console.log(`${squadJ.squad.length} zawodników ✓`);
+
+      // 2. Znajdź zawodników w bazie którzy zniknęli z API (kontuzje, zmiany kadry)
+      const dbPlayers = await prisma.player.findMany({
+        where: { teamId: dbTeam.id, apiId: { not: null } },
+        select: { id: true, apiId: true, name: true },
+      });
+      const dropped = dbPlayers.filter((p) => p.apiId != null && !apiPlayerIds.has(p.apiId));
+
+      let droppedCount = 0;
+      let invalidatedPicks = 0;
+      for (const p of dropped) {
+        // Null out predictions wskazujące na tego zawodnika (kumple będą musieli wybrać ponownie)
+        const upd = await prisma.prediction.updateMany({
+          where: { firstGoalPlayerId: p.id },
+          data: { firstGoalPlayerId: null },
+        });
+        invalidatedPicks += upd.count;
+        await prisma.player.delete({ where: { id: p.id } });
+        droppedCount++;
+      }
+
+      const msg = `${squadJ.squad.length} zawodników ✓`
+        + (droppedCount > 0 ? ` (usunięto ${droppedCount}${invalidatedPicks ? `, anulowano ${invalidatedPicks} typów strzelca` : ""})` : "");
+      console.log(msg);
     } catch (e) {
       console.log(`błąd (${(e as Error).message.slice(0, 80)})`);
     }
