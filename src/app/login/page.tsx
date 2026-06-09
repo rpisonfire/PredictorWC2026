@@ -47,6 +47,19 @@ async function signUpAction(_prev: FormState, formData: FormData): Promise<FormS
     data: { nickname, avatar, passwordHash: hashPassword(password), predictedChampionId },
   });
   await prisma.membership.create({ data: { userId: user.id, leagueId: league.id } });
+
+  // Auto-dołączenie do głównej ligi MUNDIAL2026 (jeśli nie ta sama)
+  if (inviteCode !== "MUNDIAL2026") {
+    const mundial = await prisma.league.findUnique({ where: { inviteCode: "MUNDIAL2026" } });
+    if (mundial && mundial.id !== league.id) {
+      await prisma.membership.upsert({
+        where: { userId_leagueId: { userId: user.id, leagueId: mundial.id } },
+        update: {},
+        create: { userId: user.id, leagueId: mundial.id },
+      });
+    }
+  }
+
   await setSession(user.id);
   redirect("/dashboard");
 }

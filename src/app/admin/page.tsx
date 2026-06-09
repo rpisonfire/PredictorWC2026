@@ -56,6 +56,40 @@ async function setChampion(formData: FormData) {
   revalidatePath("/profile");
 }
 
+async function addUserToLeague(formData: FormData) {
+  "use server";
+  const me = await getCurrentUser();
+  if (!me?.isAdmin) return;
+  const userId = String(formData.get("userId") ?? "");
+  const leagueId = String(formData.get("leagueId") ?? "");
+  if (!userId || !leagueId) return;
+  await prisma.membership.upsert({
+    where: { userId_leagueId: { userId, leagueId } },
+    update: {},
+    create: { userId, leagueId },
+  });
+  revalidatePath("/admin");
+  revalidatePath("/leaderboard");
+}
+
+async function joinAllToLeague(formData: FormData) {
+  "use server";
+  const me = await getCurrentUser();
+  if (!me?.isAdmin) return;
+  const leagueId = String(formData.get("leagueId") ?? "");
+  if (!leagueId) return;
+  const users = await prisma.user.findMany({ select: { id: true } });
+  for (const u of users) {
+    await prisma.membership.upsert({
+      where: { userId_leagueId: { userId: u.id, leagueId } },
+      update: {},
+      create: { userId: u.id, leagueId },
+    });
+  }
+  revalidatePath("/admin");
+  revalidatePath("/leaderboard");
+}
+
 async function sendPush(formData: FormData) {
   "use server";
   const me = await getCurrentUser();
@@ -104,6 +138,73 @@ export default async function Admin({
 
   const { tab } = await searchParams;
   const activeTab = tab === "users" ? "users" : "matches";
+
+  if (tab === "leagues") {
+    const allLeagues = await prisma.league.findMany({
+      orderBy: { createdAt: "asc" },
+      include: { memberships: { include: { user: true } } },
+    });
+    const allUsers = await prisma.user.findMany({ orderBy: { nickname: "asc" } });
+    return (
+      <section>
+        <AdminTabs active="leagues" />
+        <h1 className="text-3xl font-black mb-2">Ligi 🏟️</h1>
+        <p className="text-app-muted mb-6">Zarządzaj członkostwami - dodawaj graczy do lig ręcznie.</p>
+
+        <div className="space-y-4">
+          {allLeagues.map((l) => {
+            const memberIds = new Set(l.memberships.map((m) => m.userId));
+            const notInLeague = allUsers.filter((u) => !memberIds.has(u.id));
+            return (
+              <div key={l.id} className="card p-5">
+                <div className="flex items-center justify-between mb-3 gap-3">
+                  <div>
+                    <div className="font-black text-lg">{l.name}</div>
+                    <div className="text-xs text-app-subtle">
+                      kod <code className="bg-app-hover px-1.5 py-0.5 rounded">{l.inviteCode}</code> · {l.memberships.length} {l.memberships.length === 1 ? "gracz" : "graczy"}
+                    </div>
+                  </div>
+                  {notInLeague.length > 0 && (
+                    <form action={joinAllToLeague}>
+                      <input type="hidden" name="leagueId" value={l.id} />
+                      <button className="btn-ghost text-xs py-1.5 px-3 whitespace-nowrap">
+                        ➕ Dodaj wszystkich ({notInLeague.length})
+                      </button>
+                    </form>
+                  )}
+                </div>
+
+                {/* Lista członków */}
+                {l.memberships.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {l.memberships.map((m) => (
+                      <span key={m.id} className="chip bg-app-hover">
+                        {m.user.avatar} {m.user.nickname}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Dodaj konkretnego użytkownika */}
+                {notInLeague.length > 0 && (
+                  <form action={addUserToLeague} className="flex gap-2 pt-3 border-t border-app">
+                    <input type="hidden" name="leagueId" value={l.id} />
+                    <select name="userId" required className="input text-sm flex-1">
+                      <option value="">- wybierz gracza -</option>
+                      {notInLeague.map((u) => (
+                        <option key={u.id} value={u.id}>{u.avatar} {u.nickname}</option>
+                      ))}
+                    </select>
+                    <button className="btn-primary text-sm py-1.5 px-4 whitespace-nowrap">Dodaj</button>
+                  </form>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
 
   if (tab === "push") {
     const usersWithSubs = await prisma.user.findMany({
@@ -310,10 +411,11 @@ export default async function Admin({
   );
 }
 
-function AdminTabs({ active }: { active: "matches" | "users" | "champion" | "push" }) {
+function AdminTabs({ active }: { active: "matches" | "users" | "champion" | "push" | "leagues" }) {
   const tabs = [
     { key: "matches",  href: "/admin",                label: "Mecze" },
     { key: "users",    href: "/admin?tab=users",      label: "Użytkownicy" },
+    { key: "leagues",  href: "/admin?tab=leagues",    label: "Ligi 🏟️" },
     { key: "champion", href: "/admin?tab=champion",   label: "Mistrz 🏆" },
     { key: "push",     href: "/admin?tab=push",       label: "Powiadomienia 🔔" },
   ];
