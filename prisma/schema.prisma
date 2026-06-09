@@ -15,6 +15,8 @@ model User {
   predictedChampionId  String?
   predictedChampion    Team?        @relation("PredictedChampion", fields: [predictedChampionId], references: [id])
   isAdmin              Boolean      @default(false)
+  failedAttempts       Int          @default(0)
+  lockedUntil          DateTime?
   createdAt            DateTime     @default(now())
   memberships Membership[]
   predictions Prediction[]

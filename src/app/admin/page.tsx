@@ -114,7 +114,11 @@ async function resetPassword(formData: FormData) {
   "use server";
   const userId = String(formData.get("userId"));
   const temp = randomBytes(4).toString("hex"); // 8 chars
-  await prisma.user.update({ where: { id: userId }, data: { passwordHash: hashPassword(temp) } });
+  // Reset hasła + odblokowanie konta (zerowanie failed attempts)
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: hashPassword(temp), failedAttempts: 0, lockedUntil: null },
+  });
   const { cookies } = await import("next/headers");
   const c = await cookies();
   c.set("wcp_reset_info", `${userId}:${temp}`, { httpOnly: true, path: "/admin", maxAge: 300 });

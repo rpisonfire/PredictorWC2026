@@ -11,6 +11,9 @@ const AVATARS = ["⚽", "🏆", "🔥", "🦁", "🐉", "🦅", "🐂", "🦊", 
 
 export type FormState = { error?: string };
 
+const MAX_ATTEMPTS = 5;
+const LOCK_MINUTES = 15;
+
 async function signInAction(_prev: FormState, formData: FormData): Promise<FormState> {
   "use server";
   const nickname = String(formData.get("nickname") ?? "").trim();
@@ -18,8 +21,42 @@ async function signInAction(_prev: FormState, formData: FormData): Promise<FormS
   if (!nickname || !password) return { error: "Wpisz nick i hasło" };
 
   const user = await prisma.user.findUnique({ where: { nickname } });
-  if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
+  // Stała reakcja czasowa - nawet jak nie ma usera, weryfikujemy fake hash
+  // (zapobiega timing attack i nie ujawnia czy nick istnieje)
+  if (!user || !user.passwordHash) {
+    verifyPassword(password, "dummy:0000000000000000000000000000000000000000000000000000000000000000");
     return { error: "Nieprawidłowy nick lub hasło" };
+  }
+
+  // Sprawdź blokadę
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+    return { error: `Zbyt wiele prób. Konto zablokowane na ${minutesLeft} min. Skontaktuj się z adminem żeby zresetował hasło.` };
+  }
+
+  if (!verifyPassword(password, user.passwordHash)) {
+    const newAttempts = user.failedAttempts + 1;
+    const shouldLock = newAttempts >= MAX_ATTEMPTS;
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        failedAttempts: shouldLock ? 0 : newAttempts,
+        lockedUntil: shouldLock ? new Date(Date.now() + LOCK_MINUTES * 60_000) : null,
+      },
+    });
+    if (shouldLock) {
+      return { error: `Zbyt wiele nieudanych prób. Konto zablokowane na ${LOCK_MINUTES} min.` };
+    }
+    const left = MAX_ATTEMPTS - newAttempts;
+    return { error: `Nieprawidłowe hasło. Pozostało prób: ${left}.` };
+  }
+
+  // Sukces - zeruj licznik
+  if (user.failedAttempts > 0 || user.lockedUntil) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { failedAttempts: 0, lockedUntil: null },
+    });
   }
   await setSession(user.id);
   redirect("/dashboard");
