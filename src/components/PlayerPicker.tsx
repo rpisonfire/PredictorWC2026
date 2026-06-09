@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { PlayerAvatar } from "./PlayerAvatar";
 
-type PlayerOpt = { id: string; name: string; photoUrl?: string | null; number?: number | null };
+type PlayerOpt = { id: string; name: string; photoUrl?: string | null; number?: number | null; position?: string | null };
 type TeamGroup = { name: string; flag: string; players: PlayerOpt[] };
 
 export function PlayerPicker({
@@ -29,7 +29,7 @@ export function PlayerPicker({
       >
         {current ? (
           <>
-            <PlayerAvatar name={current.name} photoUrl={current.photoUrl} size={32} />
+            <PlayerAvatar name={current.name} photoUrl={current.photoUrl} position={current.position} size={32} />
             <span className="font-bold flex-1">{current.name}</span>
             {current.number != null && <span className="text-app-subtle text-sm">#{current.number}</span>}
           </>
@@ -60,7 +60,7 @@ export function PlayerPicker({
                   onClick={() => { setSelected(p.id); setOpen(false); }}
                   className={`w-full flex items-center gap-3 px-4 py-2 hover:bg-wc-red/10 ${selected === p.id ? "bg-wc-red/15" : ""}`}
                 >
-                  <PlayerAvatar name={p.name} photoUrl={p.photoUrl} size={32} />
+                  <PlayerAvatar name={p.name} photoUrl={p.photoUrl} position={p.position} size={32} />
                   <span className="font-bold flex-1 text-left">{p.name}</span>
                   {p.number != null && <span className="text-app-subtle text-sm">#{p.number}</span>}
                 </button>

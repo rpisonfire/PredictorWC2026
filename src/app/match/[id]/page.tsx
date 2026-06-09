@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerPicker } from "@/components/PlayerPicker";
-import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { PlayerAvatar, PositionLegend } from "@/components/PlayerAvatar";
 import { fmtDateTime, fmtDateTimeLong } from "@/lib/dates";
 import { isLive } from "@/lib/matchStatus";
 import { LiveChip } from "@/components/LiveChip";
@@ -190,6 +190,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   { name: match.awayTeam.name, flag: match.awayTeam.flag, players: match.awayTeam.players },
                 ]}
               />
+              <div className="mt-2">
+                <PositionLegend />
+              </div>
             </div>
           </div>
 
