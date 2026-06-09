@@ -5,7 +5,9 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Flag } from "@/components/Flag";
 import { Emoji } from "@/components/Emoji";
 import { RankingChart } from "@/components/RankingChart";
-import { rankingOverTime, matchInsights, userStyles } from "@/lib/stats";
+import { rankingOverTime, matchInsights, userStyles, STYLE_RULES } from "@/lib/stats";
+
+const STYLE_RULES_LEGEND = STYLE_RULES;
 
 export const dynamic = "force-dynamic";
 
@@ -349,17 +351,41 @@ export default async function StatsPage() {
           <div className="card p-5">
             <h2 className="text-lg font-black mb-3">🔥 Najodważniejszy typ</h2>
             <div className="flex items-center gap-3">
-              <span className="text-3xl">{bold.user.avatar}</span>
+              <Emoji char={bold.user.avatar} size="xl" alt={bold.user.nickname} />
               <div className="flex-1 min-w-0">
                 <div className="font-black truncate">{bold.user.nickname}</div>
-                <div className="text-xs text-app-subtle truncate">
-                  {bold.match.homeTeam.flag} {bold.match.homeTeam.shortCode} vs {bold.match.awayTeam.shortCode} {bold.match.awayTeam.flag}
+                <div className="text-xs text-app-subtle truncate flex items-center gap-1">
+                  <Flag emoji={bold.match.homeTeam.flag} size="xs" /> {bold.match.homeTeam.shortCode} vs {bold.match.awayTeam.shortCode} <Flag emoji={bold.match.awayTeam.flag} size="xs" />
                 </div>
               </div>
               <div className="text-2xl font-black text-accent tabular-nums">{bold.homeScore}:{bold.awayScore}</div>
             </div>
           </div>
         )}
+
+        {/* Złoty boost */}
+        <div className="card p-5">
+          <h2 className="text-lg font-black mb-3">💎 Złoty boost</h2>
+          {goldenBoost ? (
+            <div className="flex items-center gap-3">
+              <Emoji char={goldenBoost.user.avatar} size="xl" alt={goldenBoost.user.nickname} />
+              <div className="flex-1 min-w-0">
+                <div className="font-black truncate">{goldenBoost.user.nickname}</div>
+                <div className="text-xs text-app-subtle truncate flex items-center gap-1">
+                  <Flag emoji={goldenBoost.match.homeTeam.flag} size="xs" /> {goldenBoost.match.homeTeam.shortCode} vs {goldenBoost.match.awayTeam.shortCode} <Flag emoji={goldenBoost.match.awayTeam.flag} size="xs" />
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-black text-wc-gold tabular-nums">+{goldenBoost.boostedPoints}</div>
+                <div className="text-[10px] text-app-subtle">z {goldenBoost.basePoints} ⚡</div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-app-subtle">
+              ⏳ Czeka na pierwszy udany boost. Kto zaboostuje mecz z trafionym typem, ten tu wpadnie.
+            </div>
+          )}
+        </div>
 
         {/* Most popular match */}
         {popularMatch && (
@@ -372,27 +398,7 @@ export default async function StatsPage() {
                 <div className="text-xs text-app-subtle">{popularMatch.stage}</div>
               </div>
               <Flag emoji={popularMatch.awayTeam.flag} size="lg" />
-              <div className="chip bg-wc-blue/15 text-wc-blue">{matchesWithPicks[0]._count._all} typów</div>
-            </div>
-          </div>
-        )}
-
-        {/* Złoty boost */}
-        {goldenBoost && (
-          <div className="card p-5">
-            <h2 className="text-lg font-black mb-3">💎 Złoty boost</h2>
-            <div className="flex items-center gap-3">
-              <Emoji char={goldenBoost.user.avatar} size="xl" alt={goldenBoost.user.nickname} />
-              <div className="flex-1 min-w-0">
-                <div className="font-black truncate">{goldenBoost.user.nickname}</div>
-                <div className="text-xs text-app-subtle truncate">
-                  {goldenBoost.match.homeTeam.shortCode} vs {goldenBoost.match.awayTeam.shortCode} · {goldenBoost.match.stage}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-black text-wc-gold tabular-nums">+{goldenBoost.boostedPoints}</div>
-                <div className="text-[10px] text-app-subtle">z {goldenBoost.basePoints} ⚡</div>
-              </div>
+              <div className="chip bg-wc-lime/20 text-wc-lime border border-wc-lime/30">{matchesWithPicks[0]._count._all} typów</div>
             </div>
           </div>
         )}
@@ -408,7 +414,7 @@ export default async function StatsPage() {
                 <div className="text-xs text-app-subtle">{boostMatch.stage}</div>
               </div>
               <Flag emoji={boostMatch.awayTeam.flag} size="lg" />
-              <div className="chip bg-wc-gold/15 text-wc-gold">{boostUsage[0]._count._all}× ⚡</div>
+              <div className="chip bg-wc-gold/20 text-wc-gold border border-wc-gold/30">{boostUsage[0]._count._all}× ⚡</div>
             </div>
           </div>
         )}
@@ -447,13 +453,21 @@ export default async function StatsPage() {
             ))}
           </div>
           <div className="mt-5 card p-4">
-            <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">Legenda stylów</div>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-              <div className="flex items-center gap-2"><span className="text-xl">🧱</span><div><div className="font-bold">Beton</div><div className="text-[10px] text-app-subtle">≥40% remisów</div></div></div>
-              <div className="flex items-center gap-2"><span className="text-xl">🌈</span><div><div className="font-bold">Optymista</div><div className="text-[10px] text-app-subtle">≥3.5 br/mecz</div></div></div>
-              <div className="flex items-center gap-2"><span className="text-xl">🧊</span><div><div className="font-bold">Pesymista</div><div className="text-[10px] text-app-subtle">≤1.5 br/mecz</div></div></div>
-              <div className="flex items-center gap-2"><span className="text-xl">🎰</span><div><div className="font-bold">Hazardzista</div><div className="text-[10px] text-app-subtle">≥30% wysokich</div></div></div>
-              <div className="flex items-center gap-2"><span className="text-xl">⚖️</span><div><div className="font-bold">Realista</div><div className="text-[10px] text-app-subtle">środek</div></div></div>
+            <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">Jak wyliczany jest styl</div>
+            <p className="text-xs text-app-muted mb-3">
+              Każdy typ uzyskuje "dopasowanie" do każdego stylu. Wygrywa najmocniejsze. Sprawdzane są:
+              <b className="text-app"> dokładność trafień, średnia bramek, % remisów, % wysokich wyników (4+ br)</b>.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              {STYLE_RULES_LEGEND.map((s) => (
+                <div key={s.label} className="flex items-center gap-2">
+                  <span className="text-xl">{s.emoji}</span>
+                  <div>
+                    <div className="font-bold">{s.label}</div>
+                    <div className="text-[10px] text-app-subtle">{s.desc}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

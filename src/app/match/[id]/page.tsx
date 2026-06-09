@@ -5,6 +5,25 @@ import { getCurrentUser } from "@/lib/session";
 import { PlayerPicker } from "@/components/PlayerPicker";
 import { PlayerAvatar, PositionLegend } from "@/components/PlayerAvatar";
 import { fmtDateTime, fmtDateTimeLong } from "@/lib/dates";
+
+function positionOrder(pos?: string | null): number {
+  if (!pos) return 5;
+  const p = pos.toLowerCase();
+  if (p.includes("goal")) return 1;
+  if (p.includes("defence") || p.includes("defender") || p.includes("back")) return 2;
+  if (p.includes("midfield")) return 3;
+  if (p.includes("forward") || p.includes("attack") || p.includes("offence") || p.includes("striker") || p.includes("winger")) return 4;
+  return 5;
+}
+
+function sortByPosition<T extends { position?: string | null; name: string }>(players: T[]): T[] {
+  return [...players].sort((a, b) => {
+    const oa = positionOrder(a.position);
+    const ob = positionOrder(b.position);
+    if (oa !== ob) return oa - ob;
+    return a.name.localeCompare(b.name);
+  });
+}
 import { isLive } from "@/lib/matchStatus";
 import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
@@ -186,8 +205,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 name="firstGoalPlayerId"
                 defaultValue={pred?.firstGoalPlayerId}
                 groups={[
-                  { name: match.homeTeam.name, flag: match.homeTeam.flag, players: match.homeTeam.players },
-                  { name: match.awayTeam.name, flag: match.awayTeam.flag, players: match.awayTeam.players },
+                  { name: match.homeTeam.name, flag: match.homeTeam.flag, players: sortByPosition(match.homeTeam.players) },
+                  { name: match.awayTeam.name, flag: match.awayTeam.flag, players: sortByPosition(match.awayTeam.players) },
                 ]}
               />
               <div className="mt-2">

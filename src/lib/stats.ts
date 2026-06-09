@@ -281,10 +281,22 @@ export async function matchInsights() {
   return { easiest, killing, divisive };
 }
 
-/** Styl typowania - "Optymista / Pesymista / Beton" + radar */
+/**
+ * Styl typowania - wyliczany przez "score" dla każdego stylu, wybierany ten o najwyższym dopasowaniu.
+ * Dzięki temu nie ma sztywnej kaskady która pomija przypadki.
+ */
+export const STYLE_RULES = [
+  { key: "beton",       emoji: "🧱", label: "Beton",       desc: "Typuje dużo remisów (≥30%)" },
+  { key: "pesymista",   emoji: "🧊", label: "Pesymista",   desc: "Średnio ≤1.5 br/mecz" },
+  { key: "realista",    emoji: "⚖️", label: "Realista",    desc: "Typowy wynik 1-2 br na drużynę" },
+  { key: "optymista",   emoji: "🌈", label: "Optymista",   desc: "Średnio ≥2.8 br/mecz" },
+  { key: "hazardzista", emoji: "🎰", label: "Hazardzista", desc: "Typuje wysokie wyniki (4+ br) ≥25% meczów" },
+  { key: "snajper",     emoji: "🎯", label: "Snajper",     desc: "Trafia dokładny wynik ≥25% rozegranych" },
+] as const;
+
 export async function userStyles() {
   const users = await prisma.user.findMany({
-    include: { predictions: true },
+    include: { predictions: { include: { match: true } } },
   });
   return users
     .filter((u) => u.predictions.length >= 3)
@@ -296,18 +308,28 @@ export async function userStyles() {
       const drawRate = draws / total;
       const highScoring = u.predictions.filter((p) => p.homeScore + p.awayScore >= 4).length;
       const highRate = highScoring / total;
+      const finished = u.predictions.filter((p) => p.match.homeScore !== null);
+      const exact = finished.filter((p) => p.homeScore === p.match.homeScore && p.awayScore === p.match.awayScore).length;
+      const exactRate = finished.length >= 3 ? exact / finished.length : 0;
 
-      let style: { emoji: string; label: string };
-      if (drawRate >= 0.4) style = { emoji: "🧱", label: "Beton" };
-      else if (avgGoals >= 3.5) style = { emoji: "🌈", label: "Optymista" };
-      else if (avgGoals <= 1.5) style = { emoji: "🧊", label: "Pesymista" };
-      else if (highRate >= 0.3) style = { emoji: "🎰", label: "Hazardzista" };
-      else style = { emoji: "⚖️", label: "Realista" };
+      // Score per styl - większy = mocniejsze dopasowanie
+      const scores: Record<string, number> = {
+        snajper:     exactRate >= 0.25 ? exactRate * 5 : 0,                    // jasno wygrywa jeśli trafia często
+        hazardzista: highRate >= 0.25 ? highRate * 3 : 0,                       // niezależnie od reszty
+        beton:       drawRate >= 0.30 ? drawRate * 3 : 0,
+        pesymista:   avgGoals <= 1.5 ? (1.5 - avgGoals) * 2 : 0,
+        optymista:   avgGoals >= 2.8 ? (avgGoals - 2.5) * 1.5 : 0,
+        realista:    avgGoals > 1.5 && avgGoals < 2.8 && drawRate < 0.3 && highRate < 0.25 ? 1 : 0,
+      };
+
+      const winner = (Object.entries(scores) as [string, number][])
+        .sort((a, b) => b[1] - a[1])[0];
+      const styleRule = STYLE_RULES.find((s) => s.key === winner[0]) ?? STYLE_RULES.find((s) => s.key === "realista")!;
 
       return {
         userId: u.id, nickname: u.nickname, avatar: u.avatar,
-        total, avgGoals, drawRate, highRate,
-        style,
+        total, avgGoals, drawRate, highRate, exactRate,
+        style: { emoji: styleRule.emoji, label: styleRule.label, desc: styleRule.desc },
       };
     })
     .sort((a, b) => b.total - a.total);
