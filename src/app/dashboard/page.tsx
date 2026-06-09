@@ -236,7 +236,7 @@ function MatchCard({
           <span className="chip bg-wc-gold/15 text-wc-gold text-[10px]">Po meczu</span>
         ) : pred ? (
           <span className="chip bg-wc-green/15 text-wc-green text-[10px] font-black">
-            Twój typ: {pred.homeScore}:{pred.awayScore}
+            Zaakceptowano ✓
           </span>
         ) : (
           <span className="chip bg-wc-red/10 text-wc-red text-[10px]">Brak typu</span>
