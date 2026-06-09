@@ -6,6 +6,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { RegisterSW } from "@/components/RegisterSW";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeInitScript, ThemeToggle } from "@/components/ThemeToggle";
+import { Emoji } from "@/components/Emoji";
 
 export const metadata: Metadata = {
   title: "WC Predictor 2026",

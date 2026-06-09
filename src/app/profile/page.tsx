@@ -9,6 +9,7 @@ import { hashPassword, verifyPassword } from "@/lib/password";
 import { ChangePasswordForm } from "./change-password";
 import { NotificationsButton } from "@/components/NotificationsButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Emoji } from "@/components/Emoji";
 
 const AVATARS = ["⚽", "🏆", "🔥", "🦁", "🐉", "🦅", "🐂", "🦊", "🐺", "🦈", "👽", "🥇", "🐍", "🦖", "🐙"];
 
@@ -64,7 +65,7 @@ export default async function Profile() {
 
       <div className="card p-6 mb-4">
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-4xl">{user.avatar}</span>
+          <Emoji char={user.avatar} size="2xl" alt={user.nickname} />
           <div>
             <div className="font-black text-2xl">{user.nickname}</div>
             <div className="text-xs text-app-subtle">{stats.totalPoints} pkt łącznie</div>

@@ -9,6 +9,7 @@ import { isLive } from "@/lib/matchStatus";
 import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
+import { Emoji } from "@/components/Emoji";
 
 async function savePrediction(formData: FormData) {
   "use server";
@@ -252,7 +253,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               const opPts = opBoosted ? op.pointsAwarded * 3 : op.pointsAwarded;
               return (
                 <li key={op.id} className="flex items-center gap-3 py-2 border-b border-app last:border-0">
-                  <span className="text-xl">{op.user.avatar}</span>
+                  <Emoji char={op.user.avatar} size="md" alt={op.user.nickname} />
                   <span className="font-bold flex-1">{op.user.nickname}</span>
                   <span className="font-black text-lg">{op.homeScore} : {op.awayScore}</span>
                   {op.player && (
@@ -287,7 +288,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           )}
           {match.comments.map((c) => (
             <li key={c.id} className="flex gap-3">
-              <span className="text-xl">{c.user.avatar}</span>
+              <Emoji char={c.user.avatar} size="md" alt={c.user.nickname} />
               <div>
                 <div className="text-sm">
                   <b>{c.user.nickname}</b>

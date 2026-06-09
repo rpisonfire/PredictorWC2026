@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "./ThemeToggle";
+import { Emoji } from "./Emoji";
 
 type Item = { href: string; label: string; emoji: string; gold?: boolean };
 
@@ -56,7 +57,7 @@ export function Sidebar({
           href="/profile"
           className="flex items-center gap-3 px-5 py-3 hover:bg-[var(--hover-bg)] transition flex-1 min-w-0"
         >
-          <span className="text-2xl">{avatar}</span>
+          <Emoji char={avatar} size="lg" alt={nickname} />
           <div className="min-w-0">
             <div className="font-bold truncate">{nickname}</div>
             <div className="text-xs text-[var(--text-muted)]">Profil</div>

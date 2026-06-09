@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { leaderboard, leaderboardForMatchday, leagueAggregateStats } from "@/lib/stats";
 import { Sparkline } from "@/components/Sparkline";
+import { Emoji } from "@/components/Emoji";
 
 export default async function Leaderboard({
   searchParams,
@@ -114,7 +115,7 @@ async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="w-8 text-center font-black text-lg">{medal}</span>
-                <span className="text-2xl">{r.avatar}</span>
+                <Emoji char={r.avatar} size="lg" alt={r.nickname} />
                 <div className="min-w-0">
                   <div className="font-bold flex items-center gap-2 flex-wrap">
                     <span className="truncate">{r.nickname}</span>

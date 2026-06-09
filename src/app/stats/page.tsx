@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Flag } from "@/components/Flag";
+import { Emoji } from "@/components/Emoji";
 
 export const dynamic = "force-dynamic";
 
@@ -162,7 +163,7 @@ export default async function StatsPage() {
           <div className="card p-5 sm:col-span-2 bg-gradient-to-br from-wc-gold/10 to-transparent border-wc-gold/30">
             <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">👑 Aktualny lider</div>
             <div className="flex items-center gap-4">
-              <span className="text-5xl">{leader.user.avatar}</span>
+              <Emoji char={leader.user.avatar} size="2xl" alt={leader.user.nickname} />
               <div className="flex-1">
                 <div className="font-black text-2xl">{leader.user.nickname}</div>
                 <div className="text-sm text-app-muted">{leader.count} typów</div>

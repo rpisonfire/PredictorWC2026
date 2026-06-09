@@ -9,6 +9,7 @@ import { getCurrentUser } from "@/lib/session";
 import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
 import { sendPushToAll, sendPushToUser } from "@/lib/push";
 import { cookies } from "next/headers";
+import { Emoji } from "@/components/Emoji";
 
 export const dynamic = "force-dynamic";
 
@@ -258,7 +259,7 @@ export default async function Admin({
           {usersWithSubs.map((u) => (
             <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-app last:border-0">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{u.avatar}</span>
+                <Emoji char={u.avatar} size="lg" alt={u.nickname} />
                 <span className="font-bold">{u.nickname}</span>
               </div>
               {u._count.pushSubs > 0 ? (
@@ -306,7 +307,7 @@ export default async function Admin({
             return (
               <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-app last:border-0">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{u.avatar}</span>
+                  <Emoji char={u.avatar} size="lg" alt={u.nickname} />
                   <span className="font-bold">{u.nickname}</span>
                 </div>
                 {u.predictedChampion ? (
@@ -338,7 +339,7 @@ export default async function Admin({
           {users.map((u) => (
             <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-app last:border-0">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{u.avatar}</span>
+                <Emoji char={u.avatar} size="lg" alt={u.nickname} />
                 <div>
                   <div className="font-bold">{u.nickname}</div>
                   <div className="text-xs text-app-subtle">utworzony {fmtDate(u.createdAt)}</div>
