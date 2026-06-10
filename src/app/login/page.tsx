@@ -35,6 +35,15 @@ async function signInAction(_prev: FormState, formData: FormData): Promise<FormS
   }
 
   if (!verifyPassword(password, user.passwordHash)) {
+    // Admina nie blokujemy - zamiast tego dłuższe opóźnienie i tylko zliczamy
+    if (user.isAdmin) {
+      await new Promise((r) => setTimeout(r, 1500));
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedAttempts: user.failedAttempts + 1 },
+      });
+      return { error: "Nieprawidłowe hasło." };
+    }
     const newAttempts = user.failedAttempts + 1;
     const shouldLock = newAttempts >= MAX_ATTEMPTS;
     await prisma.user.update({

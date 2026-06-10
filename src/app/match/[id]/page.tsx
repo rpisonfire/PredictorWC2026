@@ -54,14 +54,37 @@ async function savePrediction(formData: FormData) {
     create: { userId: user.id, matchId, homeScore, awayScore, firstScorerTeam, firstGoalPlayerId },
   });
 
-  // Boost handling: one per matchday - locked once picked, no changes allowed
+  // Boost handling:
+  // - Można dowolnie przenosić między meczami w kolejce DOPÓKI żaden mecz się nie zaczął
+  // - Boost na meczu który już zaczął/skończony jest ZABLOKOWANY (nie można zdjąć, nie można dać innym)
   const existing = await prisma.boost.findUnique({
     where: { userId_matchday: { userId: user.id, matchday: match.matchday } },
+    include: { match: true },
   });
-  if (wantBoost && !existing) {
-    await prisma.boost.create({ data: { userId: user.id, matchId, matchday: match.matchday } });
+  const thisMatchStarted = match.kickoff.getTime() <= Date.now();
+  const existingMatchStarted = existing && existing.match.kickoff.getTime() <= Date.now();
+
+  if (wantBoost) {
+    if (thisMatchStarted) {
+      // Nie wolno dawać boosta na mecz który już się zaczął
+    } else if (!existing) {
+      await prisma.boost.create({ data: { userId: user.id, matchId, matchday: match.matchday } });
+    } else if (existing.matchId !== matchId) {
+      if (!existingMatchStarted) {
+        // Przenieś boost na inny mecz
+        await prisma.boost.delete({ where: { id: existing.id } });
+        await prisma.boost.create({ data: { userId: user.id, matchId, matchday: match.matchday } });
+      }
+      // else: stary boost zablokowany (mecz w toku/po), nie można przenieść
+    }
+    // else: boost już jest na tym meczu, nic nie robimy
+  } else {
+    // Chce zdjąć boost
+    if (existing && existing.matchId === matchId && !existingMatchStarted) {
+      await prisma.boost.delete({ where: { id: existing.id } });
+    }
+    // else: nie można zdjąć boosta z meczu który już się zaczął
   }
-  // if existing - do nothing; locked for the matchday
 
   revalidatePath("/dashboard");
   revalidatePath(`/match/${matchId}`);
@@ -120,8 +143,11 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       ? prisma.boost.findMany({ where: { matchId: match.id } })
       : Promise.resolve([] as any[]),
   ]);
-  const boostLocked = !!matchdayBoost;
   const boostOnThisMatch = matchdayBoost?.matchId === match.id;
+  // Mecz zaczął się (lub jest po) - nie można edytować boosta na tym meczu
+  const thisMatchStarted = match.kickoff.getTime() <= Date.now();
+  // Boost na innym meczu kolejki który już się zaczął - zablokowany do edycji
+  const otherBoostMatchStarted = !!matchdayBoost && !boostOnThisMatch && matchdayBoost.match.kickoff.getTime() <= Date.now();
   const boostedUserIds = new Set(allBoostsForMatch.map((b) => b.userId));
   const allPlayers = [...match.homeTeam.players, ...match.awayTeam.players];
 
@@ -216,35 +242,56 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          {boostLocked && !boostOnThisMatch ? (
+          {/* BOOST UI */}
+          {boostOnThisMatch && thisMatchStarted ? (
+            // Boost na tym meczu, mecz już się zaczął - zablokowany
+            <div className="flex items-center gap-3 rounded-xl border border-wc-gold/60 bg-wc-gold/10 p-4">
+              <input type="hidden" name="boost" value="on" />
+              <div className="text-2xl">🔒</div>
+              <div className="text-sm">
+                <div className="font-black text-wc-gold">Boost x3 zablokowany na tym meczu</div>
+                <div className="text-app-muted">Mecz już się rozpoczął - boost został utrwalony.</div>
+              </div>
+            </div>
+          ) : otherBoostMatchStarted ? (
+            // Boost na innym meczu kolejki ale tamten już się zaczął - nie można przenieść
             <div className="flex items-center gap-3 rounded-xl border border-app bg-app-hover p-4 opacity-60">
               <div className="text-2xl">🔒</div>
               <div className="text-sm">
-                <div className="font-black">Boost już użyty w kolejce {match.matchday}</div>
+                <div className="font-black">Boost zablokowany w kolejce {match.matchday}</div>
                 <div className="text-app-muted">
-                  Na meczu{" "}
+                  Boost stoi na meczu{" "}
                   <a href={`/match/${matchdayBoost.matchId}`} className="text-wc-gold underline">
-                    {matchdayBoost.match.homeTeam.flag} {matchdayBoost.match.homeTeam.shortCode} vs {matchdayBoost.match.awayTeam.shortCode} {matchdayBoost.match.awayTeam.flag}
+                    {matchdayBoost.match.homeTeam.shortCode} vs {matchdayBoost.match.awayTeam.shortCode}
                   </a>{" "}
-                  - nie można zmienić.
+                  który już się rozpoczął - nie można przenieść.
                 </div>
               </div>
             </div>
-          ) : boostOnThisMatch ? (
-            <div className="flex items-center gap-3 rounded-xl border border-wc-gold/60 bg-wc-gold/10 p-4">
-              <input type="hidden" name="boost" value="on" />
-              <div className="text-2xl">⚡</div>
+          ) : thisMatchStarted ? (
+            // Ten mecz zaczął się, boost nie był ustawiony - nie można już dać
+            <div className="flex items-center gap-3 rounded-xl border border-app bg-app-hover p-4 opacity-60">
+              <div className="text-2xl">⏰</div>
               <div className="text-sm">
-                <div className="font-black text-wc-gold">Boost x3 aktywny na tym meczu</div>
-                <div className="text-app-muted">Zablokowany - nie można cofnąć w tej kolejce.</div>
+                <div className="font-black">Boost niedostępny</div>
+                <div className="text-app-muted">Mecz już się rozpoczął - za późno na boost.</div>
               </div>
             </div>
           ) : (
+            // Możesz wybrać/zmienić - mecz jeszcze się nie zaczął
             <label className="flex items-center gap-3 rounded-xl border border-dashed border-wc-gold/60 bg-app-hover p-4 cursor-pointer hover:bg-app-hover">
-              <input type="checkbox" name="boost" className="h-5 w-5 accent-wc-red" />
+              <input type="checkbox" name="boost" defaultChecked={boostOnThisMatch} className="h-5 w-5 accent-wc-red" />
               <div>
-                <div className="font-black text-wc-red">Boost x3 ⚡</div>
-                <div className="text-xs text-app-muted">Pomnóż punkty z tego meczu razy 3. Jeden boost na kolejkę - <b>raz wybrany, zablokowany</b>.</div>
+                <div className="font-black text-wc-red">
+                  {boostOnThisMatch ? "⚡ Boost x3 aktywny na tym meczu" : matchdayBoost ? "⚡ Przenieś boost x3 na ten mecz" : "Boost x3 ⚡"}
+                </div>
+                <div className="text-xs text-app-muted">
+                  {boostOnThisMatch
+                    ? "Odznacz żeby zdjąć boost. Możesz też wybrać inny mecz tej kolejki."
+                    : matchdayBoost
+                    ? `Boost obecnie na ${matchdayBoost.match.homeTeam.shortCode} vs ${matchdayBoost.match.awayTeam.shortCode}. Zaznacz żeby przenieść tutaj.`
+                    : "Pomnóż punkty z tego meczu razy 3. Jeden boost na kolejkę. Możesz zmieniać do gwizdka."}
+                </div>
               </div>
             </label>
           )}
