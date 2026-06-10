@@ -8,6 +8,7 @@ import { hashPassword } from "@/lib/password";
 import { getCurrentUser } from "@/lib/session";
 import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
 import { sendPushToAll, sendPushToUser } from "@/lib/push";
+import { syncFinishedResults } from "@/lib/syncResults";
 import { cookies } from "next/headers";
 import { Emoji } from "@/components/Emoji";
 
@@ -89,6 +90,22 @@ async function joinAllToLeague(formData: FormData) {
   }
   revalidatePath("/admin");
   revalidatePath("/leaderboard");
+}
+
+async function manualSync() {
+  "use server";
+  const me = await getCurrentUser();
+  if (!me?.isAdmin) return;
+  const result = await syncFinishedResults({ sendPush: false });
+  const c = await cookies();
+  c.set("wcp_sync_result",
+    `${result.ok ? "ok" : "err"}:${result.updated}:${result.scoredPredictions}`,
+    { httpOnly: true, path: "/admin", maxAge: 60 },
+  );
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+  revalidatePath("/leaderboard");
+  revalidatePath("/stats");
 }
 
 async function sendPush(formData: FormData) {
@@ -376,10 +393,35 @@ export default async function Admin({
     },
   });
 
+  const c = await cookies();
+  const syncRaw = c.get("wcp_sync_result")?.value;
+  const [syncStatus, syncUpdated, syncScored] = syncRaw ? syncRaw.split(":") : [];
+
   return (
     <section>
       <AdminTabs active="matches" />
       <h1 className="text-3xl font-black mb-6">Admin - wpisz wyniki</h1>
+
+      <div className="card p-4 mb-6 flex items-center gap-4 border-wc-blue/30">
+        <div className="text-3xl">🔄</div>
+        <div className="flex-1">
+          <div className="font-black">Synchronizacja z API</div>
+          <div className="text-sm text-app-muted">
+            Pobierz świeże wyniki z football-data.org. Cron robi to automatycznie o 7:00 codziennie, ale możesz wywołać ręcznie.
+          </div>
+          {syncRaw && (
+            <div className={`text-xs mt-2 font-bold ${syncStatus === "ok" ? "text-wc-green" : "text-wc-red"}`}>
+              {syncStatus === "ok"
+                ? `✅ Sync OK: ${syncUpdated} wyników, ${syncScored} typów przeliczonych`
+                : `❌ Sync nieudany - spróbuj ponownie za chwilę`}
+            </div>
+          )}
+        </div>
+        <form action={manualSync}>
+          <button className="btn-primary whitespace-nowrap">🔄 Pobierz wyniki</button>
+        </form>
+      </div>
+
       <div className="space-y-4">
         {matches.map((m) => (
           <form key={m.id} action={setResult} className="card p-4">
