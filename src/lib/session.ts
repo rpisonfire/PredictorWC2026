@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { prisma } from "./db";
 
 const COOKIE = "wcp_session";
@@ -31,4 +32,18 @@ export async function clearSession() {
 export async function isAdmin() {
   const user = await getCurrentUser();
   return !!user?.isAdmin;
+}
+
+/** Zwraca usera lub przekierowuje do logowania. Używaj w server components/actions. */
+export async function requireAuth() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  return user;
+}
+
+/** Zwraca admina lub przekierowuje. */
+export async function requireAdmin() {
+  const user = await requireAuth();
+  if (!user.isAdmin) redirect("/dashboard");
+  return user;
 }

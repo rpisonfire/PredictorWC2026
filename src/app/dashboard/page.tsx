@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { getCurrentUser } from "@/lib/session";
+import { requireAuth } from "@/lib/session";
 import { Countdown } from "@/components/Countdown";
 import { STADIUMS } from "@/lib/stadiums";
 import { championPickIsLocked } from "@/lib/championLock";
@@ -11,9 +12,45 @@ import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 
+async function quickBoost(formData: FormData) {
+  "use server";
+  const user = await requireAuth();
+  const matchId = String(formData.get("matchId"));
+  const action = String(formData.get("action") ?? "");
+  const match = await prisma.match.findUnique({ where: { id: matchId } });
+  if (!match) return;
+  if (match.kickoff.getTime() <= Date.now()) return; // mecz się zaczął
+
+  const existing = await prisma.boost.findUnique({
+    where: { userId_matchday: { userId: user.id, matchday: match.matchday } },
+    include: { match: true },
+  });
+  const existingStarted = existing && existing.match.kickoff.getTime() <= Date.now();
+
+  if (action === "set") {
+    if (existing) {
+      if (existing.matchId === matchId) {
+        // już jest, nic nie rób
+      } else if (existingStarted) {
+        // nie można przenieść z meczu który się zaczął
+      } else {
+        await prisma.boost.delete({ where: { id: existing.id } });
+        await prisma.boost.create({ data: { userId: user.id, matchId, matchday: match.matchday } });
+      }
+    } else {
+      await prisma.boost.create({ data: { userId: user.id, matchId, matchday: match.matchday } });
+    }
+  } else if (action === "unset") {
+    if (existing && existing.matchId === matchId && !existingStarted) {
+      await prisma.boost.delete({ where: { id: existing.id } });
+    }
+  }
+
+  revalidatePath("/dashboard");
+}
+
 export default async function Dashboard() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  const user = await requireAuth();
 
   // Równolegle - 2 query w jednym round-tripie
   const [matches, champLock] = await Promise.all([
@@ -33,6 +70,12 @@ export default async function Dashboard() {
     (acc[m.matchday] ||= []).push(m);
     return acc;
   }, {});
+
+  // Mapa: matchday → id meczu na którym user ma boost
+  const boostByMatchday = new Map<number, string>();
+  for (const m of matches) {
+    if (m.boosts.length > 0) boostByMatchday.set(m.matchday, m.id);
+  }
 
   const now = new Date();
   const WC_KICKOFF = new Date("2026-06-11T21:00:00+02:00");
@@ -98,7 +141,7 @@ export default async function Dashboard() {
               const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
               const boosted = m.boosts.length > 0;
               return (
-                <MatchCard key={m.id} m={m} pred={pred} boosted={boosted} locked={locked} highlight />
+                <MatchCard key={m.id} m={m} pred={pred} boosted={boosted} locked={locked} highlight boostedMatchInMd={boostByMatchday.get(m.matchday)} quickBoostAction={quickBoost} />
 
               );
             })}
@@ -151,7 +194,7 @@ export default async function Dashboard() {
               const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
               const boosted = m.boosts.length > 0;
               return (
-                <MatchCard key={m.id} m={m} pred={pred} boosted={boosted} locked={locked} />
+                <MatchCard key={m.id} m={m} pred={pred} boosted={boosted} locked={locked} boostedMatchInMd={boostByMatchday.get(m.matchday)} quickBoostAction={quickBoost} />
               );
             })}
           </div>
@@ -188,17 +231,19 @@ export default async function Dashboard() {
 }
 
 function MatchCard({
-  m, pred, boosted, locked, highlight,
+  m, pred, boosted, locked, highlight, boostedMatchInMd, quickBoostAction,
 }: {
   m: any; pred: any; boosted: boolean; locked: boolean; highlight?: boolean;
+  boostedMatchInMd?: string;
+  quickBoostAction: (formData: FormData) => Promise<void>;
 }) {
   const finished = m.homeScore !== null;
   const live = isLive(m.kickoff, finished);
+  const canBoost = !finished && !live && m.kickoff.getTime() > Date.now();
   return (
-    <Link
-      href={`/match/${m.id}`}
-      className={`card p-3 sm:p-4 hover:border-wc-red/40 transition ${highlight ? "border-wc-red/20" : ""}`}
-    >
+    <div className={`card p-3 sm:p-4 transition relative ${highlight ? "border-wc-red/20" : ""}`}>
+      <Link href={`/match/${m.id}`} className="absolute inset-0 z-0" aria-label={`${m.homeTeam.name} vs ${m.awayTeam.name}`} />
+      <div className="relative z-10 pointer-events-none">
       <div className="flex items-center justify-between text-[11px] sm:text-xs text-app-subtle">
         <span className="truncate">{m.stage}</span>
         <span className="shrink-0 ml-2">{fmtDateTime(m.kickoff)}</span>
@@ -247,7 +292,33 @@ function MatchCard({
           </span>
         )}
       </div>
-    </Link>
+      </div>
+
+      {/* Quick boost button - z-index ponad Link */}
+      {canBoost && (
+        <form action={quickBoostAction} className="absolute top-2 right-2 z-20">
+          <input type="hidden" name="matchId" value={m.id} />
+          <input type="hidden" name="action" value={boosted ? "unset" : "set"} />
+          <button
+            type="submit"
+            title={
+              boosted
+                ? "Zdejmij boost x3"
+                : boostedMatchInMd
+                ? "Przenieś boost x3 na ten mecz"
+                : "Daj boost x3 na ten mecz"
+            }
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-base transition active:scale-90 ${
+              boosted
+                ? "bg-wc-gold text-wc-ink shadow-lg shadow-wc-gold/30"
+                : "bg-app-hover hover:bg-wc-gold/20 text-app-muted hover:text-wc-gold"
+            }`}
+          >
+            ⚡
+          </button>
+        </form>
+      )}
+    </div>
   );
 }
 
