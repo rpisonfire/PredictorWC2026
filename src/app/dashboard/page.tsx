@@ -296,7 +296,7 @@ function MatchCard({
 
       {/* Quick boost button - z-index ponad Link */}
       {canBoost && (
-        <form action={quickBoostAction} className="absolute top-2 right-2 z-20">
+        <form action={quickBoostAction} className="absolute bottom-2 right-2 z-20">
           <input type="hidden" name="matchId" value={m.id} />
           <input type="hidden" name="action" value={boosted ? "unset" : "set"} />
           <button
