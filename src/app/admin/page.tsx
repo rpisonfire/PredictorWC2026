@@ -11,6 +11,26 @@ import { sendPushToAll, sendPushToUser } from "@/lib/push";
 import { syncFinishedResults } from "@/lib/syncResults";
 import { cookies } from "next/headers";
 import { Emoji } from "@/components/Emoji";
+import { Flag } from "@/components/Flag";
+import { PlayerPicker } from "@/components/PlayerPicker";
+
+function positionOrder(pos?: string | null): number {
+  if (!pos) return 5;
+  const p = pos.toLowerCase();
+  if (p.includes("goal")) return 1;
+  if (p.includes("defence") || p.includes("defender") || p.includes("back")) return 2;
+  if (p.includes("midfield")) return 3;
+  if (p.includes("forward") || p.includes("attack") || p.includes("offence") || p.includes("striker") || p.includes("winger")) return 4;
+  return 5;
+}
+function sortByPosition<T extends { position?: string | null; name: string }>(players: T[]): T[] {
+  return [...players].sort((a, b) => {
+    const oa = positionOrder(a.position);
+    const ob = positionOrder(b.position);
+    if (oa !== ob) return oa - ob;
+    return a.name.localeCompare(b.name);
+  });
+}
 
 export const dynamic = "force-dynamic";
 
@@ -426,31 +446,55 @@ export default async function Admin({
         {matches.map((m) => (
           <form key={m.id} action={setResult} className="card p-4">
             <input type="hidden" name="matchId" value={m.id} />
-            <div className="flex items-center justify-between mb-2 text-sm text-app-subtle">
+            <div className="flex items-center justify-between mb-3 text-sm text-app-subtle">
               <span>{m.stage} · Kolejka {m.matchday}</span>
               <span>{fmtDateTimeLong(m.kickoff)}</span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 font-bold">{m.homeTeam.flag} {m.homeTeam.name}</div>
-              <input type="number" name="homeScore" min={0} defaultValue={m.homeScore ?? ""} className="input w-16 text-center" />
-              <span className="font-black">:</span>
-              <input type="number" name="awayScore" min={0} defaultValue={m.awayScore ?? ""} className="input w-16 text-center" />
-              <div className="flex-1 font-bold text-right">{m.awayTeam.name} {m.awayTeam.flag}</div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Flag emoji={m.homeTeam.flag} size="sm" />
+                <span className="font-bold truncate">{m.homeTeam.name}</span>
+              </div>
+              <input
+                type="number" name="homeScore" min={0} max={20}
+                defaultValue={m.homeScore ?? ""}
+                className="input w-12 sm:w-14 text-center px-1 text-lg font-black"
+              />
+              <span className="font-black text-app-subtle">:</span>
+              <input
+                type="number" name="awayScore" min={0} max={20}
+                defaultValue={m.awayScore ?? ""}
+                className="input w-12 sm:w-14 text-center px-1 text-lg font-black"
+              />
+              <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                <span className="font-bold truncate text-right">{m.awayTeam.name}</span>
+                <Flag emoji={m.awayTeam.flag} size="sm" />
+              </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-3 mt-3">
-              <select name="firstScorerTeam" className="input">
-                <option value="NONE">Pierwszy strzał: brak (0:0)</option>
-                <option value="HOME">Pierwszy strzał: {m.homeTeam.shortCode}</option>
-                <option value="AWAY">Pierwszy strzał: {m.awayTeam.shortCode}</option>
-              </select>
-              <select name="firstGoalPlayerId" className="input" defaultValue={m.firstGoalPlayerId ?? ""}>
-                <option value="">Pierwszy strzelec: brak</option>
-                {[...m.homeTeam.players, ...m.awayTeam.players].map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+              <div>
+                <label className="text-xs text-app-subtle">Pierwsza drużyna ze strzałem</label>
+                <select name="firstScorerTeam" className="input mt-1" defaultValue={m.firstScorerTeamId ?? "NONE"}>
+                  <option value="NONE">Brak (0:0)</option>
+                  <option value="HOME">{m.homeTeam.flag} {m.homeTeam.shortCode}</option>
+                  <option value="AWAY">{m.awayTeam.flag} {m.awayTeam.shortCode}</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-app-subtle">Pierwszy strzelec</label>
+                <div className="mt-1">
+                  <PlayerPicker
+                    name="firstGoalPlayerId"
+                    defaultValue={m.firstGoalPlayerId}
+                    groups={[
+                      { name: m.homeTeam.name, flag: m.homeTeam.flag, players: sortByPosition(m.homeTeam.players) },
+                      { name: m.awayTeam.name, flag: m.awayTeam.flag, players: sortByPosition(m.awayTeam.players) },
+                    ]}
+                  />
+                </div>
+              </div>
             </div>
-            <button className="btn-primary w-full mt-3">Zapisz wynik i przelicz punkty</button>
+            <button className="btn-primary w-full mt-4">Zapisz wynik i przelicz punkty</button>
           </form>
         ))}
       </div>
