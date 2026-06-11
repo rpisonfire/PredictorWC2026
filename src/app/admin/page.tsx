@@ -13,6 +13,7 @@ import { cookies } from "next/headers";
 import { Emoji } from "@/components/Emoji";
 import { Flag } from "@/components/Flag";
 import { PlayerPicker } from "@/components/PlayerPicker";
+import { TeamRadioPicker } from "@/components/TeamRadioPicker";
 
 function positionOrder(pos?: string | null): number {
   if (!pos) return 5;
@@ -466,13 +467,13 @@ export default async function Admin({
               <input
                 type="number" name="homeScore" min={0} max={20}
                 defaultValue={m.homeScore ?? ""}
-                className="input w-12 sm:w-14 text-center px-1 text-lg font-black"
+                className="input w-16 sm:w-20 text-center px-1 text-xl font-black"
               />
               <span className="font-black text-app-subtle">:</span>
               <input
                 type="number" name="awayScore" min={0} max={20}
                 defaultValue={m.awayScore ?? ""}
-                className="input w-12 sm:w-14 text-center px-1 text-lg font-black"
+                className="input w-16 sm:w-20 text-center px-1 text-xl font-black"
               />
               <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
                 <span className="font-bold truncate text-right">{m.awayTeam.name}</span>
@@ -482,19 +483,18 @@ export default async function Admin({
             <div className="grid sm:grid-cols-2 gap-3 mt-3">
               <div>
                 <label className="text-xs text-app-subtle">Pierwsza drużyna ze strzałem</label>
-                <select
-                  name="firstScorerTeam"
-                  className="input mt-1"
-                  defaultValue={
-                    m.firstScorerTeamId === m.homeTeamId ? "HOME"
-                    : m.firstScorerTeamId === m.awayTeamId ? "AWAY"
-                    : "NONE"
-                  }
-                >
-                  <option value="NONE">Brak (0:0)</option>
-                  <option value="HOME">{m.homeTeam.flag} {m.homeTeam.shortCode}</option>
-                  <option value="AWAY">{m.awayTeam.flag} {m.awayTeam.shortCode}</option>
-                </select>
+                <div className="mt-1">
+                  <TeamRadioPicker
+                    name="firstScorerTeam"
+                    defaultValue={
+                      m.firstScorerTeamId === m.homeTeamId ? "HOME"
+                      : m.firstScorerTeamId === m.awayTeamId ? "AWAY"
+                      : "NONE"
+                    }
+                    home={{ flag: m.homeTeam.flag, shortCode: m.homeTeam.shortCode }}
+                    away={{ flag: m.awayTeam.flag, shortCode: m.awayTeam.shortCode }}
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs text-app-subtle">Pierwszy strzelec</label>

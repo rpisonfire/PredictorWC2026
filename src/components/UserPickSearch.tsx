@@ -83,7 +83,7 @@ export function UserPickSearch({
                 </div>
                 <div className="mt-2 pl-12 flex flex-wrap items-center gap-2 text-xs">
                   {scorerTeam && (
-                    <span className="chip bg-wc-blue/15 text-wc-blue">
+                    <span className="chip bg-purple-600 text-white">
                       1. drużyna ze strzałem: <b className="ml-1">{scorerTeam}</b>
                     </span>
                   )}

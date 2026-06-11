@@ -320,7 +320,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               </div>
               <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
                 {pred.firstScorerTeam && pred.firstScorerTeam !== "NONE" && (
-                  <span className="chip bg-wc-blue/15 text-wc-blue">
+                  <span className="chip bg-purple-600 text-white">
                     1. drużyna ze strzałem:{" "}
                     <b className="ml-1">
                       {pred.firstScorerTeam === "HOME" ? match.homeTeam.shortCode : match.awayTeam.shortCode}
@@ -328,7 +328,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   </span>
                 )}
                 {pred.firstScorerTeam === "NONE" && (
-                  <span className="chip bg-wc-blue/15 text-wc-blue">
+                  <span className="chip bg-purple-600 text-white">
                     1. drużyna ze strzałem: <b className="ml-1">0:0</b>
                   </span>
                 )}
