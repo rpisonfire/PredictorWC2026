@@ -288,7 +288,7 @@ function MatchCard({
           <span className="chip bg-wc-red/10 text-wc-red text-[10px]">Brak typu</span>
         )}
         {boosted && <span className="chip bg-wc-gold/15 text-wc-gold text-[10px]">x3 ⚡</span>}
-        {locked && !finished && !live && <span className="chip bg-app-hover text-app-muted text-[10px]">🔒</span>}
+        {locked && !finished && <span className="chip bg-app-hover text-app-muted text-[10px]">🔒</span>}
         {finished && pred && (
           <span className={`chip text-[10px] ${pred.pointsAwarded > 0 ? "bg-wc-green/15 text-wc-green" : "bg-app-hover text-app-subtle"}`}>
             {boosted ? pred.pointsAwarded * 3 : pred.pointsAwarded} pkt
