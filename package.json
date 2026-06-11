@@ -13,6 +13,7 @@
     "db:fetch": "tsx scripts/fetch-wc2026.ts",
     "db:fd": "tsx scripts/fetch-fd.ts",
     "db:fixtures": "tsx scripts/seed-fixtures.ts",
+    "db:recalc": "tsx scripts/recalc-points.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

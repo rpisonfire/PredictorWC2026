@@ -40,6 +40,8 @@ export default async function Home() {
             <Row label="Dokładny wynik" pts={5} color="bg-wc-red" />
             <Row label="Różnica bramek" pts={3} color="bg-wc-blue" />
             <Row label="Trafiony zwycięzca / remis" pts={2} color="bg-wc-green" />
+            <Row label="Trafione bramki gospodarza" pts={1} color="bg-wc-lime" />
+            <Row label="Trafione bramki gości" pts={1} color="bg-wc-lime" />
             <Row label="Pierwsza drużyna która strzeli bramkę" pts={2} color="bg-wc-gold" />
             <Row label="Pierwszy strzelec" pts={5} color="bg-white/20" />
           </ul>

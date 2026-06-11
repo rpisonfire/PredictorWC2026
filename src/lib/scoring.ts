@@ -1,6 +1,7 @@
 // Scoring engine - WC 2026 Predictor
-// 5 pts exact score | 3 pts goal difference | 2 pts winner only
-// 2 pts first team to score | 5 pts exact first goalscorer
+// CASCADE (best one): 5 pts exact score | 3 pts goal difference | 2 pts winner only
+// ADDITIVE bonuses: +1 home goals match | +1 away goals match
+//                   +2 first team to score | +5 exact first goalscorer
 // x3 boost multiplier applied per matchday on one chosen match.
 
 export type PredictionInput = {
@@ -30,6 +31,10 @@ export function scorePrediction(p: PredictionInput, r: MatchResult): number {
   } else if (sign(p.homeScore, p.awayScore) === sign(r.homeScore, r.awayScore)) {
     pts += 2; // correct winner or draw
   }
+
+  // Bonusy: dokładna liczba bramek per drużyna (niezależne od kaskady)
+  if (p.homeScore === r.homeScore) pts += 1;
+  if (p.awayScore === r.awayScore) pts += 1;
 
   // First team to score
   if (p.firstScorerTeam && p.firstScorerTeam === r.firstScorerTeam) {
