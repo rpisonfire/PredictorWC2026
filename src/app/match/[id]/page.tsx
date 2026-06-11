@@ -29,6 +29,7 @@ import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 import { Emoji } from "@/components/Emoji";
+import { UserPickSearch } from "@/components/UserPickSearch";
 
 async function savePrediction(formData: FormData) {
   "use server";
@@ -315,34 +316,63 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       )}
 
       {revealOthers && othersPredictions.length > 0 && (
-        <div className="card p-6 mt-4">
-          <h2 className="font-black text-lg mb-3">👀 Typy innych</h2>
-          <ul className="space-y-2">
-            {othersPredictions.map((op) => {
-              const opBoosted = boostedUserIds.has(op.userId);
-              const opPts = opBoosted ? op.pointsAwarded * 3 : op.pointsAwarded;
-              return (
-                <li key={op.id} className="flex items-center gap-3 py-2 border-b border-app last:border-0">
-                  <Emoji char={op.user.avatar} size="md" alt={op.user.nickname} />
-                  <span className="font-bold flex-1">{op.user.nickname}</span>
-                  <span className="font-black text-lg">{op.homeScore} : {op.awayScore}</span>
-                  {op.player && (
-                    <span className="hidden sm:flex items-center gap-1.5 chip bg-app-hover">
-                      <PlayerAvatar name={op.player.name} photoUrl={op.player.photoUrl} size={18} />
-                      <span className="text-xs">{op.player.name}</span>
-                    </span>
-                  )}
-                  {opBoosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3</span>}
-                  {finished && (
-                    <span className={`chip ${opPts > 0 ? "bg-wc-green/15 text-wc-green" : "bg-app-hover text-app-subtle"}`}>
-                      {opPts} pkt
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        finished ? (
+          <div className="mt-4">
+            <UserPickSearch
+              homeShort={match.homeTeam.shortCode}
+              awayShort={match.awayTeam.shortCode}
+              picks={[
+                ...(pred ? [{
+                  userId: user.id,
+                  nickname: user.nickname,
+                  avatar: user.avatar,
+                  homeScore: pred.homeScore,
+                  awayScore: pred.awayScore,
+                  firstScorerTeam: (pred.firstScorerTeam as "HOME" | "AWAY" | "NONE" | null) ?? null,
+                  firstGoalPlayer: null,
+                  pointsAwarded: pred.pointsAwarded,
+                  boosted,
+                }] : []),
+                ...othersPredictions.map((op) => ({
+                  userId: op.userId,
+                  nickname: op.user.nickname,
+                  avatar: op.user.avatar,
+                  homeScore: op.homeScore,
+                  awayScore: op.awayScore,
+                  firstScorerTeam: (op.firstScorerTeam as "HOME" | "AWAY" | "NONE" | null) ?? null,
+                  firstGoalPlayer: op.player
+                    ? { name: op.player.name, photoUrl: op.player.photoUrl, position: op.player.position }
+                    : null,
+                  pointsAwarded: op.pointsAwarded,
+                  boosted: boostedUserIds.has(op.userId),
+                })),
+              ].sort((a, b) => (b.boosted ? b.pointsAwarded * 3 : b.pointsAwarded) - (a.boosted ? a.pointsAwarded * 3 : a.pointsAwarded))}
+            />
+          </div>
+        ) : (
+          <div className="card p-6 mt-4">
+            <h2 className="font-black text-lg mb-3">👀 Typy innych</h2>
+            <ul className="space-y-2">
+              {othersPredictions.map((op) => {
+                const opBoosted = boostedUserIds.has(op.userId);
+                return (
+                  <li key={op.id} className="flex items-center gap-3 py-2 border-b border-app last:border-0">
+                    <Emoji char={op.user.avatar} size="md" alt={op.user.nickname} />
+                    <span className="font-bold flex-1">{op.user.nickname}</span>
+                    <span className="font-black text-lg">{op.homeScore} : {op.awayScore}</span>
+                    {op.player && (
+                      <span className="hidden sm:flex items-center gap-1.5 chip bg-app-hover">
+                        <PlayerAvatar name={op.player.name} photoUrl={op.player.photoUrl} size={18} />
+                        <span className="text-xs">{op.player.name}</span>
+                      </span>
+                    )}
+                    {opBoosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )
       )}
 
       <div className="card p-6 mt-4">

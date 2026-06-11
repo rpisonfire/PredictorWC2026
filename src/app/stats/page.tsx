@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -11,9 +12,31 @@ const STYLE_RULES_LEGEND = STYLE_RULES;
 
 export const dynamic = "force-dynamic";
 
-export default async function StatsPage() {
+export default async function StatsPage({
+  searchParams,
+}: { searchParams: Promise<{ league?: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  const { league: leagueParam } = await searchParams;
+
+  // Pobierz ligi do których user należy
+  const memberships = await prisma.membership.findMany({
+    where: { userId: user.id },
+    include: { league: true },
+    orderBy: { league: { createdAt: "asc" } },
+  });
+  const activeLeagueId = leagueParam && memberships.some((m) => m.league.id === leagueParam) ? leagueParam : null;
+  const activeLeague = activeLeagueId ? memberships.find((m) => m.league.id === activeLeagueId)?.league : null;
+
+  // Lista userId którzy są w wybranej lidze (gdy filtr jest aktywny)
+  let memberUserIds: string[] | null = null;
+  if (activeLeagueId) {
+    const ms = await prisma.membership.findMany({ where: { leagueId: activeLeagueId }, select: { userId: true } });
+    memberUserIds = ms.map((m) => m.userId);
+  }
+  const userFilter = memberUserIds ? { userId: { in: memberUserIds } } : {};
+  const userIdInFilter = memberUserIds ? { id: { in: memberUserIds } } : {};
 
   // Wszystkie zapytania w 1 wsadzie równolegle (zamiast sequence await)
   const [
@@ -34,27 +57,29 @@ export default async function StatsPage() {
     insights,
     styles,
   ] = await Promise.all([
-    prisma.user.count(),
-    prisma.prediction.count(),
-    prisma.comment.count(),
-    prisma.boost.count(),
+    prisma.user.count({ where: userIdInFilter }),
+    prisma.prediction.count({ where: userFilter }),
+    // Komentarze tylko gdy "wszyscy" (ogólne). Per liga = 0, bo trudno rozdzielić.
+    activeLeagueId ? Promise.resolve(0) : prisma.comment.count(),
+    prisma.boost.count({ where: userFilter }),
     prisma.match.count({ where: { homeScore: { not: null } } }),
     prisma.user.groupBy({
       by: ["predictedChampionId"],
-      where: { predictedChampionId: { not: null } },
+      where: { predictedChampionId: { not: null }, ...userIdInFilter },
       _count: { _all: true },
       orderBy: { _count: { predictedChampionId: "desc" } },
       take: 5,
     }),
     prisma.prediction.groupBy({
       by: ["firstGoalPlayerId"],
-      where: { firstGoalPlayerId: { not: null } },
+      where: { firstGoalPlayerId: { not: null }, ...userFilter },
       _count: { _all: true },
       orderBy: { _count: { firstGoalPlayerId: "desc" } },
       take: 5,
     }),
-    prisma.prediction.findMany({ select: { homeScore: true, awayScore: true, pointsAwarded: true, userId: true, matchId: true } }),
+    prisma.prediction.findMany({ where: userFilter, select: { homeScore: true, awayScore: true, pointsAwarded: true, userId: true, matchId: true } }),
     prisma.user.findMany({
+      where: userIdInFilter,
       select: {
         id: true, nickname: true, avatar: true,
         predictions: { select: { pointsAwarded: true, matchId: true } },
@@ -62,33 +87,35 @@ export default async function StatsPage() {
       },
     }),
     prisma.prediction.findMany({
+      where: userFilter,
       orderBy: [{ homeScore: "desc" }, { awayScore: "desc" }],
       take: 1,
       include: { user: true, match: { include: { homeTeam: true, awayTeam: true } } },
     }),
     prisma.prediction.groupBy({
       by: ["matchId"],
+      where: userFilter,
       _count: { _all: true },
       orderBy: { _count: { matchId: "desc" } },
       take: 1,
     }),
     prisma.boost.groupBy({
       by: ["matchId"],
+      where: userFilter,
       _count: { _all: true },
       orderBy: { _count: { matchId: "desc" } },
       take: 1,
     }),
-    // Boosty - tylko na rozegranych meczach (do "złotego boosta")
     prisma.boost.findMany({
-      where: { match: { homeScore: { not: null } } },
+      where: { match: { homeScore: { not: null } }, ...userFilter },
       include: {
         user: true,
         match: { include: { homeTeam: true, awayTeam: true } },
       },
     }),
-    rankingOverTime(),
-    matchInsights(),
-    userStyles(),
+    rankingOverTime(activeLeagueId ?? undefined),
+    matchInsights(memberUserIds),
+    userStyles(memberUserIds),
   ]);
 
   // Drugi wsad: rzeczy które zależą od ID-ów z pierwszego
@@ -183,7 +210,31 @@ export default async function StatsPage() {
   return (
     <section className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-black mb-1">Statystyki turnieju 🌍</h1>
-      <p className="text-app-muted mb-6">Agregaty z całej apki - kto, co i jak typuje.</p>
+      <p className="text-app-muted mb-4">
+        {activeLeague
+          ? <>Liga: <b>{activeLeague.name}</b> ({totalUsers} {totalUsers === 1 ? "gracz" : "graczy"})</>
+          : <>Wszyscy gracze ogólnie ({totalUsers}).</>}
+      </p>
+
+      {memberships.length >= 1 && (
+        <div className="flex gap-2 mb-5 overflow-x-auto -mx-1 px-1">
+          <Link
+            href="/stats"
+            className={`shrink-0 px-3 py-1.5 rounded-xl text-sm font-bold ${!activeLeagueId ? "bg-wc-red text-white" : "bg-app-hover text-app-muted"}`}
+          >
+            🌍 Wszyscy
+          </Link>
+          {memberships.map((m) => (
+            <Link
+              key={m.league.id}
+              href={`/stats?league=${m.league.id}`}
+              className={`shrink-0 px-3 py-1.5 rounded-xl text-sm font-bold ${activeLeagueId === m.league.id ? "bg-wc-red text-white" : "bg-app-hover text-app-muted"}`}
+            >
+              🏟️ {m.league.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {rankingSeries.length >= 2 && (
         <div className="card p-5 mb-4">

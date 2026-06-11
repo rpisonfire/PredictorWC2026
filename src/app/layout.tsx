@@ -6,7 +6,6 @@ import { MobileNav } from "@/components/MobileNav";
 import { RegisterSW } from "@/components/RegisterSW";
 import { AutoToast } from "@/components/Toast";
 import { Suspense } from "react";
-import { getT } from "@/lib/i18n";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeInitScript, ThemeToggle } from "@/components/ThemeToggle";
 import { Emoji } from "@/components/Emoji";
@@ -39,7 +38,6 @@ export const viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
-  const t = await getT();
   return (
     <html lang="pl">
       <head><ThemeInitScript /></head>
@@ -58,7 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             ) : (
               <div className="flex items-center gap-2">
                 <ThemeToggle compact />
-                <Link href="/login" className="btn-primary text-sm whitespace-nowrap">{t("common.login")}</Link>
+                <Link href="/login" className="btn-primary text-sm whitespace-nowrap">Zaloguj</Link>
               </div>
             )}
           </nav>
@@ -69,7 +67,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </main>
 
         <footer className={`mx-auto max-w-5xl px-4 py-10 pb-28 md:pb-10 text-center text-xs ${user ? "md:pl-64" : ""}`} style={{ color: "var(--text-subtle)" }}>
-          {t("footer")}
+          Aplikacja wykonana przez rpisonfire &amp; Claude Code na Mistrzostwa Świata 2026 w piłce nożnej ⚽
         </footer>
 
         {user && <MobileNav isAdmin={user.isAdmin} />}

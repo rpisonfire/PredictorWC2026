@@ -79,59 +79,26 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
         </div>
       </div>
 
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-[env(safe-area-inset-bottom)]"
-        aria-label="Główna nawigacja"
-      >
-        <div
-          className="mx-3 mb-3 rounded-2xl border border-app shadow-2xl backdrop-blur"
-          style={{ background: "var(--header-bg)" }}
-        >
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-[env(safe-area-inset-bottom)]" aria-label="Główna nawigacja">
+        <div className="mx-3 mb-3 rounded-2xl border border-app shadow-2xl backdrop-blur" style={{ background: "var(--header-bg)" }}>
           <ul className="grid grid-cols-5">
             {PRIMARY.map((it) => {
               const active = isActive(it.href);
               return (
                 <li key={it.href}>
-                  <Link
-                    href={it.href}
-                    className="flex flex-col items-center gap-0.5 py-2.5 relative active:scale-95 transition-transform"
-                  >
-                    <span
-                      aria-hidden
-                      className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-full transition-all duration-300 ${
-                        active ? "w-8" : "w-0"
-                      }`}
-                      style={{ background: "var(--accent)" }}
-                    />
-                    <span className={`text-xl leading-none transition-transform ${active ? "scale-110" : "opacity-70"}`}>
-                      {it.emoji}
-                    </span>
-                    <span className={`text-[10px] uppercase tracking-wider font-bold ${active ? "text-app" : "text-app-subtle"}`}>
-                      {it.label}
-                    </span>
+                  <Link href={it.href} className="flex flex-col items-center gap-0.5 py-2.5 relative active:scale-95 transition-transform">
+                    <span aria-hidden className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-full transition-all duration-300 ${active ? "w-8" : "w-0"}`} style={{ background: "var(--accent)" }} />
+                    <span className={`text-xl leading-none transition-transform ${active ? "scale-110" : "opacity-70"}`}>{it.emoji}</span>
+                    <span className={`text-[10px] uppercase tracking-wider font-bold ${active ? "text-app" : "text-app-subtle"}`}>{it.label}</span>
                   </Link>
                 </li>
               );
             })}
             <li>
-              <button
-                type="button"
-                onClick={() => setMoreOpen((o) => !o)}
-                className="w-full flex flex-col items-center gap-0.5 py-2.5 relative active:scale-95 transition-transform"
-              >
-                <span
-                  aria-hidden
-                  className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-full transition-all duration-300 ${
-                    moreOpen ? "w-8" : "w-0"
-                  }`}
-                  style={{ background: "var(--accent)" }}
-                />
-                <span className={`text-xl leading-none transition-transform duration-300 ${moreOpen ? "rotate-90 scale-110" : "opacity-70"}`}>
-                  {moreOpen ? "✕" : "☰"}
-                </span>
-                <span className={`text-[10px] uppercase tracking-wider font-bold ${moreOpen ? "text-app" : "text-app-subtle"}`}>
-                  Więcej
-                </span>
+              <button type="button" onClick={() => setMoreOpen((o) => !o)} className="w-full flex flex-col items-center gap-0.5 py-2.5 relative active:scale-95 transition-transform">
+                <span aria-hidden className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-full transition-all duration-300 ${moreOpen ? "w-8" : "w-0"}`} style={{ background: "var(--accent)" }} />
+                <span className={`text-xl leading-none transition-transform duration-300 ${moreOpen ? "rotate-90 scale-110" : "opacity-70"}`}>{moreOpen ? "✕" : "☰"}</span>
+                <span className={`text-[10px] uppercase tracking-wider font-bold ${moreOpen ? "text-app" : "text-app-subtle"}`}>Więcej</span>
               </button>
             </li>
           </ul>

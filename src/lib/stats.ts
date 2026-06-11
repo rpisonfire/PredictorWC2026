@@ -252,13 +252,13 @@ export async function rankingOverTime(leagueId?: string) {
 }
 
 /** Statystyki interesujących meczów */
-export async function matchInsights() {
+export async function matchInsights(memberUserIds?: string[] | null) {
   const matches = await prisma.match.findMany({
     where: { homeScore: { not: null } },
     include: {
       homeTeam: true,
       awayTeam: true,
-      predictions: true,
+      predictions: memberUserIds ? { where: { userId: { in: memberUserIds } } } : true,
     },
   });
 
@@ -326,8 +326,9 @@ export async function singleUserStyle(userId: string) {
   return { total, avgGoals, drawRate, highRate, exactRate, style: { emoji: styleRule.emoji, label: styleRule.label, desc: styleRule.desc } };
 }
 
-export async function userStyles() {
+export async function userStyles(memberUserIds?: string[] | null) {
   const users = await prisma.user.findMany({
+    where: memberUserIds ? { id: { in: memberUserIds } } : undefined,
     include: { predictions: { include: { match: true } } },
   });
   return users

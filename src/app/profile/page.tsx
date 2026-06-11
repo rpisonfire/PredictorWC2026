@@ -9,8 +9,6 @@ import { hashPassword, verifyPassword } from "@/lib/password";
 import { ChangePasswordForm } from "./change-password";
 import { NotificationsButton } from "@/components/NotificationsButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LanguageToggle } from "@/components/LanguageToggle";
-import { getLocale } from "@/lib/i18n";
 import { Emoji } from "@/components/Emoji";
 
 const AVATARS = ["⚽", "🏆", "🔥", "🦁", "🐉", "🦅", "🐂", "🦊", "🐺", "🦈", "👽", "🥇", "🐍", "🦖", "🐙"];
@@ -53,7 +51,6 @@ async function logout() {
 export default async function Profile() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const locale = await getLocale();
 
   // Wszystko równolegle zamiast 6 sequential awaits
   const [stats, champ, champBonus, champLock, myStyle] = await Promise.all([
@@ -168,10 +165,6 @@ export default async function Profile() {
           ))}
         </div>
         <NotificationsButton />
-        <div>
-          <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">Język / Language</div>
-          <LanguageToggle current={locale} />
-        </div>
         <ThemeToggle />
         <ChangePasswordForm action={changePassword} />
 
