@@ -116,7 +116,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     include: {
       homeTeam: { include: { players: true } },
       awayTeam: { include: { players: true } },
-      predictions: { where: { userId: user.id } },
+      predictions: { where: { userId: user.id }, include: { player: true } },
       boosts: { where: { userId: user.id } },
       comments: { include: { user: true }, orderBy: { createdAt: "desc" } },
     },
@@ -309,13 +309,46 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <button className="btn-primary w-full">Zapisz typ</button>
         </form>
       ) : (
-        <div className="card p-6 mt-4 text-center">
-          <div className="font-black">Typowanie zamknięte 🔒</div>
-          {pred && (
-            <div className="mt-2 text-lg">
-              Twój typ: <b>{pred.homeScore} : {pred.awayScore}</b>
-              {boosted && <span className="ml-2 chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
+        <div className="card p-6 mt-4">
+          <div className="font-black text-center">Typowanie zamknięte 🔒</div>
+          {pred ? (
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center justify-center gap-2 text-lg">
+                <span>Twój typ:</span>
+                <b className="text-2xl tabular-nums">{pred.homeScore} : {pred.awayScore}</b>
+                {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
+              </div>
+              <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
+                {pred.firstScorerTeam && pred.firstScorerTeam !== "NONE" && (
+                  <span className="chip bg-wc-blue/15 text-wc-blue">
+                    1. drużyna ze strzałem:{" "}
+                    <b className="ml-1">
+                      {pred.firstScorerTeam === "HOME" ? match.homeTeam.shortCode : match.awayTeam.shortCode}
+                    </b>
+                  </span>
+                )}
+                {pred.firstScorerTeam === "NONE" && (
+                  <span className="chip bg-wc-blue/15 text-wc-blue">
+                    1. drużyna ze strzałem: <b className="ml-1">0:0</b>
+                  </span>
+                )}
+                {pred.player ? (
+                  <div className="chip bg-app-hover flex items-center gap-1.5 pl-1">
+                    <PlayerAvatar
+                      name={pred.player.name}
+                      photoUrl={pred.player.photoUrl}
+                      position={pred.player.position}
+                      size={20}
+                    />
+                    <span>1. strzelec: <b>{pred.player.name}</b></span>
+                  </div>
+                ) : (
+                  <span className="chip bg-app-hover text-app-subtle">brak typu na strzelca</span>
+                )}
+              </div>
             </div>
+          ) : (
+            <div className="mt-2 text-sm text-app-subtle text-center">Nie wytypowałeś tego meczu.</div>
           )}
         </div>
       )}
