@@ -19,13 +19,15 @@ async function quickBoost(formData: FormData) {
   const action = String(formData.get("action") ?? "");
   const match = await prisma.match.findUnique({ where: { id: matchId } });
   if (!match) return;
-  if (match.kickoff.getTime() <= Date.now()) return; // mecz się zaczął
+  // Blokada 5 min przed gwizdkiem - identycznie jak savePrediction
+  if (match.kickoff.getTime() - Date.now() < 5 * 60 * 1000) return;
 
   const existing = await prisma.boost.findUnique({
     where: { userId_matchday: { userId: user.id, matchday: match.matchday } },
     include: { match: true },
   });
-  const existingStarted = existing && existing.match.kickoff.getTime() <= Date.now();
+  // Boost na starym meczu jest zablokowany 5 min przed jego gwizdkiem
+  const existingStarted = existing && existing.match.kickoff.getTime() - Date.now() < 5 * 60 * 1000;
 
   if (action === "set") {
     if (existing) {
@@ -239,7 +241,8 @@ function MatchCard({
 }) {
   const finished = m.homeScore !== null;
   const live = isLive(m.kickoff, finished);
-  const canBoost = !finished && !live && m.kickoff.getTime() > Date.now();
+  // Boost dostępny tylko gdy do gwizdka > 5 min (identycznie jak typowanie)
+  const canBoost = !finished && !live && m.kickoff.getTime() - Date.now() > 5 * 60 * 1000;
   return (
     <div className={`card p-3 sm:p-4 transition relative ${highlight ? "border-wc-red/20" : ""}`}>
       <Link href={`/match/${m.id}`} className="absolute inset-0 z-0" aria-label={`${m.homeTeam.name} vs ${m.awayTeam.name}`} />

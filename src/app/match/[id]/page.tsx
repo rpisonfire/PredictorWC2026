@@ -30,6 +30,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 import { Emoji } from "@/components/Emoji";
 import { UserPickSearch } from "@/components/UserPickSearch";
+import { ConfettiCelebration } from "@/components/ConfettiCelebration";
 
 async function savePrediction(formData: FormData) {
   "use server";
@@ -62,8 +63,9 @@ async function savePrediction(formData: FormData) {
     where: { userId_matchday: { userId: user.id, matchday: match.matchday } },
     include: { match: true },
   });
-  const thisMatchStarted = match.kickoff.getTime() <= Date.now();
-  const existingMatchStarted = existing && existing.match.kickoff.getTime() <= Date.now();
+  // "Started" = mecz już za 5 min lub mniej (synchronizacja z lockiem typowania)
+  const thisMatchStarted = match.kickoff.getTime() - Date.now() < 5 * 60 * 1000;
+  const existingMatchStarted = existing && existing.match.kickoff.getTime() - Date.now() < 5 * 60 * 1000;
 
   if (wantBoost) {
     if (thisMatchStarted) {
@@ -146,9 +148,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   ]);
   const boostOnThisMatch = matchdayBoost?.matchId === match.id;
   // Mecz zaczął się (lub jest po) - nie można edytować boosta na tym meczu
-  const thisMatchStarted = match.kickoff.getTime() <= Date.now();
-  // Boost na innym meczu kolejki który już się zaczął - zablokowany do edycji
-  const otherBoostMatchStarted = !!matchdayBoost && !boostOnThisMatch && matchdayBoost.match.kickoff.getTime() <= Date.now();
+  // "Started" = 5 min lub mniej do gwizdka, blokada zgodna z typowaniem
+  const thisMatchStarted = match.kickoff.getTime() - Date.now() < 5 * 60 * 1000;
+  const otherBoostMatchStarted = !!matchdayBoost && !boostOnThisMatch && matchdayBoost.match.kickoff.getTime() - Date.now() < 5 * 60 * 1000;
   const boostedUserIds = new Set(allBoostsForMatch.map((b) => b.userId));
   const allPlayers = [...match.homeTeam.players, ...match.awayTeam.players];
 
@@ -157,6 +159,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   return (
     <section className="max-w-2xl mx-auto">
       {live && <AutoRefresh intervalSec={60} />}
+      {finished && pred && pred.homeScore === match.homeScore && pred.awayScore === match.awayScore && (
+        <ConfettiCelebration matchId={match.id} gold={boosted} />
+      )}
       <div className="card p-6">
         <div className="flex justify-between items-center text-xs text-app-subtle">
           <span>{match.stage} · Kolejka {match.matchday}</span>

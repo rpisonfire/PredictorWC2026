@@ -311,7 +311,11 @@ export default async function StatsPage({
         <BigStat emoji="👥" value={totalUsers} label="Graczy" />
         <BigStat emoji="🎯" value={totalPredictions} label="Typów łącznie" />
         <BigStat emoji="⚡" value={totalBoosts} label="Użytych boostów" />
-        <BigStat emoji="💬" value={totalComments} label="Komentarzy" />
+        {activeLeagueId ? (
+          <BigStat emoji="🏟️" value={memberships.find((m) => m.league.id === activeLeagueId)?.league.name ?? ""} label="Liga" small />
+        ) : (
+          <BigStat emoji="💬" value={totalComments} label="Komentarzy" />
+        )}
       </div>
 
       {/* Two cols layout */}
@@ -543,11 +547,11 @@ export default async function StatsPage({
   );
 }
 
-function BigStat({ emoji, value, label }: { emoji: string; value: number; label: string }) {
+function BigStat({ emoji, value, label, small }: { emoji: string; value: number | string; label: string; small?: boolean }) {
   return (
     <div className="card p-4 text-center">
       <div className="text-2xl mb-1">{emoji}</div>
-      <div className="text-3xl font-black tabular-nums">{value}</div>
+      <div className={`font-black ${small ? "text-base leading-tight px-1" : "text-3xl tabular-nums"} truncate`}>{value}</div>
       <div className="text-[10px] uppercase tracking-wider text-app-subtle mt-1">{label}</div>
     </div>
   );
