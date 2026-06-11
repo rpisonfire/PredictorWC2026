@@ -43,10 +43,57 @@ export default async function Home() {
             <Row label="Trafione bramki gospodarza" pts={1} color="bg-wc-lime" />
             <Row label="Trafione bramki gości" pts={1} color="bg-wc-lime" />
             <Row label="Pierwsza drużyna która strzeli bramkę" pts={2} color="bg-wc-gold" />
-            <Row label="Pierwszy strzelec" pts={5} color="bg-white/20" />
+            <Row label="Pierwszy strzelec" pts={5} color="bg-purple-600" />
           </ul>
           <div className="mt-5 rounded-xl bg-wc-gold/10 border border-dashed border-wc-gold/60 p-4 text-sm">
             <b className="text-wc-red">Boost x3</b> - raz na kolejkę pomnóż swoje punkty z jednego meczu razy trzy.
+          </div>
+
+          <div className="mt-5 rounded-xl border border-app p-4 text-sm space-y-3">
+            <div className="text-xs uppercase tracking-wider text-app-subtle font-bold">Przykład</div>
+            <div>
+              Twój typ: <b className="tabular-nums">2 : 1</b> dla 🇲🇽 z Mbappé jako pierwszym strzelcem.
+            </div>
+            <div className="text-app-muted">
+              Wynik meczu: <b className="text-app tabular-nums">2 : 0</b> dla 🇲🇽, pierwszy gol strzelił Hirving Lozano.
+            </div>
+            <ul className="space-y-1 pl-1">
+              <li className="flex items-center gap-2">
+                <span className="text-app-subtle">❌</span>
+                <span>Dokładny wynik: nie (2:1 vs 2:0)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-app-subtle">❌</span>
+                <span>Różnica bramek: nie (+1 vs +2)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-wc-green">✅</span>
+                <span>Zwycięzca: tak (🇲🇽 wygrało) → <b className="text-wc-green">+2 pkt</b></span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-wc-green">✅</span>
+                <span>Bramki gospodarza: tak (2 = 2) → <b className="text-wc-green">+1 pkt</b></span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-app-subtle">❌</span>
+                <span>Bramki gości: nie (1 vs 0)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-wc-green">✅</span>
+                <span>Pierwsza drużyna ze strzałem: tak (🇲🇽) → <b className="text-wc-green">+2 pkt</b></span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-app-subtle">❌</span>
+                <span>Pierwszy strzelec: nie (Mbappé vs Lozano)</span>
+              </li>
+            </ul>
+            <div className="pt-3 border-t border-app flex items-center justify-between">
+              <span className="font-bold">Razem:</span>
+              <span className="text-2xl font-black text-wc-gold tabular-nums">5 pkt</span>
+            </div>
+            <div className="text-[11px] text-app-subtle">
+              Gdybyś dał na ten mecz <b className="text-wc-red">boost x3</b>, dostałbyś <b className="text-wc-gold">15 pkt</b>.
+            </div>
           </div>
         </div>
       </div>

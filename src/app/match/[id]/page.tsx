@@ -360,17 +360,6 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               homeShort={match.homeTeam.shortCode}
               awayShort={match.awayTeam.shortCode}
               picks={[
-                ...(pred ? [{
-                  userId: user.id,
-                  nickname: user.nickname,
-                  avatar: user.avatar,
-                  homeScore: pred.homeScore,
-                  awayScore: pred.awayScore,
-                  firstScorerTeam: (pred.firstScorerTeam as "HOME" | "AWAY" | "NONE" | null) ?? null,
-                  firstGoalPlayer: null,
-                  pointsAwarded: pred.pointsAwarded,
-                  boosted,
-                }] : []),
                 ...othersPredictions.map((op) => ({
                   userId: op.userId,
                   nickname: op.user.nickname,

@@ -29,7 +29,10 @@ async function main() {
         {
           homeScore: m.homeScore!,
           awayScore: m.awayScore!,
-          firstScorerTeam: (m.firstScorerTeamId as any) ?? "NONE",
+          firstScorerTeam:
+            m.firstScorerTeamId === m.homeTeamId ? "HOME"
+            : m.firstScorerTeamId === m.awayTeamId ? "AWAY"
+            : "NONE",
           firstGoalPlayerId: m.firstGoalPlayerId,
         }
       );

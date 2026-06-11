@@ -125,7 +125,7 @@ async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
                     ))}
                   </div>
                   <div className="text-xs text-app-subtle">
-                    {r.stats.finishedCount} rozegranych · celność {r.stats.accuracy.toFixed(0)}%
+                    {r.stats.finishedCount} rozegranych meczy
                   </div>
                 </div>
               </div>

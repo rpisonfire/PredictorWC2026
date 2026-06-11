@@ -42,9 +42,17 @@ async function setResult(formData: FormData) {
   const firstScorerTeam = String(formData.get("firstScorerTeam") || "NONE") as "HOME" | "AWAY" | "NONE";
   const firstGoalPlayerId = String(formData.get("firstGoalPlayerId") || "") || null;
 
+  // Pobierz mecz żeby zmapować HOME/AWAY na konkretne ID drużyn
+  const matchRec = await prisma.match.findUnique({ where: { id: matchId } });
+  if (!matchRec) return;
+  const firstScorerTeamId =
+    firstScorerTeam === "HOME" ? matchRec.homeTeamId
+    : firstScorerTeam === "AWAY" ? matchRec.awayTeamId
+    : null;
+
   await prisma.match.update({
     where: { id: matchId },
-    data: { homeScore, awayScore, firstScorerTeamId: null, firstGoalPlayerId },
+    data: { homeScore, awayScore, firstScorerTeamId, firstGoalPlayerId },
   });
 
   // Recalculate points for all predictions on this match
@@ -474,7 +482,15 @@ export default async function Admin({
             <div className="grid sm:grid-cols-2 gap-3 mt-3">
               <div>
                 <label className="text-xs text-app-subtle">Pierwsza drużyna ze strzałem</label>
-                <select name="firstScorerTeam" className="input mt-1" defaultValue={m.firstScorerTeamId ?? "NONE"}>
+                <select
+                  name="firstScorerTeam"
+                  className="input mt-1"
+                  defaultValue={
+                    m.firstScorerTeamId === m.homeTeamId ? "HOME"
+                    : m.firstScorerTeamId === m.awayTeamId ? "AWAY"
+                    : "NONE"
+                  }
+                >
                   <option value="NONE">Brak (0:0)</option>
                   <option value="HOME">{m.homeTeam.flag} {m.homeTeam.shortCode}</option>
                   <option value="AWAY">{m.awayTeam.flag} {m.awayTeam.shortCode}</option>

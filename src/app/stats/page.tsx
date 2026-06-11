@@ -5,8 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Flag } from "@/components/Flag";
 import { Emoji } from "@/components/Emoji";
-import { RankingChart } from "@/components/RankingChart";
-import { rankingOverTime, matchInsights, userStyles, STYLE_RULES } from "@/lib/stats";
+import { matchInsights, userStyles, STYLE_RULES } from "@/lib/stats";
 
 const STYLE_RULES_LEGEND = STYLE_RULES;
 
@@ -26,7 +25,11 @@ export default async function StatsPage({
     include: { league: true },
     orderBy: { league: { createdAt: "asc" } },
   });
-  const activeLeagueId = leagueParam && memberships.some((m) => m.league.id === leagueParam) ? leagueParam : null;
+  // Domyślnie pierwsza liga usera (zero kategorii "wszyscy" - duplikat)
+  const activeLeagueId =
+    (leagueParam && memberships.some((m) => m.league.id === leagueParam) ? leagueParam : null)
+    ?? memberships[0]?.league.id
+    ?? null;
   const activeLeague = activeLeagueId ? memberships.find((m) => m.league.id === activeLeagueId)?.league : null;
 
   // Lista userId którzy są w wybranej lidze (gdy filtr jest aktywny)
@@ -113,7 +116,7 @@ export default async function StatsPage({
         match: { include: { homeTeam: true, awayTeam: true } },
       },
     }),
-    rankingOverTime(activeLeagueId ?? undefined),
+    Promise.resolve({ series: [], matchdays: [] as number[] }),
     matchInsights(memberUserIds),
     userStyles(memberUserIds),
   ]);
@@ -198,10 +201,7 @@ export default async function StatsPage({
     }
   }
   // Kolory do wykresu - cykliczna paleta
-  const PALETTE = ["#E4002B", "#F1B434", "#0A3161", "#006847", "#A6E22E", "#9333EA", "#06B6D4", "#F97316", "#EC4899", "#10B981"];
-  const rankingSeries = ranking.series
-    .filter((s) => s.points.some((p) => p > 0)) // tylko ci co mają choć trochę pkt
-    .map((s, i) => ({ ...s, color: PALETTE[i % PALETTE.length] }));
+  void ranking; // wykres wyłączony - zbyt drogi w CU
   // MŚ 2026: 104 mecze (72 grupowe + 32 fazy pucharowej)
   const TOTAL_WC_MATCHES = 104;
   const progressPct = (finishedMatches / TOTAL_WC_MATCHES) * 100;
@@ -213,17 +213,11 @@ export default async function StatsPage({
       <p className="text-app-muted mb-4">
         {activeLeague
           ? <>Liga: <b>{activeLeague.name}</b> ({totalUsers} {totalUsers === 1 ? "gracz" : "graczy"})</>
-          : <>Wszyscy gracze ogólnie ({totalUsers}).</>}
+          : <>Brak lig - dołącz lub stwórz w zakładce Ligi.</>}
       </p>
 
-      {memberships.length >= 1 && (
+      {memberships.length >= 2 && (
         <div className="flex gap-2 mb-5 overflow-x-auto -mx-1 px-1">
-          <Link
-            href="/stats"
-            className={`shrink-0 px-3 py-1.5 rounded-xl text-sm font-bold ${!activeLeagueId ? "bg-wc-red text-white" : "bg-app-hover text-app-muted"}`}
-          >
-            🌍 Wszyscy
-          </Link>
           {memberships.map((m) => (
             <Link
               key={m.league.id}
@@ -233,16 +227,6 @@ export default async function StatsPage({
               🏟️ {m.league.name}
             </Link>
           ))}
-        </div>
-      )}
-
-      {rankingSeries.length >= 2 && (
-        <div className="card p-5 mb-4">
-          <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-lg font-black">📈 Ranking w czasie</h2>
-            <span className="text-xs text-app-subtle">najedź na imię żeby wyróżnić</span>
-          </div>
-          <RankingChart series={rankingSeries} matchdays={ranking.matchdays} highlightUserId={user.id} />
         </div>
       )}
 

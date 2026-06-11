@@ -72,7 +72,10 @@ export async function syncFinishedResults(opts: { sendPush?: boolean } = {}): Pr
         {
           homeScore: home,
           awayScore: away,
-          firstScorerTeam: (existing.firstScorerTeamId as any) ?? "NONE",
+          firstScorerTeam:
+            existing.firstScorerTeamId === existing.homeTeamId ? "HOME"
+            : existing.firstScorerTeamId === existing.awayTeamId ? "AWAY"
+            : "NONE",
           firstGoalPlayerId: existing.firstGoalPlayerId,
         }
       );
