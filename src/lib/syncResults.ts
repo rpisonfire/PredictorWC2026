@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { prisma } from "./db";
 import { scorePrediction } from "./scoring";
 import { sendPushToAll } from "./push";
@@ -102,6 +103,16 @@ export async function syncFinishedResults(opts: { sendPush?: boolean } = {}): Pr
         url: "/dashboard",
       });
     }
+  }
+
+  // Po sync wszystkie cache'owane strony invalidate
+  if (updated > 0) {
+    revalidatePath("/leaderboard");
+    revalidatePath("/groups");
+    revalidatePath("/bracket");
+    revalidatePath("/stats");
+    revalidatePath("/dashboard");
+    revalidatePath("/my-predictions");
   }
 
   return { ok: true, updated, scoredPredictions, push: pushResult };

@@ -71,7 +71,13 @@ async function setResult(formData: FormData) {
     await prisma.prediction.update({ where: { id: p.id }, data: { pointsAwarded: pts } });
   }
 
+  // Po wpisaniu wyniku wszystkie strony zależne odświeżają się natychmiast
   revalidatePath("/leaderboard");
+  revalidatePath("/groups");
+  revalidatePath("/bracket");
+  revalidatePath("/stats");
+  revalidatePath("/dashboard");
+  revalidatePath("/my-predictions");
   revalidatePath("/admin");
 }
 

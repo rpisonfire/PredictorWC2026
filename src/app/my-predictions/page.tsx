@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+
+// Cache 60s - typy zmieniają się rzadko, revalidate po zapisie
+export const revalidate = 60;
 import { Sparkline } from "@/components/Sparkline";
 import { fmtDateTime } from "@/lib/dates";
 import { Flag } from "@/components/Flag";

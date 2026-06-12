@@ -4,6 +4,9 @@ import { getCurrentUser } from "@/lib/session";
 import { fmtDateTime } from "@/lib/dates";
 import { Flag } from "@/components/Flag";
 
+// Drabinka zmienia się rzadko - cache 5 min.
+export const revalidate = 300;
+
 const STAGE_ORDER = [
   "Faza grupowa",
   "1/16 finału",
