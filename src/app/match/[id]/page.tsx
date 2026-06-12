@@ -320,7 +320,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               </div>
               <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
                 {pred.firstScorerTeam && pred.firstScorerTeam !== "NONE" && (
-                  <span className="chip bg-purple-600 text-white">
+                  <span className="chip bg-purple-500/20 text-purple-300 border border-purple-500/30">
                     1. drużyna ze strzałem:{" "}
                     <b className="ml-1">
                       {pred.firstScorerTeam === "HOME" ? match.homeTeam.shortCode : match.awayTeam.shortCode}
@@ -328,7 +328,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   </span>
                 )}
                 {pred.firstScorerTeam === "NONE" && (
-                  <span className="chip bg-purple-600 text-white">
+                  <span className="chip bg-purple-500/20 text-purple-300 border border-purple-500/30">
                     1. drużyna ze strzałem: <b className="ml-1">0:0</b>
                   </span>
                 )}
@@ -359,6 +359,15 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <UserPickSearch
               homeShort={match.homeTeam.shortCode}
               awayShort={match.awayTeam.shortCode}
+              result={{
+                homeScore: match.homeScore!,
+                awayScore: match.awayScore!,
+                firstScorerTeam:
+                  match.firstScorerTeamId === match.homeTeamId ? "HOME"
+                  : match.firstScorerTeamId === match.awayTeamId ? "AWAY"
+                  : "NONE",
+                firstGoalPlayerId: match.firstGoalPlayerId,
+              }}
               picks={[
                 ...othersPredictions.map((op) => ({
                   userId: op.userId,
@@ -368,7 +377,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   awayScore: op.awayScore,
                   firstScorerTeam: (op.firstScorerTeam as "HOME" | "AWAY" | "NONE" | null) ?? null,
                   firstGoalPlayer: op.player
-                    ? { name: op.player.name, photoUrl: op.player.photoUrl, position: op.player.position }
+                    ? { id: op.player.id, name: op.player.name, photoUrl: op.player.photoUrl, position: op.player.position }
                     : null,
                   pointsAwarded: op.pointsAwarded,
                   boosted: boostedUserIds.has(op.userId),
