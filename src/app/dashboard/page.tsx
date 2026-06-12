@@ -102,7 +102,7 @@ export default async function Dashboard() {
 
   return (
     <section>
-      {hasLiveToday && <AutoRefresh intervalSec={60} />}
+      {/* Auto-refresh wyłączony na dashboardzie - kumple sami odświeżą jak chcą zobaczyć wynik */}
 
       {preWorldCup && (
         <div className="mb-8">

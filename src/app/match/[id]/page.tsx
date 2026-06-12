@@ -158,7 +158,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
   return (
     <section className="max-w-2xl mx-auto">
-      {live && <AutoRefresh intervalSec={60} />}
+      {live && <AutoRefresh intervalSec={180} />}
       {finished && pred && pred.homeScore === match.homeScore && pred.awayScore === match.awayScore && (
         <ConfettiCelebration matchId={match.id} gold={boosted} />
       )}

@@ -9,7 +9,8 @@ import { matchInsights, userStyles, STYLE_RULES } from "@/lib/stats";
 
 const STYLE_RULES_LEGEND = STYLE_RULES;
 
-export const dynamic = "force-dynamic";
+// Cache na 60s - statystyki nie muszą być na sekundę aktualne
+export const revalidate = 60;
 
 export default async function StatsPage({
   searchParams,
