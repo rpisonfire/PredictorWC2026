@@ -429,7 +429,7 @@ export default async function StatsPage({
       </div>
 
       {(insights.easiest || insights.divisive || insights.killing) && (
-        <div className="grid sm:grid-cols-3 gap-3 mt-4">
+        <div className="grid sm:grid-cols-2 gap-4 mt-4">
           {insights.easiest && (
             <div className="card p-4">
               <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">✅ Najprostszy mecz</div>
