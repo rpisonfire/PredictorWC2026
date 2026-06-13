@@ -30,7 +30,7 @@ export function badgesFor(stats: UserStats): Badge[] {
   if (stats.successfulBoosts >= 3)
     out.push({ key: "mistrz-boosta", emoji: "⚡", label: "Mistrz boosta", description: "3+ udane boosty" });
   if (stats.longestStreak >= 3)
-    out.push({ key: "trzy-z-rzedu", emoji: "🔥", label: "Trzy z rzędu", description: "3+ punktowane mecze pod rząd" });
+    out.push({ key: "trzy-z-rzedu", emoji: "🔥", label: "Gorący", description: "3+ mecze pod rząd z ≥5 pkt" });
   return out;
 }
 
@@ -96,9 +96,12 @@ function computeStats(
     if (p.firstGoalPlayerId && p.firstGoalPlayerId === p.match.firstGoalPlayerId) scorerHits++;
     if (p.pointsAwarded > 0) {
       pointed++;
+      if (boosted) successfulBoosts++;
+    }
+    // Streak liczy mecze z ≥5 pkt (raw, bez boost) pod rząd
+    if (p.pointsAwarded >= 5) {
       currentStreak++;
       if (currentStreak > longestStreak) longestStreak = currentStreak;
-      if (boosted) successfulBoosts++;
     } else {
       currentStreak = 0;
     }
@@ -134,13 +137,14 @@ export async function leaderboard(leagueId?: string) {
     ? await prisma.league.findUnique({ where: { id: leagueId } })
     : null;
 
-  // 3. Lista wszystkich kolejek (do spark)
-  const allMatchdays = await prisma.match.findMany({
+  // 3. Lista tylko ROZEGRANYCH kolejek - inaczej spark spłaszcza się zerami z przyszłych meczów
+  const playedMatchdays = await prisma.match.findMany({
+    where: { homeScore: { not: null } },
     select: { matchday: true },
     distinct: ["matchday"],
     orderBy: { matchday: "asc" },
   });
-  const mds = allMatchdays.map((m) => m.matchday);
+  const mds = playedMatchdays.map((m) => m.matchday);
 
   const rows = users.map((u) => {
     const boostMatchIds = new Set(u.boosts.map((b) => b.matchId));
