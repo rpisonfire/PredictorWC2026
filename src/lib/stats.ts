@@ -10,6 +10,7 @@ export type UserStats = {
   accuracy: number;
   longestStreak: number;
   successfulBoosts: number;
+  bestMatchPoints: number;
 };
 
 export type Badge = {
@@ -87,11 +88,13 @@ function computeStats(
   let successfulBoosts = 0;
   let longestStreak = 0;
   let currentStreak = 0;
+  let bestMatchPoints = 0;
 
   for (const p of finished) {
     const boosted = boostMatchIds.has(p.matchId);
     const pts = boosted ? p.pointsAwarded * 3 : p.pointsAwarded;
     totalPoints += pts;
+    if (pts > bestMatchPoints) bestMatchPoints = pts;
     if (p.homeScore === p.match.homeScore && p.awayScore === p.match.awayScore) exactScoreHits++;
     if (p.firstGoalPlayerId && p.firstGoalPlayerId === p.match.firstGoalPlayerId) scorerHits++;
     if (p.pointsAwarded > 0) {
@@ -118,6 +121,7 @@ function computeStats(
     accuracy: finishedCount ? (pointed / finishedCount) * 100 : 0,
     longestStreak,
     successfulBoosts,
+    bestMatchPoints,
   };
 }
 

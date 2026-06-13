@@ -78,7 +78,7 @@ export default async function Profile() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 mt-4">
-          <Stat label="Celność" value={`${stats.accuracy.toFixed(0)}%`} />
+          <Stat label="Najlepszy mecz" value={`${stats.bestMatchPoints} pkt`} />
           <Stat label="Średnia/mecz" value={stats.avgPointsPerMatch.toFixed(1)} />
           <Stat label="Dokładne wyniki" value={stats.exactScoreHits} />
           <Stat label="Trafieni strzelcy" value={stats.scorerHits} />

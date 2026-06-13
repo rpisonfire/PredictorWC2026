@@ -122,13 +122,26 @@ export default async function StatsPage({
     userStyles(memberUserIds),
   ]);
 
+  // Bohater turnieju - największa pojedyncza zdobycz pkt z 1 meczu (z boostem)
+  let hero: { user: typeof allUsersForLeader[number]; matchId: string; pts: number; boosted: boolean } | null = null;
+  for (const u of allUsersForLeader) {
+    const boostSet = new Set(u.boosts.map((b) => b.matchId));
+    for (const p of u.predictions) {
+      const boosted = boostSet.has(p.matchId);
+      const pts = boosted ? p.pointsAwarded * 3 : p.pointsAwarded;
+      if (pts > 0 && (!hero || pts > hero.pts)) hero = { user: u, matchId: p.matchId, pts, boosted };
+    }
+  }
+
   // Drugi wsad: rzeczy które zależą od ID-ów z pierwszego
   const popularMatchId = matchesWithPicks[0]?.matchId;
   const boostMatchId = boostUsage[0]?.matchId;
-  const allMatchIdsNeeded = [
+  const heroMatchId = hero?.matchId;
+  const allMatchIdsNeeded = Array.from(new Set([
     ...(popularMatchId ? [popularMatchId] : []),
     ...(boostMatchId ? [boostMatchId] : []),
-  ];
+    ...(heroMatchId ? [heroMatchId] : []),
+  ]));
   const [championTeams, scorerPlayers, extraMatches, boostPredictions] = await Promise.all([
     prisma.team.findMany({ where: { id: { in: championPicks.map((c) => c.predictedChampionId!).filter(Boolean) } } }),
     prisma.player.findMany({
@@ -149,6 +162,7 @@ export default async function StatsPage({
 
   const popularMatch = extraMatches.find((m) => m.id === popularMatchId) ?? null;
   const boostMatch = extraMatches.find((m) => m.id === boostMatchId) ?? null;
+  const heroMatch = heroMatchId ? extraMatches.find((m) => m.id === heroMatchId) ?? null : null;
 
   // Leader (most points) - liczone w pamięci ze wstępnie wybranych pól
   const leader = allUsersForLeader
@@ -228,6 +242,35 @@ export default async function StatsPage({
               🏟️ {m.league.name}
             </Link>
           ))}
+        </div>
+      )}
+
+      {hero && heroMatch && (
+        <div className="card p-5 mb-4 bg-gradient-to-br from-wc-gold/15 via-wc-red/10 to-transparent border-wc-gold/30">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-wc-gold mb-3">
+            <span>👑 Bohater turnieju</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3 min-w-0">
+              <Emoji char={hero.user.avatar} size="2xl" alt={hero.user.nickname} />
+              <div className="min-w-0">
+                <div className="font-black text-xl truncate">{hero.user.nickname}</div>
+                <div className="flex items-center gap-1.5 text-xs text-app-subtle mt-0.5">
+                  <Flag emoji={heroMatch.homeTeam.flag} size="sm" />
+                  <span className="font-bold">{heroMatch.homeTeam.shortCode}</span>
+                  <span>vs</span>
+                  <span className="font-bold">{heroMatch.awayTeam.shortCode}</span>
+                  <Flag emoji={heroMatch.awayTeam.flag} size="sm" />
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-4xl font-black text-wc-gold tabular-nums">+{hero.pts}</div>
+              <div className="text-[10px] text-app-subtle uppercase tracking-wider">
+                pkt z 1 meczu {hero.boosted && "⚡"}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
