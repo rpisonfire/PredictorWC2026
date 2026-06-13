@@ -122,26 +122,13 @@ export default async function StatsPage({
     userStyles(memberUserIds),
   ]);
 
-  // Bohater turnieju - największa pojedyncza zdobycz pkt z 1 meczu (z boostem)
-  let hero: { user: typeof allUsersForLeader[number]; matchId: string; pts: number; boosted: boolean } | null = null;
-  for (const u of allUsersForLeader) {
-    const boostSet = new Set(u.boosts.map((b) => b.matchId));
-    for (const p of u.predictions) {
-      const boosted = boostSet.has(p.matchId);
-      const pts = boosted ? p.pointsAwarded * 3 : p.pointsAwarded;
-      if (pts > 0 && (!hero || pts > hero.pts)) hero = { user: u, matchId: p.matchId, pts, boosted };
-    }
-  }
-
   // Drugi wsad: rzeczy które zależą od ID-ów z pierwszego
   const popularMatchId = matchesWithPicks[0]?.matchId;
   const boostMatchId = boostUsage[0]?.matchId;
-  const heroMatchId = hero?.matchId;
-  const allMatchIdsNeeded = Array.from(new Set([
+  const allMatchIdsNeeded = [
     ...(popularMatchId ? [popularMatchId] : []),
     ...(boostMatchId ? [boostMatchId] : []),
-    ...(heroMatchId ? [heroMatchId] : []),
-  ]));
+  ];
   const [championTeams, scorerPlayers, extraMatches, boostPredictions] = await Promise.all([
     prisma.team.findMany({ where: { id: { in: championPicks.map((c) => c.predictedChampionId!).filter(Boolean) } } }),
     prisma.player.findMany({
@@ -162,7 +149,6 @@ export default async function StatsPage({
 
   const popularMatch = extraMatches.find((m) => m.id === popularMatchId) ?? null;
   const boostMatch = extraMatches.find((m) => m.id === boostMatchId) ?? null;
-  const heroMatch = heroMatchId ? extraMatches.find((m) => m.id === heroMatchId) ?? null : null;
 
   // Leader (most points) - liczone w pamięci ze wstępnie wybranych pól
   const leader = allUsersForLeader
@@ -244,83 +230,6 @@ export default async function StatsPage({
           ))}
         </div>
       )}
-
-      {hero && heroMatch && (
-        <div className="card p-5 mb-4 bg-gradient-to-br from-wc-gold/15 via-wc-red/10 to-transparent border-wc-gold/30">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-wc-gold mb-3">
-            <span>👑 Bohater turnieju</span>
-          </div>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-3 min-w-0">
-              <Emoji char={hero.user.avatar} size="2xl" alt={hero.user.nickname} />
-              <div className="min-w-0">
-                <div className="font-black text-xl truncate">{hero.user.nickname}</div>
-                <div className="flex items-center gap-1.5 text-xs text-app-subtle mt-0.5">
-                  <Flag emoji={heroMatch.homeTeam.flag} size="sm" />
-                  <span className="font-bold">{heroMatch.homeTeam.shortCode}</span>
-                  <span>vs</span>
-                  <span className="font-bold">{heroMatch.awayTeam.shortCode}</span>
-                  <Flag emoji={heroMatch.awayTeam.flag} size="sm" />
-                </div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-4xl font-black text-wc-gold tabular-nums">+{hero.pts}</div>
-              <div className="text-[10px] text-app-subtle uppercase tracking-wider">
-                pkt z 1 meczu {hero.boosted && "⚡"}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {(insights.easiest || insights.divisive || insights.killing) && (
-        <div className="grid sm:grid-cols-3 gap-3 mb-4">
-          {insights.easiest && (
-            <div className="card p-4">
-              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">✅ Najprostszy mecz</div>
-              <div className="flex items-center gap-2">
-                <Flag emoji={insights.easiest.match.homeTeam.flag} size="sm" />
-                <span className="font-bold text-sm">{insights.easiest.match.homeTeam.shortCode}</span>
-                <span className="text-app-subtle text-xs">vs</span>
-                <span className="font-bold text-sm">{insights.easiest.match.awayTeam.shortCode}</span>
-                <Flag emoji={insights.easiest.match.awayTeam.flag} size="sm" />
-              </div>
-              <div className="text-2xl font-black text-wc-green mt-2 tabular-nums">{(insights.easiest.hitRate * 100).toFixed(0)}%</div>
-              <div className="text-[10px] text-app-subtle">graczy zdobyło punkty</div>
-            </div>
-          )}
-          {insights.divisive && (
-            <div className="card p-4">
-              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">🤯 Najbardziej kontrowersyjny</div>
-              <div className="flex items-center gap-2">
-                <Flag emoji={insights.divisive.match.homeTeam.flag} size="sm" />
-                <span className="font-bold text-sm">{insights.divisive.match.homeTeam.shortCode}</span>
-                <span className="text-app-subtle text-xs">vs</span>
-                <span className="font-bold text-sm">{insights.divisive.match.awayTeam.shortCode}</span>
-                <Flag emoji={insights.divisive.match.awayTeam.flag} size="sm" />
-              </div>
-              <div className="text-2xl font-black text-wc-blue mt-2 tabular-nums">{insights.divisive.uniqueScores}</div>
-              <div className="text-[10px] text-app-subtle">różnych typów z {insights.divisive.total} graczy</div>
-            </div>
-          )}
-          {insights.killing && (
-            <div className="card p-4">
-              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">💀 Killing field</div>
-              <div className="flex items-center gap-2">
-                <Flag emoji={insights.killing.match.homeTeam.flag} size="sm" />
-                <span className="font-bold text-sm">{insights.killing.match.homeTeam.shortCode}</span>
-                <span className="text-app-subtle text-xs">vs</span>
-                <span className="font-bold text-sm">{insights.killing.match.awayTeam.shortCode}</span>
-                <Flag emoji={insights.killing.match.awayTeam.flag} size="sm" />
-              </div>
-              <div className="text-2xl font-black text-accent mt-2 tabular-nums">0 pkt</div>
-              <div className="text-[10px] text-app-subtle">wszyscy ({insights.killing.total}) na zero</div>
-            </div>
-          )}
-        </div>
-      )}
-
 
       {/* HERO: progress bar */}
       <div className="card p-5 mb-4">
@@ -518,6 +427,53 @@ export default async function StatsPage({
           </div>
         )}
       </div>
+
+      {(insights.easiest || insights.divisive || insights.killing) && (
+        <div className="grid sm:grid-cols-3 gap-3 mt-4">
+          {insights.easiest && (
+            <div className="card p-4">
+              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">✅ Najprostszy mecz</div>
+              <div className="flex items-center gap-2">
+                <Flag emoji={insights.easiest.match.homeTeam.flag} size="sm" />
+                <span className="font-bold text-sm">{insights.easiest.match.homeTeam.shortCode}</span>
+                <span className="text-app-subtle text-xs">vs</span>
+                <span className="font-bold text-sm">{insights.easiest.match.awayTeam.shortCode}</span>
+                <Flag emoji={insights.easiest.match.awayTeam.flag} size="sm" />
+              </div>
+              <div className="text-2xl font-black text-wc-green mt-2 tabular-nums">{(insights.easiest.hitRate * 100).toFixed(0)}%</div>
+              <div className="text-[10px] text-app-subtle">graczy zdobyło punkty</div>
+            </div>
+          )}
+          {insights.divisive && (
+            <div className="card p-4">
+              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">🤯 Najbardziej kontrowersyjny</div>
+              <div className="flex items-center gap-2">
+                <Flag emoji={insights.divisive.match.homeTeam.flag} size="sm" />
+                <span className="font-bold text-sm">{insights.divisive.match.homeTeam.shortCode}</span>
+                <span className="text-app-subtle text-xs">vs</span>
+                <span className="font-bold text-sm">{insights.divisive.match.awayTeam.shortCode}</span>
+                <Flag emoji={insights.divisive.match.awayTeam.flag} size="sm" />
+              </div>
+              <div className="text-2xl font-black text-wc-blue mt-2 tabular-nums">{insights.divisive.uniqueScores}</div>
+              <div className="text-[10px] text-app-subtle">różnych typów z {insights.divisive.total} graczy</div>
+            </div>
+          )}
+          {insights.killing && (
+            <div className="card p-4">
+              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">💀 Killing field</div>
+              <div className="flex items-center gap-2">
+                <Flag emoji={insights.killing.match.homeTeam.flag} size="sm" />
+                <span className="font-bold text-sm">{insights.killing.match.homeTeam.shortCode}</span>
+                <span className="text-app-subtle text-xs">vs</span>
+                <span className="font-bold text-sm">{insights.killing.match.awayTeam.shortCode}</span>
+                <Flag emoji={insights.killing.match.awayTeam.flag} size="sm" />
+              </div>
+              <div className="text-2xl font-black text-accent mt-2 tabular-nums">0 pkt</div>
+              <div className="text-[10px] text-app-subtle">wszyscy ({insights.killing.total}) na zero</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {styles.length > 0 && (
         <div className="mt-8">
