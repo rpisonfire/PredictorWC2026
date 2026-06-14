@@ -32,15 +32,13 @@ export function badgesFor(stats: UserStats): Badge[] {
     out.push({ key: "snajper", emoji: "🎯", label: "Snajper", description: "3+ dokładne wyniki w turnieju" });
   if (stats.scorerHits >= 5)
     out.push({ key: "krol-strzelcow", emoji: "👑", label: "Król strzelców", description: "5+ trafionych strzelców" });
-  if (stats.successfulBoosts >= 3)
-    out.push({ key: "mistrz-boosta", emoji: "⚡", label: "Mistrz boosta", description: "3+ udane boosty" });
+  if (stats.successfulBoosts >= 1)
+    out.push({ key: "mistrz-boosta", emoji: "⚡", label: "Mistrzowski boost", description: "Trafiony dokładny wynik na mnożniku x3" });
   // Dynamiczne (znikają gdy przestaje obowiązywać)
   if (stats.currentStreak >= 3)
     out.push({ key: "trzy-z-rzedu", emoji: "🔥", label: "Gorący", description: "3+ ostatnie mecze pod rząd z ≥5 pkt - znika po słabym wyniku" });
   if (stats.coldLast)
     out.push({ key: "lodowaty", emoji: "🧊", label: "Lodowaty", description: "0 pkt w ostatnim rozegranym meczu - rozgrzej się następnym typem!" });
-  if (stats.lastMatchdayBest >= 10)
-    out.push({ key: "gwiazda-kolejki", emoji: "🌟", label: "Gwiazda kolejki", description: "10+ pkt z jednego meczu w ostatniej rozegranej kolejce" });
   return out;
 }
 
@@ -104,12 +102,12 @@ function computeStats(
     const pts = boosted ? p.pointsAwarded * 3 : p.pointsAwarded;
     totalPoints += pts;
     if (pts > bestMatchPoints) bestMatchPoints = pts;
-    if (p.homeScore === p.match.homeScore && p.awayScore === p.match.awayScore) exactScoreHits++;
+    const exact = p.homeScore === p.match.homeScore && p.awayScore === p.match.awayScore;
+    if (exact) exactScoreHits++;
     if (p.firstGoalPlayerId && p.firstGoalPlayerId === p.match.firstGoalPlayerId) scorerHits++;
-    if (p.pointsAwarded > 0) {
-      pointed++;
-      if (boosted) successfulBoosts++;
-    }
+    if (p.pointsAwarded > 0) pointed++;
+    // Mistrzowski boost - dokładny wynik trafiony z boostem
+    if (boosted && exact) successfulBoosts++;
     // Streak liczy mecze z ≥5 pkt (raw, bez boost) pod rząd
     if (p.pointsAwarded >= 5) {
       currentStreak++;
