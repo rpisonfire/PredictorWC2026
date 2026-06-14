@@ -4,8 +4,8 @@ import { getCurrentUser } from "@/lib/session";
 import { fmtDateTime } from "@/lib/dates";
 import { Flag } from "@/components/Flag";
 
-// Drabinka zmienia się rzadko - cache 5 min.
-export const revalidate = 300;
+// Drabinka zmienia się rzadko - cache 30 min, admin invaliduje po wpisaniu wyniku.
+export const revalidate = 1800;
 
 const STAGE_ORDER = [
   "Faza grupowa",

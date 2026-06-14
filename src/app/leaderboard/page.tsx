@@ -4,9 +4,8 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { leaderboard, leaderboardForMatchday, leagueAggregateStats } from "@/lib/stats";
 
-// Ranking zmienia się tylko po wpisaniu wyniku - cache na 5 min.
-// Admin actions wywołują revalidatePath("/leaderboard") natychmiast po zapisaniu wyniku.
-export const revalidate = 300;
+// Ranking zmienia się tylko po wpisaniu wyniku - cache na 15 min (admin invaliduje natychmiast po setResult).
+export const revalidate = 900;
 import { Sparkline } from "@/components/Sparkline";
 import { Emoji } from "@/components/Emoji";
 

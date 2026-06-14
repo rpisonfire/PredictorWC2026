@@ -4,8 +4,8 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 
-// Cache 60s - typy zmieniają się rzadko, revalidate po zapisie
-export const revalidate = 60;
+// Cache 5 min - typy zmieniają się rzadko, revalidate po zapisie usera + po wpisaniu wyniku.
+export const revalidate = 300;
 import { Sparkline } from "@/components/Sparkline";
 import { fmtDateTime } from "@/lib/dates";
 import { Flag } from "@/components/Flag";

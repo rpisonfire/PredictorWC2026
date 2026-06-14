@@ -3,8 +3,8 @@ import { getCurrentUser } from "@/lib/session";
 import { groupStandings } from "@/lib/groups";
 import { Flag } from "@/components/Flag";
 
-// Tabele grupowe zmieniają się tylko po wynikach - cache na 5 min.
-export const revalidate = 300;
+// Tabele grupowe - cache 15 min, admin invaliduje natychmiast po wpisaniu wyniku.
+export const revalidate = 900;
 
 export default async function GroupsPage() {
   const user = await getCurrentUser();

@@ -9,8 +9,8 @@ import { matchInsights, userStyles, STYLE_RULES } from "@/lib/stats";
 
 const STYLE_RULES_LEGEND = STYLE_RULES;
 
-// Cache na 60s - statystyki nie muszą być na sekundę aktualne
-export const revalidate = 60;
+// Cache 5 min - statystyki nie muszą być na sekundę aktualne, admin invaliduje po wyniku.
+export const revalidate = 300;
 
 export default async function StatsPage({
   searchParams,
