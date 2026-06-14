@@ -36,8 +36,18 @@ export default async function MyPredictions() {
 
   const sparkPoints = finished.map((p) => boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded);
 
+  // Grupowanie rozegranych po kolejce - desc (najnowsza najpierw, otwarta domyślnie)
+  const finishedByMd = new Map<number, typeof finished>();
+  for (const p of finished) {
+    const arr = finishedByMd.get(p.match.matchday) ?? [];
+    arr.push(p);
+    finishedByMd.set(p.match.matchday, arr);
+  }
+  const finishedMatchdays = Array.from(finishedByMd.keys()).sort((a, b) => b - a);
+  const newestMd = finishedMatchdays[0];
+
   return (
-    <section className="max-w-2xl mx-auto">
+    <section className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-black">Moje typy</h1>
@@ -76,9 +86,32 @@ export default async function MyPredictions() {
       {finished.length > 0 && (
         <>
           <h2 className="text-sm uppercase tracking-wider text-app-subtle mb-2">Rozegrane</h2>
-          <div className="space-y-2">
-            {finished.map((p) => <Row key={p.id} p={p} boosted={boostMatchIds.has(p.matchId)} resolved />)}
-          </div>
+          {finishedMatchdays.map((md) => {
+            const list = finishedByMd.get(md)!;
+            const isNewest = md === newestMd;
+            const sumPts = list.reduce(
+              (s, p) => s + (boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded),
+              0,
+            );
+            return (
+              <details key={md} open={isNewest} className="mb-3 group">
+                <summary className="cursor-pointer flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-app-hover hover:bg-app font-bold">
+                  <span>
+                    <span className="group-open:hidden">▶</span>
+                    <span className="hidden group-open:inline">▼</span>
+                    {" "}Kolejka {md}{" "}
+                    <span className="text-app-subtle font-normal">· {list.length} {list.length === 1 ? "mecz" : "meczy"}</span>
+                  </span>
+                  <span className={`chip text-xs ${sumPts > 0 ? "bg-wc-green/15 text-wc-green" : "bg-app-hover text-app-subtle"}`}>
+                    {sumPts > 0 ? `+${sumPts}` : "0"} pkt
+                  </span>
+                </summary>
+                <div className="grid sm:grid-cols-2 gap-2 mt-3">
+                  {list.map((p) => <Row key={p.id} p={p} boosted={boostMatchIds.has(p.matchId)} resolved />)}
+                </div>
+              </details>
+            );
+          })}
         </>
       )}
     </section>
