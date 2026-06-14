@@ -79,6 +79,7 @@ async function setResult(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/my-predictions");
   revalidatePath("/admin");
+  redirect("/admin?toast=resultSaved");
 }
 
 async function setChampion(formData: FormData) {
