@@ -415,7 +415,7 @@ export default async function Admin({
             </div>
           ))}
         </div>
-        <p className="text-xs text-app-subtle mt-3">Tymczasowe hasło widoczne tylko teraz. Podaj kumplowi i powiedz żeby je zmienił (nie ma jeszcze funkcji zmiany hasła - TODO).</p>
+        <p className="text-xs text-app-subtle mt-3">Tymczasowe hasło widoczne tylko teraz. Podaj kumplowi i powiedz żeby je zmienił w zakładce Profil → Zmień hasło.</p>
       </section>
     );
   }
@@ -442,7 +442,7 @@ export default async function Admin({
         <div className="flex-1">
           <div className="font-black">Synchronizacja z API</div>
           <div className="text-sm text-app-muted">
-            Pobierz świeże wyniki z football-data.org. Cron robi to automatycznie o 7:00 codziennie, ale możesz wywołać ręcznie.
+            Pobierz świeże wyniki z football-data.org. Cron jest wyłączony - klikaj ręcznie gdy chcesz zsynchronizować zakończone mecze.
           </div>
           {syncRaw && (
             <div className={`text-xs mt-2 font-bold ${syncStatus === "ok" ? "text-wc-green" : "text-wc-red"}`}>

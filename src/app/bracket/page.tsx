@@ -49,7 +49,7 @@ export default async function BracketPage() {
   return (
     <section>
       <h1 className="text-3xl font-black mb-1">Drabinka pucharowa 🏆</h1>
-      <p className="text-app-muted mb-6">Wszystkie mecze fazy pucharowej. Awansy będą się pojawiać automatycznie z API.</p>
+      <p className="text-app-muted mb-6">Wszystkie mecze fazy pucharowej. Pary awansowe pojawią się po zakończeniu fazy grupowej.</p>
 
       {stages.length === 0 ? (
         <div className="card p-10 text-center">

@@ -249,43 +249,6 @@ export async function leagueAggregateStats(leagueId: string) {
   };
 }
 
-/** Skumulowane punkty per kolejka dla każdego gracza - do wykresu liniowego */
-export async function rankingOverTime(leagueId?: string) {
-  const users = await prisma.user.findMany({
-    where: leagueId ? { memberships: { some: { leagueId } } } : undefined,
-    include: {
-      predictions: { include: { match: true } },
-      boosts: true,
-    },
-  });
-  const league = leagueId ? await prisma.league.findUnique({ where: { id: leagueId } }) : null;
-  const matchdays = await prisma.match.findMany({
-    select: { matchday: true },
-    distinct: ["matchday"],
-    orderBy: { matchday: "asc" },
-  });
-  const mds = matchdays.map((m) => m.matchday);
-
-  const series = users.map((u) => {
-    const boostMatchIds = new Set(u.boosts.map((b) => b.matchId));
-    const ptsPerMd = new Map<number, number>();
-    for (const p of u.predictions) {
-      if (p.match.homeScore == null) continue;
-      const pts = boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
-      ptsPerMd.set(p.match.matchday, (ptsPerMd.get(p.match.matchday) ?? 0) + pts);
-    }
-    const champBonus = league?.actualChampionId && u.predictedChampionId === league.actualChampionId ? CHAMPION_BONUS : 0;
-    // cumulative
-    let cum = champBonus;
-    const points = mds.map((md) => {
-      cum += ptsPerMd.get(md) ?? 0;
-      return cum;
-    });
-    return { userId: u.id, nickname: u.nickname, avatar: u.avatar, points };
-  });
-
-  return { series, matchdays: mds };
-}
 
 /** Statystyki interesujących meczów */
 export async function matchInsights(memberUserIds?: string[] | null) {

@@ -167,8 +167,8 @@ export default async function Dashboard() {
         {todayMatches.length === 0 ? (
           <div className="card p-8 text-center">
             <div className="text-4xl mb-2">🌴</div>
-            <div className="font-black">Hola hola, mundial się jeszcze nie zaczął</div>
-            <p className="text-sm text-app-subtle mt-1">Dziś nie ma żadnego meczu. Wracaj za parę dni 😎</p>
+            <div className="font-black">Dziś dzień przerwy</div>
+            <p className="text-sm text-app-subtle mt-1">Brak meczu w dzisiejszym terminarzu. Sprawdź następne kolejki poniżej 😎</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
