@@ -334,7 +334,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           </div>
 
           <div>
-            <span className="text-sm font-semibold">Pierwszy strzelec meczu</span>
+            <span className="text-sm font-semibold">Wytypuj strzelca pierwszej bramki w spotkaniu</span>
             <div className="mt-1">
               <PlayerPicker
                 name="firstGoalPlayerId"
