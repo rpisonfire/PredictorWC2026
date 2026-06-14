@@ -1,4 +1,4 @@
-export function Sparkline({ points }: { points: number[] }) {
+export function Sparkline({ points, labels }: { points: number[]; labels?: string[] }) {
   if (points.length < 2) return null;
   const W = 320, H = 60, P = 4;
   const max = Math.max(...points, 1);
@@ -24,7 +24,16 @@ export function Sparkline({ points }: { points: number[] }) {
       {points.map((v, i) => {
         const x = P + i * stepX;
         const y = H - P - (v / max) * (H - 2 * P);
-        return <circle key={i} cx={x} cy={y} r="2.5" fill="#F1B434" />;
+        const tip = labels?.[i] ?? `${v} pkt`;
+        return (
+          <g key={i}>
+            {/* Niewidoczne większe hit-area pod tooltip */}
+            <circle cx={x} cy={y} r="10" fill="transparent" className="cursor-help">
+              <title>{tip}</title>
+            </circle>
+            <circle cx={x} cy={y} r="2.5" fill="#F1B434" pointerEvents="none" />
+          </g>
+        );
       })}
     </svg>
   );

@@ -35,6 +35,12 @@ export default async function MyPredictions() {
   const upcoming = predictions.filter((p) => p.match.homeScore === null);
 
   const sparkPoints = finished.map((p) => boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded);
+  const sparkLabels = finished.map((p) => {
+    const pts = boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
+    const m = p.match;
+    const boost = boostMatchIds.has(p.matchId) ? " ⚡" : "";
+    return `${m.homeTeam.shortCode} ${m.homeScore}:${m.awayScore} ${m.awayTeam.shortCode} → ${pts} pkt${boost}`;
+  });
 
   // Grupowanie rozegranych po kolejce - desc (najnowsza najpierw, otwarta domyślnie)
   const finishedByMd = new Map<number, typeof finished>();
@@ -62,7 +68,7 @@ export default async function MyPredictions() {
       {sparkPoints.length >= 2 && (
         <div className="card p-4 mb-6">
           <div className="text-xs uppercase tracking-wider text-app-subtle mb-1">Twoja forma (pkt/mecz)</div>
-          <Sparkline points={sparkPoints} />
+          <Sparkline points={sparkPoints} labels={sparkLabels} />
         </div>
       )}
 
