@@ -68,10 +68,19 @@ export default async function Dashboard() {
     championPickIsLocked(),
   ]);
 
+  // Grupowanie po kolejce, a wewnątrz: najpierw nierozegrane (rosnąco po kickoff), potem rozegrane (rosnąco)
   const byMatchday = matches.reduce<Record<number, typeof matches>>((acc, m) => {
     (acc[m.matchday] ||= []).push(m);
     return acc;
   }, {});
+  for (const md of Object.keys(byMatchday)) {
+    byMatchday[Number(md)].sort((a, b) => {
+      const aFin = a.homeScore !== null ? 1 : 0;
+      const bFin = b.homeScore !== null ? 1 : 0;
+      if (aFin !== bFin) return aFin - bFin;
+      return a.kickoff.getTime() - b.kickoff.getTime();
+    });
+  }
 
   // Mapa: matchday → id meczu na którym user ma boost
   const boostByMatchday = new Map<number, string>();
@@ -182,16 +191,12 @@ export default async function Dashboard() {
         </div>
       )}
 
-      {Object.entries(byMatchday).map(([md, list]) => (
-        <div key={md} className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-black">Kolejka {md}</h2>
-            {list.some((m) => m.boosts.length > 0) && (
-              <span className="chip bg-wc-gold/20 text-wc-gold">Boost użyty ⚡</span>
-            )}
-          </div>
+      {Object.entries(byMatchday).map(([md, list]) => {
+        const upcoming = list.filter((m) => m.homeScore === null);
+        const finished = list.filter((m) => m.homeScore !== null);
+        const renderCards = (items: typeof list) => (
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {list.map((m) => {
+            {items.map((m) => {
               const pred = m.predictions[0];
               const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
               const boosted = m.boosts.length > 0;
@@ -200,8 +205,30 @@ export default async function Dashboard() {
               );
             })}
           </div>
-        </div>
-      ))}
+        );
+        return (
+          <div key={md} className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-black">Kolejka {md}</h2>
+              {list.some((m) => m.boosts.length > 0) && (
+                <span className="chip bg-wc-gold/20 text-wc-gold">Boost użyty ⚡</span>
+              )}
+            </div>
+            {upcoming.length > 0 && renderCards(upcoming)}
+            {finished.length > 0 && (
+              <>
+                {upcoming.length > 0 && (
+                  <div className="flex items-center gap-2 mt-4 mb-2 text-[10px] uppercase tracking-wider text-app-subtle">
+                    <span>Rozegrane</span>
+                    <div className="flex-1 h-px bg-app" />
+                  </div>
+                )}
+                <div className="opacity-80">{renderCards(finished)}</div>
+              </>
+            )}
+          </div>
+        );
+      })}
 
       {preWorldCup && (
       <div className="mt-12">

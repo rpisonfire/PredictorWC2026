@@ -465,7 +465,33 @@ export default async function Admin({
               <span>{m.stage} · Kolejka {m.matchday}</span>
               <span>{fmtDateTimeLong(m.kickoff)}</span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Mobile: stacked rows (drużyny nad inputami). Desktop: jeden rząd jak było */}
+            <div className="sm:hidden">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Flag emoji={m.homeTeam.flag} size="sm" />
+                  <span className="font-bold truncate">{m.homeTeam.shortCode} · {m.homeTeam.name}</span>
+                </div>
+                <div className="flex items-center gap-2 min-w-0 justify-end">
+                  <span className="font-bold truncate text-right">{m.awayTeam.name} · {m.awayTeam.shortCode}</span>
+                  <Flag emoji={m.awayTeam.flag} size="sm" />
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-3">
+                <input
+                  type="number" name="homeScore" min={0} max={20}
+                  defaultValue={m.homeScore ?? ""}
+                  className="input w-20 text-center px-1 text-xl font-black"
+                />
+                <span className="font-black text-app-subtle text-xl">:</span>
+                <input
+                  type="number" name="awayScore" min={0} max={20}
+                  defaultValue={m.awayScore ?? ""}
+                  className="input w-20 text-center px-1 text-xl font-black"
+                />
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <Flag emoji={m.homeTeam.flag} size="sm" />
                 <span className="font-bold truncate">{m.homeTeam.name}</span>
@@ -473,13 +499,13 @@ export default async function Admin({
               <input
                 type="number" name="homeScore" min={0} max={20}
                 defaultValue={m.homeScore ?? ""}
-                className="input w-16 sm:w-20 text-center px-1 text-xl font-black"
+                className="input w-20 text-center px-1 text-xl font-black"
               />
               <span className="font-black text-app-subtle">:</span>
               <input
                 type="number" name="awayScore" min={0} max={20}
                 defaultValue={m.awayScore ?? ""}
-                className="input w-16 sm:w-20 text-center px-1 text-xl font-black"
+                className="input w-20 text-center px-1 text-xl font-black"
               />
               <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
                 <span className="font-bold truncate text-right">{m.awayTeam.name}</span>
