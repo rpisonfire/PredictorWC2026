@@ -120,7 +120,9 @@ export default async function Dashboard() {
       )}
 
       <h1 className="text-3xl font-black mb-1">Mecze</h1>
-      <p className="text-app-muted mb-4">Cześć <b>{user.nickname}</b> - typuj poniżej. Blokada 5 minut przed gwizdkiem.</p>
+      <p className="text-app-muted mb-4">
+        Cześć <b>{user.nickname}</b>. Poniżej znajdziesz mecze Mistrzostw Świata 2026. Wytypuj wynik, drużynę, która jako pierwsza trafi do siatki rywali, a nawet gracza, który otworzy wynik spotkania. Użyj boosta, aby odskoczyć rywalom w tabeli. Pamiętaj, że możliwość obstawiania zamyka się na 5 minut przed pierwszym gwizdkiem, powodzenia!
+      </p>
 
       {nextMatch && hoursToNext !== null && hoursToNext < 48 && (
         <div className="card p-4 mb-6 flex items-center gap-4 border-wc-gold/30 bg-wc-gold/5">
