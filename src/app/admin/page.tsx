@@ -460,13 +460,41 @@ export default async function Admin({
       {(() => {
         const upcoming = matches.filter((m) => m.homeScore === null);
         const finished = matches.filter((m) => m.homeScore !== null);
+
+        // Grupowanie nierozegranych per kolejka
+        const byMatchday = new Map<number, typeof matches>();
+        for (const m of upcoming) {
+          const arr = byMatchday.get(m.matchday) ?? [];
+          arr.push(m);
+          byMatchday.set(m.matchday, arr);
+        }
+        const sortedMatchdays = Array.from(byMatchday.keys()).sort((a, b) => a - b);
+        // Aktualna kolejka = pierwsza (najbliższa) - tylko ona otwarta domyślnie
+        const currentMd = sortedMatchdays[0];
+
         return (
           <>
-            <div className="space-y-4">
-              {upcoming.map((m) => (
-                <MatchForm key={m.id} m={m} action={setResult} />
-              ))}
-            </div>
+            {sortedMatchdays.map((md) => {
+              const list = byMatchday.get(md)!;
+              const isCurrent = md === currentMd;
+              return (
+                <details key={md} open={isCurrent} className="mb-4 group">
+                  <summary className="cursor-pointer flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-app-hover hover:bg-app font-bold">
+                    <span>
+                      <span className="group-open:hidden">▶</span>
+                      <span className="hidden group-open:inline">▼</span>
+                      {" "}Kolejka {md} <span className="text-app-subtle font-normal">· {list.length} {list.length === 1 ? "mecz" : "meczy"}</span>
+                    </span>
+                    {isCurrent && <span className="chip bg-wc-red/15 text-wc-red text-[10px]">aktualna</span>}
+                  </summary>
+                  <div className="space-y-4 mt-4">
+                    {list.map((m) => (
+                      <MatchForm key={m.id} m={m} action={setResult} />
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
 
             {finished.length > 0 && (
               <details className="mt-8">
