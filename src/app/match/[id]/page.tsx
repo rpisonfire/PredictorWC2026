@@ -265,30 +265,27 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </div>
       )}
 
-      {crowdTop.length > 0 && (
-        <div className="card p-4 mt-4">
-          <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">
-            🔮 Tłum typuje (anonimowo, top wyniki)
-          </div>
-          <div className="space-y-2">
-            {crowdTop.map((c) => {
-              const max = crowdTop[0].count;
-              const pct = Math.round((c.count / max) * 100);
-              return (
-                <div key={c.score} className="flex items-center gap-3">
-                  <div className="font-black text-lg tabular-nums w-14">{c.score}</div>
-                  <div className="flex-1 h-2 rounded-full bg-app-hover overflow-hidden">
-                    <div className="h-full bg-wc-gold" style={{ width: `${pct}%` }} />
+      {crowdTop.length > 0 && (() => {
+        const total = crowdAggregate.length;
+        return (
+          <div className="card p-4 mt-4">
+            <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">
+              🔮 Tłum typuje (anonimowo, top wyniki)
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {crowdTop.map((c) => {
+                const pct = Math.round((c.count / total) * 100);
+                return (
+                  <div key={c.score} className="text-center">
+                    <div className="text-xl font-black text-wc-gold tabular-nums">{pct}%</div>
+                    <div className="font-black text-2xl tabular-nums mt-1">{c.score}</div>
                   </div>
-                  <div className="text-xs text-app-subtle tabular-nums w-12 text-right">
-                    {c.count} {c.count === 1 ? "głos" : c.count < 5 ? "głosy" : "głosów"}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {!locked ? (
         <form action={savePrediction} className="card p-6 mt-4 space-y-5">
@@ -574,6 +571,7 @@ function TeamFormRow({
               >
                 {f.result}
                 <span className="text-[10px] font-normal opacity-70">{f.score}</span>
+                <Flag emoji={f.opponentFlag} size="xs" />
               </span>
             );
           })}
