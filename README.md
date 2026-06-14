@@ -12,19 +12,20 @@ Prywatna apka do typowania meczów Mistrzostw Świata 2026 dla Ciebie i znajomyc
 - 🎯 **Typowanie meczów** — dokładny wynik, pierwsza drużyna ze strzałem, pierwszy strzelec
 - ⚡ **Boost x3** — jeden mecz na kolejkę z potrójnymi punktami (możesz zmieniać między meczami do gwizdka)
 - 🏆 **Typ na mistrza** — wybierasz zwycięzcę całego turnieju (+10 pkt bonus)
-- 📊 **Ranking** — ogólny i per kolejka, z odznakami i wykresem formy
-- 📈 **Statystyki** — Twój styl typowania, lider rankingu, najczęstsze typy, ranking w czasie
+- 📊 **Ranking** — ogólny i per kolejka, z odznakami i wykresem formy (sparkline per gracz)
+- 📈 **Statystyki turnieju** — lider, najczęstsze typy, najpopularniejsze wyniki, style typowania, "Złoty boost", najbardziej kontrowersyjny mecz
 - 💬 **Czat pod każdym meczem** — komentarze i trash talk
-- 👀 **Typy innych** — po zablokowaniu meczu zobaczysz co wytypowali pozostali
+- 👀 **Typy innych** — po zablokowaniu meczu zobaczysz co wytypowali pozostali, z możliwością rozwinięcia breakdown punktów
+- 🎉 **Confetti** — przy trafieniu dokładnego wyniku 🦈
 - 🌍 **Tabele grupowe + drabinka pucharowa** — auto-liczone z wyników
 - 🏟️ **Multi-liga** — możesz tworzyć osobne ligi dla różnych grup znajomych
-- 🌙 **Dark/Light mode** + 🇵🇱/🇬🇧 **PL/EN** (częściowe tłumaczenie)
+- 🌙 **Dark/Light mode**
 - 🔔 **Powiadomienia push** — Web Push z VAPID, działa też na iOS PWA
 - 📱 **PWA** — instalacja jak natywna apka (Add to Home Screen)
 
 ### Dla admina (Ciebie)
 - 🛠️ Panel admina: wpisywanie wyników, zarządzanie ligami, ustawianie mistrza turnieju
-- 🔄 Synchronizacja wyników z [football-data.org](https://www.football-data.org/) — cron raz dziennie o 7:00 + ręczny przycisk
+- 🔄 Ręczny przycisk sync z [football-data.org](https://www.football-data.org/) (cron domyślnie wyłączony — wpisuj wyniki ręcznie)
 - 🔔 Wysyłanie powiadomień do wybranego usera lub wszystkich
 - 🔒 Reset hasła kumpla, dodawanie ludzi do ligi
 - 🛡️ Ochrona przed bruteforce (5 prób → 15 min blokada; admin niblokowalny)
@@ -32,13 +33,18 @@ Prywatna apka do typowania meczów Mistrzostw Świata 2026 dla Ciebie i znajomyc
 ### Punktacja
 | Co trafisz | Punkty |
 |---|---|
-| Dokładny wynik | **5** |
+| Dokładny wynik (cała kaskada) | **5** |
 | Różnica bramek | **3** |
 | Sam zwycięzca / remis | **2** |
-| Pierwsza drużyna ze strzałem | **2** |
-| Pierwszy strzelec meczu | **5** |
+| **Bonusy additive (sumują się z kaskadą)** | |
+| Trafione bramki gospodarzy | **+1** |
+| Trafione bramki gości | **+1** |
+| Pierwsza drużyna ze strzałem | **+2** |
+| Pierwszy strzelec meczu | **+5** |
 | **Boost x3** | mnoży punkty meczu × 3 |
 | **Trafiony mistrz turnieju** | +10 |
+
+Przykład: typ 2:1, wynik 2:0 → różnica 1, ale gospodarze 2:2 → kaskada 0 + 1 (gospodarze) = 1 pkt. Typ 2:0, wynik 2:0 → 5 (dokładny) + 1 + 1 = **7 pkt**.
 
 ---
 
@@ -136,7 +142,19 @@ Wyloguj się i zaloguj ponownie — w sidebarze pojawi się złoty link **Admin*
 
 4. **Deploy** → automatycznie zbuduje + odpali
 
-5. **Vercel Cron** (`vercel.json`) jest już skonfigurowany — raz dziennie o 7:00 czasu PL synchronizuje wyniki.
+5. **Cron sync jest domyślnie wyłączony** — wpisuj wyniki ręcznie z panelu admina. Jeśli chcesz włączyć codzienny sync z football-data.org, dodaj sekcję `crons` w `vercel.json`:
+   ```json
+   "crons": [{ "path": "/api/cron/sync", "schedule": "0 5 * * *" }]
+   ```
+
+### 💰 Optymalizacja zużycia (free tier)
+
+Apka jest tunowana pod **Neon Free Plan** (100 CU-hrs/mc) i **Vercel Hobby** (360 GB-hrs Fluid Memory). Co się dzieje pod maską:
+
+- **Memory cap** w `vercel.json` — większość stron ma alokację **256 MB** zamiast domyślnych 1024 MB (4× mniej GB-hrs)
+- **ISR cache** — leaderboard/groups 15 min, bracket 30 min, stats/my-predictions 5 min. Każda akcja admina (wpisanie wyniku) **natychmiast invaliduje** wszystkie zależne strony
+- **Auto-refresh wyłączony** — match page i dashboard nie pollują w tle
+- **Neon autoscaling** — ustaw `0.25 ↔ 0.5 CU` (nie 2 CU domyślne) + suspend 5 min, w Neon Console
 
 ---
 
@@ -168,31 +186,30 @@ src/
 │   ├── groups                # Tabele grupowe (auto-liczone)
 │   ├── bracket               # Drabinka pucharowa
 │   ├── leaderboard           # Ranking ogólny + per kolejka
-│   ├── stats                 # Statystyki turnieju + ranking w czasie
+│   ├── stats                 # Statystyki turnieju (lider, styl typowania, top wyniki)
 │   ├── leagues               # Multi-liga: stwórz/dołącz/opuść
-│   ├── profile               # Stats konta, styl, motyw, język, hasło
+│   ├── profile               # Stats konta, styl, motyw, hasło
 │   ├── admin                 # Panel admina (mecze/userzy/ligi/mistrz/push)
 │   ├── my-predictions        # Lista typów z wykresem formy
 │   └── api/
-│       ├── cron/sync         # Cron Vercel + ręczny sync z football-data
+│       ├── cron/sync         # Ręczny sync z football-data (cron domyślnie wyłączony)
 │       ├── push/subscribe    # Subskrypcje Web Push
-│       ├── push/test         # Test notyfikacji
-│       └── language          # Przełącznik PL/EN
+│       └── push/test         # Test notyfikacji
 ├── components/               # Reusable UI
 │   ├── Sidebar, MobileNav    # Nawigacja desktop + mobile
 │   ├── MatchCard*            # Karty meczów
 │   ├── PlayerPicker          # Custom picker zawodników z search
-│   ├── PlayerAvatar          # Awatar z kolorem pozycji
+│   ├── TeamRadioPicker       # Picker drużyny (pierwszy gol) z flagą
+│   ├── PlayerAvatar          # Awatar z kolorem pozycji (inicjały gdy brak photoUrl)
 │   ├── Flag                  # SVG flagi przez FlagCDN
 │   ├── Emoji                 # Cross-platform emoji przez Twemoji
 │   ├── Countdown             # Timer do kickoffu
-│   ├── RankingChart          # Liniowy wykres rankingu
 │   ├── Sparkline             # Mini-wykres formy
+│   ├── UserPickSearch        # Search + expandable breakdown punktów typów innych
+│   ├── ConfettiCelebration   # Konfetti po trafieniu dokładnego wyniku
 │   ├── Toast / AutoToast     # Powiadomienia akcji
 │   ├── ThemeToggle           # Dark/Light
-│   ├── LanguageToggle        # PL/EN
 │   ├── LiveChip              # 🔴 LIVE indicator
-│   ├── AutoRefresh           # Polling z pause na hidden tab
 │   ├── NotificationsButton   # Subskrypcja push
 │   └── RegisterSW            # Service worker registration
 ├── lib/                      # Logika i utils
@@ -206,8 +223,7 @@ src/
 │   ├── matchStatus.ts        # isLive() helper
 │   ├── dates.ts              # Formatowanie w Europe/Warsaw
 │   ├── push.ts               # Web Push (sendPushToAll, sendPushToUser)
-│   ├── syncResults.ts        # Pobieranie wyników z football-data
-│   ├── i18n.ts               # Dictionary PL/EN
+│   ├── syncResults.ts        # Pobieranie wyników z football-data + revalidatePath po sync
 │   └── stadiums.ts           # Dane stadionów MŚ 2026
 ├── scripts/                  # Skrypty dev/admin (npx tsx)
 └── prisma/schema.prisma      # Schema DB
@@ -232,10 +248,11 @@ src/
 ## 🎨 Personalizacja
 
 - **Kolory** w `tailwind.config.ts` (paleta `wc.*`) i `globals.css` (CSS vars)
-- **Tłumaczenia** w `src/lib/i18n.ts` — dodaj nowe klucze do `DICT`
 - **Skoring** w `src/lib/scoring.ts` — zmień liczbę punktów per akcja
 - **Boost** w `src/app/match/[id]/page.tsx` — zmień mnożnik z 3
 - **Ikony PWA** generowane przez `npx tsx scripts/generate-icons.ts` (z SVG źródłowego)
+- **ISR cache windows** — każda strona z `export const revalidate = N` w `src/app/<page>/page.tsx`
+- **Memory per route** — `vercel.json` → `functions`
 
 ---
 
@@ -248,7 +265,9 @@ rm -rf .next && npm run dev
 
 **Push notifications nie działają na iPhone** → musi być dodana do home screen (Share → Add to Home Screen). Inaczej iOS nie wspiera.
 
-**Cron nie odpala się** → sprawdź `vercel.json` (`"schedule": "0 5 * * *"` = 7:00 PL) i czy `CRON_SECRET` jest w Vercel env.
+**Cron nie odpala się** → cron jest domyślnie wyłączony. Jeśli go włączyłeś, sprawdź `vercel.json` (`"schedule": "0 5 * * *"` = 7:00 PL) i czy `CRON_SECRET` jest w Vercel env.
+
+**Wysokie zużycie Neon CU** → w Neon Console → Branches → Edit: zmniejsz `Max CU` z 2 na 0.5 i `Suspend timeout` na 5 min. Dla 50 użytkowników z ISR cache wystarczy.
 
 **Konto zablokowane (5 nieudanych prób)** → `npx tsx scripts/unlock.ts <nick>` z prod DATABASE_URL.
 
