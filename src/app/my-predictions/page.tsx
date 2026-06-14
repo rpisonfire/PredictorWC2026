@@ -121,6 +121,14 @@ export default async function MyPredictions() {
 function Row({ p, boosted, resolved }: { p: any; boosted: boolean; resolved?: boolean }) {
   const m = p.match;
   const pts = boosted ? p.pointsAwarded * 3 : p.pointsAwarded;
+  // Scorer hit/miss - tylko gdy mecz rozegrany i user wybrał strzelca
+  const scorerHit = resolved && p.player && m.firstGoalPlayerId && p.firstGoalPlayerId === m.firstGoalPlayerId;
+  const scorerMiss = resolved && p.player && p.firstGoalPlayerId !== m.firstGoalPlayerId;
+  const scorerChipClass = scorerHit
+    ? "bg-wc-green/10 border border-wc-green/50 text-wc-green"
+    : scorerMiss
+    ? "bg-wc-red/10 border border-wc-red/40 text-wc-red"
+    : "bg-app-hover";
   return (
     <Link href={`/match/${m.id}`} className="card p-4 block hover:border-wc-red/40 transition">
       <div className="flex items-center justify-between text-xs text-app-subtle mb-2">
@@ -135,7 +143,7 @@ function Row({ p, boosted, resolved }: { p: any; boosted: boolean; resolved?: bo
         <div className="text-center px-3">
           <div className="text-xl font-black">{p.homeScore} : {p.awayScore}</div>
           {resolved && (
-            <div className="text-xs text-app-subtle">wynik: {m.homeScore} : {m.awayScore}</div>
+            <div className="text-xs font-black text-wc-gold">wynik: {m.homeScore} : {m.awayScore}</div>
           )}
         </div>
         <div className="flex items-center gap-2 flex-1 justify-end">
@@ -146,9 +154,11 @@ function Row({ p, boosted, resolved }: { p: any; boosted: boolean; resolved?: bo
       <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           {p.player && (
-            <div className="flex items-center gap-1.5 chip bg-app-hover">
+            <div className={`flex items-center gap-1.5 chip ${scorerChipClass}`}>
               <PlayerAvatar name={p.player.name} photoUrl={p.player.photoUrl} size={20} />
               <span>{p.player.name}</span>
+              {scorerHit && <span>✓</span>}
+              {scorerMiss && <span>✗</span>}
             </div>
           )}
           {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
