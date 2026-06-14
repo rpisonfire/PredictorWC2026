@@ -130,7 +130,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const revealOthers = locked || finished;
 
   // Wszystkie dodatkowe równolegle
-  const [matchdayBoost, othersPredictions, allBoostsForMatch] = await Promise.all([
+  const [matchdayBoost, othersPredictions, allBoostsForMatch, crowdAggregate, teamFormMatches] = await Promise.all([
     prisma.boost.findUnique({
       where: { userId_matchday: { userId: user.id, matchday: match.matchday } },
       include: { match: { include: { homeTeam: true, awayTeam: true } } },
@@ -145,7 +145,77 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     revealOthers
       ? prisma.boost.findMany({ where: { matchId: match.id } })
       : Promise.resolve([] as any[]),
+    // Wisdom of the crowd - przed lockiem agreguj typy innych (tylko wyniki, anonimowo)
+    !revealOthers && !finished
+      ? prisma.prediction.findMany({
+          where: { matchId: match.id, NOT: { userId: user.id } },
+          select: { homeScore: true, awayScore: true },
+        })
+      : Promise.resolve([] as { homeScore: number; awayScore: number }[]),
+    // Forma drużyn - mecze WC obu drużyn rozegrane przed bieżącym
+    prisma.match.findMany({
+      where: {
+        kickoff: { lt: match.kickoff },
+        homeScore: { not: null },
+        OR: [
+          { homeTeamId: match.homeTeamId },
+          { awayTeamId: match.homeTeamId },
+          { homeTeamId: match.awayTeamId },
+          { awayTeamId: match.awayTeamId },
+        ],
+      },
+      select: {
+        id: true, kickoff: true,
+        homeScore: true, awayScore: true,
+        homeTeamId: true, awayTeamId: true,
+        homeTeam: { select: { shortCode: true, flag: true } },
+        awayTeam: { select: { shortCode: true, flag: true } },
+      },
+      orderBy: { kickoff: "desc" },
+      take: 10,
+    }),
   ]);
+
+  // Agreguj wisdom: zlicz typy per wynik, posortuj DESC, weź top 3 (z minimum 2 głosów)
+  const crowdTop: { score: string; count: number }[] = [];
+  if (crowdAggregate.length >= 2) {
+    const tally = new Map<string, number>();
+    for (const p of crowdAggregate) {
+      const key = `${p.homeScore}:${p.awayScore}`;
+      tally.set(key, (tally.get(key) ?? 0) + 1);
+    }
+    crowdTop.push(
+      ...Array.from(tally.entries())
+        .map(([score, count]) => ({ score, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 3)
+    );
+  }
+
+  // Forma drużyn: ostatnie 5 dla każdej, oznacz W/D/L z perspektywy tej drużyny
+  type FormItem = { result: "W" | "D" | "L"; opponent: string; opponentFlag: string; score: string };
+  const formFor = (teamId: string): FormItem[] => {
+    const items: FormItem[] = [];
+    for (const m of teamFormMatches) {
+      if (m.homeTeamId !== teamId && m.awayTeamId !== teamId) continue;
+      const isHome = m.homeTeamId === teamId;
+      const my = isHome ? m.homeScore! : m.awayScore!;
+      const opp = isHome ? m.awayScore! : m.homeScore!;
+      const oppTeam = isHome ? m.awayTeam : m.homeTeam;
+      const result: "W" | "D" | "L" = my > opp ? "W" : my === opp ? "D" : "L";
+      items.push({
+        result,
+        opponent: oppTeam.shortCode,
+        opponentFlag: oppTeam.flag,
+        score: `${my}:${opp}`,
+      });
+      if (items.length === 5) break;
+    }
+    return items;
+  };
+  const homeForm = formFor(match.homeTeamId);
+  const awayForm = formFor(match.awayTeamId);
+  const showForm = homeForm.length > 0 || awayForm.length > 0;
   const boostOnThisMatch = matchdayBoost?.matchId === match.id;
   // Mecz zaczął się (lub jest po) - nie można edytować boosta na tym meczu
   // "Started" = 5 min lub mniej do gwizdka, blokada zgodna z typowaniem
@@ -184,6 +254,41 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
+
+      {showForm && (
+        <div className="card p-4 mt-4">
+          <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">📈 Forma na mundialu</div>
+          <div className="space-y-3">
+            <TeamFormRow flag={match.homeTeam.flag} code={match.homeTeam.shortCode} form={homeForm} />
+            <TeamFormRow flag={match.awayTeam.flag} code={match.awayTeam.shortCode} form={awayForm} />
+          </div>
+        </div>
+      )}
+
+      {crowdTop.length > 0 && (
+        <div className="card p-4 mt-4">
+          <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">
+            🔮 Tłum typuje (anonimowo, top wyniki)
+          </div>
+          <div className="space-y-2">
+            {crowdTop.map((c) => {
+              const max = crowdTop[0].count;
+              const pct = Math.round((c.count / max) * 100);
+              return (
+                <div key={c.score} className="flex items-center gap-3">
+                  <div className="font-black text-lg tabular-nums w-14">{c.score}</div>
+                  <div className="flex-1 h-2 rounded-full bg-app-hover overflow-hidden">
+                    <div className="h-full bg-wc-gold" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="text-xs text-app-subtle tabular-nums w-12 text-right">
+                    {c.count} {c.count === 1 ? "głos" : c.count < 5 ? "głosy" : "głosów"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {!locked ? (
         <form action={savePrediction} className="card p-6 mt-4 space-y-5">
@@ -437,5 +542,43 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </ul>
       </div>
     </section>
+  );
+}
+
+function TeamFormRow({
+  flag, code, form,
+}: {
+  flag: string; code: string;
+  form: { result: "W" | "D" | "L"; opponent: string; opponentFlag: string; score: string }[];
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 w-24 shrink-0">
+        <Flag emoji={flag} size="sm" />
+        <span className="font-bold text-sm">{code}</span>
+      </div>
+      {form.length === 0 ? (
+        <div className="text-xs text-app-subtle">Pierwszy mecz na turnieju</div>
+      ) : (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {form.map((f, i) => {
+            const color =
+              f.result === "W" ? "bg-wc-green/20 text-wc-green border-wc-green/30"
+              : f.result === "L" ? "bg-wc-red/15 text-wc-red border-wc-red/30"
+              : "bg-app-hover text-app-subtle border-app";
+            return (
+              <span
+                key={i}
+                title={`vs ${f.opponent} ${f.score}`}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-black tabular-nums ${color}`}
+              >
+                {f.result}
+                <span className="text-[10px] font-normal opacity-70">{f.score}</span>
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
