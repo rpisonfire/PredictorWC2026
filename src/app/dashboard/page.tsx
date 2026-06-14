@@ -120,7 +120,30 @@ export default async function Dashboard() {
       )}
 
       <h1 className="text-3xl font-black mb-1">Mecze</h1>
-      <p className="text-app-muted mb-6">Cześć <b>{user.nickname}</b> - typuj poniżej. Blokada 5 minut przed gwizdkiem.</p>
+      <p className="text-app-muted mb-4">Cześć <b>{user.nickname}</b> - typuj poniżej. Blokada 5 minut przed gwizdkiem.</p>
+
+      {nextMatch && hoursToNext !== null && hoursToNext < 48 && (
+        <div className="card p-4 mb-6 flex items-center gap-4 border-wc-gold/30 bg-wc-gold/5">
+          <div className="text-3xl">⏰</div>
+          <div className="flex-1">
+            <div className="font-black flex items-center gap-1.5 flex-wrap">
+              <span>Najbliższy mecz:</span>
+              <Flag emoji={nextMatch.homeTeam.flag} size="sm" />
+              <span>{nextMatch.homeTeam.shortCode} vs {nextMatch.awayTeam.shortCode}</span>
+              <Flag emoji={nextMatch.awayTeam.flag} size="sm" />
+            </div>
+            <div className="text-sm text-app-muted">
+              {hoursToNext < 1
+                ? `Za ${Math.ceil(hoursToNext * 60)} min`
+                : `Za ${Math.floor(hoursToNext)}h ${Math.round((hoursToNext % 1) * 60)}min`}
+              {!currentMdHasBoost && currentMd && <> · <b className="text-wc-red">Nie użyłeś boosta w kolejce {currentMd}!</b></>}
+              {currentMdMissingPredictions.length > 0 && (
+                <> · Brak typu na {currentMdMissingPredictions.length} {currentMdMissingPredictions.length === 1 ? "mecz" : "mecze"}</>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {needsChampionPick && (
         <Link href="/champion" className="card p-4 mb-6 border-wc-gold/40 flex items-center gap-4 hover:bg-app-hover">
@@ -159,29 +182,6 @@ export default async function Dashboard() {
           </div>
         )}
       </div>
-
-      {nextMatch && hoursToNext !== null && hoursToNext < 48 && (
-        <div className="card p-4 mb-6 flex items-center gap-4 border-wc-gold/30 bg-wc-gold/5">
-          <div className="text-3xl">⏰</div>
-          <div className="flex-1">
-            <div className="font-black flex items-center gap-1.5 flex-wrap">
-              <span>Najbliższy mecz:</span>
-              <Flag emoji={nextMatch.homeTeam.flag} size="sm" />
-              <span>{nextMatch.homeTeam.shortCode} vs {nextMatch.awayTeam.shortCode}</span>
-              <Flag emoji={nextMatch.awayTeam.flag} size="sm" />
-            </div>
-            <div className="text-sm text-app-muted">
-              {hoursToNext < 1
-                ? `Za ${Math.ceil(hoursToNext * 60)} min`
-                : `Za ${Math.floor(hoursToNext)}h ${Math.round((hoursToNext % 1) * 60)}min`}
-              {!currentMdHasBoost && currentMd && <> · <b className="text-wc-red">Nie użyłeś boosta w kolejce {currentMd}!</b></>}
-              {currentMdMissingPredictions.length > 0 && (
-                <> · Brak typu na {currentMdMissingPredictions.length} {currentMdMissingPredictions.length === 1 ? "mecz" : "mecze"}</>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {Object.keys(byMatchday).length === 0 && (
         <div className="card p-10 text-center mb-10">
