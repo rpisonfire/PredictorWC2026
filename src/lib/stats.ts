@@ -9,8 +9,11 @@ export type UserStats = {
   avgPointsPerMatch: number;
   accuracy: number;
   longestStreak: number;
+  currentStreak: number;
   successfulBoosts: number;
   bestMatchPoints: number;
+  coldLast: boolean;        // 0 pkt w ostatnim rozegranym meczu (z typem)
+  lastMatchdayBest: number; // max pkt z 1 meczu w OSTATNIEJ rozegranej kolejce gracza
 };
 
 export type Badge = {
@@ -24,14 +27,20 @@ export const CHAMPION_BONUS = 10;
 
 export function badgesFor(stats: UserStats): Badge[] {
   const out: Badge[] = [];
+  // Kumulacyjne (raz zdobyte, zostają na zawsze) - osiągnięcia historyczne
   if (stats.exactScoreHits >= 3)
-    out.push({ key: "snajper", emoji: "🎯", label: "Snajper", description: "3+ dokładne wyniki" });
+    out.push({ key: "snajper", emoji: "🎯", label: "Snajper", description: "3+ dokładne wyniki w turnieju" });
   if (stats.scorerHits >= 5)
     out.push({ key: "krol-strzelcow", emoji: "👑", label: "Król strzelców", description: "5+ trafionych strzelców" });
   if (stats.successfulBoosts >= 3)
     out.push({ key: "mistrz-boosta", emoji: "⚡", label: "Mistrz boosta", description: "3+ udane boosty" });
-  if (stats.longestStreak >= 3)
-    out.push({ key: "trzy-z-rzedu", emoji: "🔥", label: "Gorący", description: "3+ mecze pod rząd z ≥5 pkt" });
+  // Dynamiczne (znikają gdy przestaje obowiązywać)
+  if (stats.currentStreak >= 3)
+    out.push({ key: "trzy-z-rzedu", emoji: "🔥", label: "Gorący", description: "3+ ostatnie mecze pod rząd z ≥5 pkt - znika po słabym wyniku" });
+  if (stats.coldLast)
+    out.push({ key: "lodowaty", emoji: "🧊", label: "Lodowaty", description: "0 pkt w ostatnim rozegranym meczu - rozgrzej się następnym typem!" });
+  if (stats.lastMatchdayBest >= 10)
+    out.push({ key: "gwiazda-kolejki", emoji: "🌟", label: "Gwiazda kolejki", description: "10+ pkt z jednego meczu w ostatniej rozegranej kolejce" });
   return out;
 }
 
@@ -76,7 +85,7 @@ export async function statsForUser(userId: string, leagueId?: string): Promise<U
 }
 
 function computeStats(
-  finished: { homeScore: number; awayScore: number; firstGoalPlayerId: string | null; pointsAwarded: number; matchId: string; match: { homeScore: number | null; awayScore: number | null; firstGoalPlayerId: string | null } }[],
+  finished: { homeScore: number; awayScore: number; firstGoalPlayerId: string | null; pointsAwarded: number; matchId: string; match: { homeScore: number | null; awayScore: number | null; firstGoalPlayerId: string | null; matchday: number } }[],
   boostMatchIds: Set<string>,
   bonus: number,
   predictionCount: number,
@@ -110,6 +119,24 @@ function computeStats(
     }
   }
 
+  // Dynamiczne flagi: stan po ostatnim meczu / ostatniej kolejce
+  let coldLast = false;
+  let lastMatchdayBest = 0;
+  if (finished.length > 0) {
+    const last = finished[finished.length - 1];
+    const lastBoosted = boostMatchIds.has(last.matchId);
+    const lastPts = lastBoosted ? last.pointsAwarded * 3 : last.pointsAwarded;
+    coldLast = lastPts === 0;
+    // Max pkt z 1 meczu w ostatniej rozegranej kolejce gracza
+    const lastMd = last.match.matchday;
+    for (const p of finished) {
+      if (p.match.matchday !== lastMd) continue;
+      const b = boostMatchIds.has(p.matchId);
+      const pts = b ? p.pointsAwarded * 3 : p.pointsAwarded;
+      if (pts > lastMatchdayBest) lastMatchdayBest = pts;
+    }
+  }
+
   const finishedCount = finished.length;
   return {
     totalPoints,
@@ -120,8 +147,11 @@ function computeStats(
     avgPointsPerMatch: finishedCount ? totalPoints / finishedCount : 0,
     accuracy: finishedCount ? (pointed / finishedCount) * 100 : 0,
     longestStreak,
+    currentStreak,
     successfulBoosts,
     bestMatchPoints,
+    coldLast,
+    lastMatchdayBest,
   };
 }
 
