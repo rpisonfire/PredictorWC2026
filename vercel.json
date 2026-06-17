@@ -1,1 +1,13 @@
-{}
+{
+  "functions": {
+    "src/app/**/*": {
+      "memory": 256
+    },
+    "src/app/admin/**/*": {
+      "memory": 512
+    },
+    "src/app/api/cron/**/*": {
+      "memory": 512
+    }
+  }
+}
