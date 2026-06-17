@@ -9,11 +9,13 @@ Prywatna apka do typowania meczów Mistrzostw Świata 2026 dla Ciebie i znajomyc
 ## ✨ Co potrafi
 
 ### Dla graczy
-- 🎯 **Typowanie meczów** — dokładny wynik, pierwsza drużyna ze strzałem, pierwszy strzelec
+- 🎯 **Typowanie meczów** — dokładny wynik, pierwsza drużyna ze strzałem, pierwszy strzelec (z anty-spoiler lock 5 min przed gwizdkiem)
 - ⚡ **Boost x3** — jeden mecz na kolejkę z potrójnymi punktami (możesz zmieniać między meczami do gwizdka)
-- 🏆 **Typ na mistrza** — wybierasz zwycięzcę całego turnieju (+10 pkt bonus)
-- 📊 **Ranking** — ogólny i per kolejka, z odznakami i wykresem formy (sparkline per gracz)
+- 🏆 **Typ na mistrza** — wybierasz zwycięzcę całego turnieju (+10 pkt bonus, lock przy starcie 1/16 finału)
+- 📊 **Ranking** — ogólny i per kolejka, z odznakami i wykresem formy (sparkline per gracz, hover dla szczegółów meczu)
 - 📈 **Statystyki turnieju** — lider, najczęstsze typy, najpopularniejsze wyniki, style typowania, "Złoty boost", najbardziej kontrowersyjny mecz
+- 🔮 **Wisdom of the crowd** — przed lockiem widzisz top 3 najczęściej typowane wyniki (anonimowo)
+- 📈 **Forma drużyn** — W/D/L z meczów WC (pokazuje się od 2. kolejki), z mini-flagami przeciwników
 - 💬 **Czat pod każdym meczem** — komentarze i trash talk
 - 👀 **Typy innych** — po zablokowaniu meczu zobaczysz co wytypowali pozostali, z możliwością rozwinięcia breakdown punktów
 - 🎉 **Confetti** — przy trafieniu dokładnego wyniku 🦈
@@ -21,11 +23,23 @@ Prywatna apka do typowania meczów Mistrzostw Świata 2026 dla Ciebie i znajomyc
 - 🏟️ **Multi-liga** — możesz tworzyć osobne ligi dla różnych grup znajomych
 - 🌙 **Dark/Light mode**
 - 🔔 **Powiadomienia push** — Web Push z VAPID, działa też na iOS PWA
-- 📱 **PWA** — instalacja jak natywna apka (Add to Home Screen)
+- 📱 **PWA** — instalacja jak natywna apka (Add to Home Screen, anty-stale-cache SW)
+
+### 🎖️ Odznaki w rankingu
+
+**Kumulacyjne** (raz zdobyte, zostają w profilu):
+- 🎯 **Snajper** — 3+ dokładne wyniki w turnieju
+- 👑 **Król strzelców** — 5+ trafionych strzelców
+- ⚡ **Mistrzowski boost** — trafiony dokładny wynik na mnożniku x3
+
+**Dynamiczne** (znikają gdy stan się zmienia):
+- 🔥 **Gorący** — 3+ ostatnie mecze pod rząd z ≥5 pkt
+- 🧊 **Lodowaty** — 0 pkt w ostatnim rozegranym meczu
 
 ### Dla admina (Ciebie)
-- 🛠️ Panel admina: wpisywanie wyników, zarządzanie ligami, ustawianie mistrza turnieju
+- 🛠️ Panel admina: wpisywanie wyników z **collapsible kolejkami** (tylko aktualna otwarta, rozegrane schowane na dole)
 - 🔄 Ręczny przycisk sync z [football-data.org](https://www.football-data.org/) (cron domyślnie wyłączony — wpisuj wyniki ręcznie)
+- ✅ **Toast po zapisie wyniku** ("Wynik dla meczu zapisany - punkty zostały rozdane")
 - 🔔 Wysyłanie powiadomień do wybranego usera lub wszystkich
 - 🔒 Reset hasła kumpla, dodawanie ludzi do ligi
 - 🛡️ Ochrona przed bruteforce (5 prób → 15 min blokada; admin niblokowalny)
@@ -51,12 +65,13 @@ Przykład: typ 2:1, wynik 2:0 → różnica 1, ale gospodarze 2:2 → kaskada 0 
 ## 🚀 Stack
 
 - **Next.js 15** (App Router + Server Actions)
-- **Prisma** + **PostgreSQL** ([Neon](https://neon.tech) free tier)
+- **Prisma** + **PostgreSQL** ([Neon](https://neon.tech) free tier, Frankfurt region)
 - **Tailwind CSS** + CSS variables dla motywów
-- **Vercel** hosting (Hobby = free)
+- **Vercel** hosting (Hobby = free, **fra1** Function Region = co-located z Neon)
 - **Web Push** (VAPID) dla powiadomień
 - **football-data.org** API (free tier — WC w plan One)
 - **FlagCDN** + **Twemoji** dla cross-platform flag/emoji
+- **@vercel/analytics** + **@vercel/speed-insights** — RUM i Web Vitals
 - TypeScript wszędzie
 
 ---
@@ -142,7 +157,9 @@ Wyloguj się i zaloguj ponownie — w sidebarze pojawi się złoty link **Admin*
 
 4. **Deploy** → automatycznie zbuduje + odpali
 
-5. **Cron sync jest domyślnie wyłączony** — wpisuj wyniki ręcznie z panelu admina. Jeśli chcesz włączyć codzienny sync z football-data.org, dodaj sekcję `crons` w `vercel.json`:
+5. **Function Region: `fra1`** (Frankfurt) — Vercel Project → Settings → Functions. Co-located z Neon (jeśli też w Frankfurt) → latency Vercel↔Neon spada z ~100ms (USA) do ~5ms → realna apka 2-3× szybsza i mniej GB-hrs zżytych.
+
+6. **Cron sync jest domyślnie wyłączony** — wpisuj wyniki ręcznie z panelu admina. Jeśli chcesz włączyć codzienny sync z football-data.org, dodaj sekcję `crons` w `vercel.json`:
    ```json
    "crons": [{ "path": "/api/cron/sync", "schedule": "0 5 * * *" }]
    ```
@@ -151,10 +168,19 @@ Wyloguj się i zaloguj ponownie — w sidebarze pojawi się złoty link **Admin*
 
 Apka jest tunowana pod **Neon Free Plan** (100 CU-hrs/mc) i **Vercel Hobby** (360 GB-hrs Fluid Memory). Co się dzieje pod maską:
 
-- **Memory cap** w `vercel.json` — większość stron ma alokację **256 MB** zamiast domyślnych 1024 MB (4× mniej GB-hrs)
+- **Function Region fra1** ← najważniejszy klucz: co-location z Neon = krótszy czas funkcji = mniej GB-hrs naliczane
+- **Memory cap** w `vercel.json` — większość stron ma alokację **256 MB** zamiast domyślnych 1024 MB (4× mniej GB-hrs); admin/cron 512 MB
 - **ISR cache** — leaderboard/groups 15 min, bracket 30 min, stats/my-predictions 5 min. Każda akcja admina (wpisanie wyniku) **natychmiast invaliduje** wszystkie zależne strony
-- **Auto-refresh wyłączony** — match page i dashboard nie pollują w tle
+- **Auto-refresh wyłączony** — match page i dashboard nie pollują w tle (kumple sami F5)
 - **Neon autoscaling** — ustaw `0.25 ↔ 0.5 CU` (nie 2 CU domyślne) + suspend 5 min, w Neon Console
+- **Cold Start Prevention: Disabled** — bo to płatna funkcja która utrzymuje funkcje ciepłe = ciągle naliczają GB-hrs
+- **Service Worker timeouty** (3.5s navigate, 5s background) — gdy Vercel ma chwilowe lagi, SW poddaje się szybko i serwuje cache zamiast wisieć
+
+### 📊 Observability
+
+- **Web Analytics** w Vercel (~2500 wizyt/mc na Hobby) — top strony, urządzenia, kraje
+- **Speed Insights** w Vercel (~10k pomiarów/mc) — Real Experience Score, LCP/FCP/CLS/INP/TTFB
+- Po przekroczeniu limitu: zbieranie wstrzymane do końca miesiąca, apka działa normalnie, **nic nie płacisz**
 
 ---
 
@@ -250,9 +276,11 @@ src/
 - **Kolory** w `tailwind.config.ts` (paleta `wc.*`) i `globals.css` (CSS vars)
 - **Skoring** w `src/lib/scoring.ts` — zmień liczbę punktów per akcja
 - **Boost** w `src/app/match/[id]/page.tsx` — zmień mnożnik z 3
+- **Odznaki** w `src/lib/stats.ts` → `badgesFor()` — dodaj/usuń badge, zmień progi
 - **Ikony PWA** generowane przez `npx tsx scripts/generate-icons.ts` (z SVG źródłowego)
 - **ISR cache windows** — każda strona z `export const revalidate = N` w `src/app/<page>/page.tsx`
 - **Memory per route** — `vercel.json` → `functions`
+- **Service Worker** (timeouty, precache) — `public/sw.js`. Bump `CACHE = "wcp-vN"` żeby wymusić aktywację nowej wersji.
 
 ---
 
@@ -274,6 +302,14 @@ rm -rf .next && npm run dev
 **Flagi pokazują białe prostokąty na Windows** → sprawdź czy używany jest komponent `<Flag>` (renderuje SVG z FlagCDN). Natywne emoji flagi są zepsute w Windows.
 
 **Po `npm run db:fd` zniknęły typy** → odpaliłeś z flagą `--wipe`. Bez niej (tryb bezpieczny) typy zostają.
+
+**Biały ekran u kumpli po deployu** → stary Service Worker serwuje cache z odniesieniami do nieistniejących chunków JS. Fix: DevTools → Application → Service Workers → Unregister + Clear site data. Nowa wersja SW (od `wcp-v3`) ma timeouty fetch i fallback do cache - nie powinno się powtórzyć.
+
+**`ERR_CONNECTION_TIMED_OUT` na Vercelu, ale "It's just you"** → lokalny ISP ma chwilowy problem z routing do Vercel edge. Spróbuj VPN, mobile data, lub `1.1.1.1` jako DNS. Vercel działa, Ty nie możesz dojść.
+
+**Admin: wpisuję wynik a zapisuje się 0:0** → był to bug z duplikowanymi `name="homeScore"` w mobile + desktop layout (przed `MatchForm` refactorem). Naprawione - jeden uniwersalny layout.
+
+**Zawodnik kontuzjowany** → możesz zmienić nazwę w Prisma Studio (`npx prisma studio`) lub SQL: `UPDATE "Player" SET name = '...', "photoUrl" = NULL WHERE id = 'fd-XXX';`. Predykcje referują przez `id`, więc istniejące typy automatycznie wskażą zastępcę - przekaż info kumplom.
 
 ---
 
