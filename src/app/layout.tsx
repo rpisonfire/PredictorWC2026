@@ -9,6 +9,8 @@ import { Suspense } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeInitScript, ThemeToggle } from "@/components/ThemeToggle";
 import { Emoji } from "@/components/Emoji";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "WC Predictor 2026",
@@ -73,6 +75,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {user && <MobileNav isAdmin={user.isAdmin} />}
         <RegisterSW />
         <Suspense fallback={null}><AutoToast /></Suspense>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

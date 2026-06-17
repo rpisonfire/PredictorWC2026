@@ -19,6 +19,8 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@types/web-push": "^3.6.4",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "canvas-confetti": "^1.9.4",
     "dotenv": "^16.4.5",
     "next": "^15.3.0",
