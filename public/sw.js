@@ -1,6 +1,15 @@
 // WC Predictor SW - offline cache + push notifications
-const CACHE = "wcp-v2";
+const CACHE = "wcp-v3";
 const PRECACHE = ["/", "/dashboard", "/icons/icon.svg", "/manifest.webmanifest"];
+const NAV_TIMEOUT_MS = 3500;  // navigate: po 3.5s rezygnuj z sieci, pokaż cache
+const BG_TIMEOUT_MS = 5000;   // background refresh: po 5s anuluj fetch żeby nie wisiał
+
+// Pomocnicza funkcja - fetch z timeout via AbortController
+function fetchWithTimeout(req, ms) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(req, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE).catch(() => null)));
@@ -27,11 +36,18 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(
       caches.open(CACHE).then(async (cache) => {
         const cached = await cache.match(req);
-        const fetchPromise = fetch(req).then((res) => {
+        if (cached) {
+          // Mamy w cache - oddaj NATYCHMIAST, refresh w tle z timeoutem
+          fetchWithTimeout(req, BG_TIMEOUT_MS).then((res) => {
+            if (res.ok) cache.put(req, res.clone());
+          }).catch(() => {});
+          return cached;
+        }
+        // Brak w cache - musi czekać na sieć (z timeoutem)
+        return fetchWithTimeout(req, BG_TIMEOUT_MS).then((res) => {
           if (res.ok) cache.put(req, res.clone());
           return res;
-        }).catch(() => cached);
-        return cached || fetchPromise;
+        }).catch(() => Response.error());
       })
     );
     return;
@@ -39,11 +55,21 @@ self.addEventListener("fetch", (e) => {
 
   if (req.mode === "navigate") {
     e.respondWith(
-      fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy));
-        return res;
-      }).catch(() => caches.match(req).then((m) => m || caches.match("/dashboard")))
+      (async () => {
+        try {
+          const res = await fetchWithTimeout(req, NAV_TIMEOUT_MS);
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+          return res;
+        } catch {
+          // Sieć padła lub trwa zbyt długo - pokaż cache lub fallback /dashboard
+          const fallback = await caches.match(req);
+          if (fallback) return fallback;
+          const dashCache = await caches.match("/dashboard");
+          if (dashCache) return dashCache;
+          return Response.error();
+        }
+      })()
     );
   }
 });
