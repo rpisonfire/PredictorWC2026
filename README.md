@@ -168,12 +168,12 @@ Wyloguj się i zaloguj ponownie — w sidebarze pojawi się złoty link **Admin*
 
 Apka jest tunowana pod **Neon Free Plan** (100 CU-hrs/mc) i **Vercel Hobby** (360 GB-hrs Fluid Memory). Co się dzieje pod maską:
 
-- **Function Region fra1** ← najważniejszy klucz: co-location z Neon = krótszy czas funkcji = mniej GB-hrs naliczane
-- **Memory cap** w `vercel.json` — większość stron ma alokację **256 MB** zamiast domyślnych 1024 MB (4× mniej GB-hrs); admin/cron 512 MB
+- **Function Region fra1** ← najważniejszy klucz: co-location z Neon = krótszy Active CPU time = mniej GB-hrs naliczane
+- **Fluid Compute Active CPU billing** — płacisz tylko za realny czas CPU (nie memory × time). Dlatego `memory` w `vercel.json` byłby ignorowany — nie ustawiamy
 - **ISR cache** — leaderboard/groups 15 min, bracket 30 min, stats/my-predictions 5 min. Każda akcja admina (wpisanie wyniku) **natychmiast invaliduje** wszystkie zależne strony
 - **Auto-refresh wyłączony** — match page i dashboard nie pollują w tle (kumple sami F5)
 - **Neon autoscaling** — ustaw `0.25 ↔ 0.5 CU` (nie 2 CU domyślne) + suspend 5 min, w Neon Console
-- **Cold Start Prevention: Disabled** — bo to płatna funkcja która utrzymuje funkcje ciepłe = ciągle naliczają GB-hrs
+- **Cold Start Prevention: Disabled** — to płatna funkcja, nie chcemy
 - **Service Worker timeouty** (3.5s navigate, 5s background) — gdy Vercel ma chwilowe lagi, SW poddaje się szybko i serwuje cache zamiast wisieć
 
 ### 📊 Observability
@@ -279,7 +279,6 @@ src/
 - **Odznaki** w `src/lib/stats.ts` → `badgesFor()` — dodaj/usuń badge, zmień progi
 - **Ikony PWA** generowane przez `npx tsx scripts/generate-icons.ts` (z SVG źródłowego)
 - **ISR cache windows** — każda strona z `export const revalidate = N` w `src/app/<page>/page.tsx`
-- **Memory per route** — `vercel.json` → `functions`
 - **Service Worker** (timeouty, precache) — `public/sw.js`. Bump `CACHE = "wcp-vN"` żeby wymusić aktywację nowej wersji.
 
 ---
