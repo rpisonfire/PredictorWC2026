@@ -170,19 +170,37 @@ export default async function Dashboard() {
             <div className="font-black">Dziś dzień przerwy</div>
             <p className="text-sm text-app-subtle mt-1">Brak meczu w dzisiejszym terminarzu. Sprawdź następne kolejki poniżej 😎</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {todayMatches.map((m) => {
-              const pred = m.predictions[0];
-              const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
-              const boosted = m.boosts.length > 0;
-              return (
-                <MatchCard key={m.id} m={m} pred={pred} boosted={boosted} locked={locked} highlight boostedMatchInMd={boostByMatchday.get(m.matchday)} quickBoostAction={quickBoost} />
-
-              );
-            })}
-          </div>
-        )}
+        ) : (() => {
+          const todayUpcoming = todayMatches.filter((m) => m.homeScore === null);
+          const todayFinished = todayMatches.filter((m) => m.homeScore !== null);
+          const renderToday = (items: typeof todayMatches) => (
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              {items.map((m) => {
+                const pred = m.predictions[0];
+                const locked = m.kickoff.getTime() - now.getTime() < 5 * 60 * 1000;
+                const boosted = m.boosts.length > 0;
+                return (
+                  <MatchCard key={m.id} m={m} pred={pred} boosted={boosted} locked={locked} highlight boostedMatchInMd={boostByMatchday.get(m.matchday)} quickBoostAction={quickBoost} />
+                );
+              })}
+            </div>
+          );
+          return (
+            <>
+              {todayUpcoming.length > 0 && renderToday(todayUpcoming)}
+              {todayFinished.length > 0 && (
+                <details className={todayUpcoming.length > 0 ? "mt-4 group" : "group"} open={todayUpcoming.length === 0}>
+                  <summary className="cursor-pointer flex items-center gap-2 py-2 px-3 rounded-lg bg-app-hover hover:bg-app text-sm font-bold text-app-subtle hover:text-app mb-2">
+                    <span className="group-open:hidden">▶</span>
+                    <span className="hidden group-open:inline">▼</span>
+                    Rozegrane dzisiaj ({todayFinished.length})
+                  </summary>
+                  <div className="opacity-60">{renderToday(todayFinished)}</div>
+                </details>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {Object.keys(byMatchday).length === 0 && (
@@ -196,6 +214,7 @@ export default async function Dashboard() {
       {Object.entries(byMatchday).map(([md, list]) => {
         const upcoming = list.filter((m) => m.homeScore === null);
         const finished = list.filter((m) => m.homeScore !== null);
+        const allFinished = upcoming.length === 0 && finished.length > 0;
         const renderCards = (items: typeof list) => (
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {items.map((m) => {
@@ -208,6 +227,24 @@ export default async function Dashboard() {
             })}
           </div>
         );
+
+        // Cała kolejka rozegrana → schowaj w collapsible (domyślnie zwiniętą)
+        if (allFinished) {
+          return (
+            <details key={md} className="mb-4 group">
+              <summary className="cursor-pointer flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-app-hover hover:bg-app font-bold">
+                <span>
+                  <span className="group-open:hidden">▶</span>
+                  <span className="hidden group-open:inline">▼</span>
+                  {" "}Kolejka {md} <span className="text-app-subtle font-normal">· {finished.length} {finished.length === 1 ? "mecz rozegrany" : "rozegranych"}</span>
+                </span>
+                <span className="chip bg-wc-green/15 text-wc-green text-[10px]">✅ zakończona</span>
+              </summary>
+              <div className="opacity-60 mt-3">{renderCards(finished)}</div>
+            </details>
+          );
+        }
+
         return (
           <div key={md} className="mb-8">
             <div className="flex items-center justify-between mb-3">
@@ -225,7 +262,7 @@ export default async function Dashboard() {
                     <div className="flex-1 h-px bg-app" />
                   </div>
                 )}
-                <div className="opacity-80">{renderCards(finished)}</div>
+                <div className="opacity-60">{renderCards(finished)}</div>
               </>
             )}
           </div>

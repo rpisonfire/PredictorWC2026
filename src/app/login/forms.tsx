@@ -48,7 +48,7 @@ export function SignUpForm({ action, avatars, teams }: { action: Action; avatars
       </div>
       <div>
         <label className="text-sm font-semibold">Kod ligi</label>
-        <input name="inviteCode" required className="input mt-1 uppercase" placeholder="MUNDIAL2026" />
+        <input name="inviteCode" required className="input mt-1 uppercase" placeholder="kod od admina" />
       </div>
       <div>
         <label className="text-sm font-semibold">Mistrz turnieju 🏆 <span className="text-app-subtle font-normal">(+10 pkt jeśli trafisz)</span></label>
@@ -75,7 +75,7 @@ export function SignUpForm({ action, avatars, teams }: { action: Action; avatars
         {pending ? "Tworzę..." : "Wskakuję do gry"}
       </button>
       <p className="text-xs text-app-subtle text-center">
-        Demo kod ligi: <code className="bg-app-hover px-1.5 py-0.5 rounded">MUNDIAL2026</code>
+        Nie masz kodu? Poproś admina ligi.
       </p>
     </form>
   );
