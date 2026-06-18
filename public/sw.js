@@ -1,5 +1,5 @@
 // WC Predictor SW - offline cache + push notifications
-const CACHE = "wcp-v3";
+const CACHE = "wcp-v4";
 const PRECACHE = ["/", "/dashboard", "/icons/icon.svg", "/manifest.webmanifest"];
 const NAV_TIMEOUT_MS = 3500;  // navigate: po 3.5s rezygnuj z sieci, pokaż cache
 const BG_TIMEOUT_MS = 5000;   // background refresh: po 5s anuluj fetch żeby nie wisiał
