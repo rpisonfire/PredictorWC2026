@@ -201,6 +201,24 @@ async function sendPush(formData: FormData) {
   revalidatePath("/admin");
 }
 
+async function deleteUser(formData: FormData) {
+  "use server";
+  const me = await getCurrentUser();
+  if (!me?.isAdmin) return;
+  const userId = String(formData.get("userId") ?? "");
+  if (!userId || userId === me.id) return;
+  // Cascade Prisma usuwa: predictions, boosts, comments, memberships, pushSubs
+  // (zdefiniowane w schema.prisma jako onDelete: Cascade)
+  const target = await prisma.user.findUnique({ where: { id: userId }, select: { isAdmin: true } });
+  if (!target || target.isAdmin) return; // nie kasuj adminów
+  await prisma.user.delete({ where: { id: userId } });
+  revalidatePath("/admin");
+  revalidatePath("/leaderboard");
+  revalidatePath("/stats");
+  revalidatePath("/groups");
+  redirect("/admin?tab=users&toast=userDeleted");
+}
+
 async function resetPassword(formData: FormData) {
   "use server";
   const userId = String(formData.get("userId"));
@@ -421,40 +439,84 @@ export default async function Admin({
   }
 
   if (activeTab === "users") {
-    const users = await prisma.user.findMany({ orderBy: { nickname: "asc" } });
+    const users = await prisma.user.findMany({
+      orderBy: { nickname: "asc" },
+      include: {
+        predictions: { select: { createdAt: true }, orderBy: { createdAt: "desc" }, take: 1 },
+        _count: { select: { predictions: true } },
+      },
+    });
     const { cookies } = await import("next/headers");
     const c = await cookies();
     const resetInfo = c.get("wcp_reset_info")?.value;
     const [resetId, tempPw] = resetInfo ? resetInfo.split(":") : [];
+
+    // Klasyfikacja aktywności (na podstawie ostatniej akcji = typowanie)
+    const now = Date.now();
+    const dayMs = 24 * 3600 * 1000;
+    const activityChip = (lastAt: Date | null) => {
+      if (!lastAt) return { text: "nigdy nie typował", color: "bg-wc-red/15 text-wc-red" };
+      const days = Math.floor((now - lastAt.getTime()) / dayMs);
+      if (days === 0) return { text: "aktywny dziś", color: "bg-wc-green/15 text-wc-green" };
+      if (days <= 2) return { text: `${days} dni temu`, color: "bg-wc-green/10 text-wc-green" };
+      if (days <= 7) return { text: `${days} dni temu`, color: "bg-wc-gold/15 text-wc-gold" };
+      return { text: `${days} dni temu`, color: "bg-wc-red/15 text-wc-red" };
+    };
+
     return (
       <section>
         <AdminTabs active="users" />
-        <h1 className="text-3xl font-black mb-6">Admin - użytkownicy</h1>
+        <h1 className="text-3xl font-black mb-6">Admin - użytkownicy ({users.length})</h1>
         <div className="card overflow-hidden">
-          {users.map((u) => (
-            <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-app last:border-0">
-              <div className="flex items-center gap-3">
-                <Emoji char={u.avatar} size="lg" alt={u.nickname} />
-                <div>
-                  <div className="font-bold">{u.nickname}</div>
-                  <div className="text-xs text-app-subtle">utworzony {fmtDate(u.createdAt)}</div>
+          {users.map((u) => {
+            const lastPred = u.predictions[0]?.createdAt ?? null;
+            const chip = activityChip(lastPred);
+            return (
+              <div key={u.id} className="flex items-center justify-between px-5 py-3 border-b border-app last:border-0 gap-3 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Emoji char={u.avatar} size="lg" alt={u.nickname} />
+                  <div className="min-w-0">
+                    <div className="font-bold flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{u.nickname}</span>
+                      {u.isAdmin && <span className="chip bg-wc-gold/15 text-wc-gold text-[10px]">admin</span>}
+                      <span className={`chip text-[10px] ${chip.color}`}>{chip.text}</span>
+                    </div>
+                    <div className="text-xs text-app-subtle">
+                      konto: {fmtDate(u.createdAt)} · typów: {u._count.predictions}
+                      {lastPred && <> · ostatni typ: {fmtDate(lastPred)}</>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {resetId === u.id && tempPw && (
+                    <div className="text-sm">
+                      Nowe hasło: <code className="bg-wc-gold/15 text-wc-gold px-2 py-1 rounded font-bold">{tempPw}</code>
+                    </div>
+                  )}
+                  <form action={resetPassword}>
+                    <input type="hidden" name="userId" value={u.id} />
+                    <button className="btn-ghost text-xs py-1.5 px-3">Reset hasła</button>
+                  </form>
+                  {!u.isAdmin && (
+                    <form action={deleteUser}>
+                      <input type="hidden" name="userId" value={u.id} />
+                      <input type="hidden" name="confirmNickname" value={u.nickname} />
+                      <button
+                        className="text-xs py-1.5 px-3 rounded-xl bg-wc-red/15 text-wc-red hover:bg-wc-red/30 font-bold"
+                      >
+                        🗑️ Usuń
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                {resetId === u.id && tempPw && (
-                  <div className="text-sm">
-                    Nowe hasło: <code className="bg-wc-gold/15 text-wc-gold px-2 py-1 rounded font-bold">{tempPw}</code>
-                  </div>
-                )}
-                <form action={resetPassword}>
-                  <input type="hidden" name="userId" value={u.id} />
-                  <button className="btn-ghost text-sm py-1.5 px-3">Reset hasła</button>
-                </form>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-        <p className="text-xs text-app-subtle mt-3">Tymczasowe hasło widoczne tylko teraz. Podaj kumplowi i powiedz żeby je zmienił w zakładce Profil → Zmień hasło.</p>
+        <p className="text-xs text-app-subtle mt-3">
+          Tymczasowe hasło widoczne tylko teraz. Aktywność wg ostatniego typu (data ostatniego zapisanego typowania).
+          Usunięcie konta kasuje typy, komentarze, boosty i członkostwa - <b className="text-wc-red">nieodwracalnie</b>.
+        </p>
       </section>
     );
   }
