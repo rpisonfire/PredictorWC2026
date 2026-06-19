@@ -71,6 +71,9 @@ async function setResult(formData: FormData) {
     await prisma.prediction.update({ where: { id: p.id }, data: { pointsAwarded: pts } });
   }
 
+  // Snapshot pozycji w globalnym rankingu - dla chipa "wskoczyłeś o X miejsc" na dashboardzie
+  await snapshotRanking();
+
   // Po wpisaniu wyniku wszystkie strony zależne odświeżają się natychmiast
   revalidatePath("/leaderboard");
   revalidatePath("/groups");
@@ -80,6 +83,41 @@ async function setResult(formData: FormData) {
   revalidatePath("/my-predictions");
   revalidatePath("/admin");
   redirect("/admin?toast=resultSaved");
+}
+
+// Liczy pozycje wszystkich graczy i zapisuje currentRank/previousRank
+async function snapshotRanking() {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      currentRank: true,
+      predictedChampionId: true,
+      predictions: { select: { matchId: true, pointsAwarded: true } },
+      boosts: { select: { matchId: true } },
+      memberships: { select: { league: { select: { actualChampionId: true } } } },
+    },
+  });
+  const scored = users.map((u) => {
+    const boostSet = new Set(u.boosts.map((b) => b.matchId));
+    let pts = u.predictions.reduce(
+      (s, p) => s + (boostSet.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded),
+      0,
+    );
+    // Bonus mistrza - jeśli któraś z lig usera ma actualChampion = predictedChampion
+    if (u.predictedChampionId && u.memberships.some((m) => m.league.actualChampionId === u.predictedChampionId)) {
+      pts += 10;
+    }
+    return { id: u.id, pts, prevCurrentRank: u.currentRank };
+  });
+  scored.sort((a, b) => b.pts - a.pts);
+  await Promise.all(
+    scored.map((s, idx) =>
+      prisma.user.update({
+        where: { id: s.id },
+        data: { previousRank: s.prevCurrentRank, currentRank: idx + 1 },
+      }),
+    ),
+  );
 }
 
 async function setChampion(formData: FormData) {

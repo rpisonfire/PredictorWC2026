@@ -16,6 +16,7 @@ export function Sidebar({
     { href: "/groups",          label: "Grupy",            emoji: "📊" },
     { href: "/bracket",         label: "Drabinka",         emoji: "🌳" },
     { href: "/leaderboard",     label: "Ranking",          emoji: "🥇" },
+    { href: "/compare",         label: "Pojedynek",        emoji: "⚔️" },
     { href: "/stats",           label: "Statystyki",       emoji: "🌍" },
     { href: "/leagues",         label: "Ligi",             emoji: "🏟️" },
   ];

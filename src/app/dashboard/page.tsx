@@ -101,6 +101,16 @@ export default async function Dashboard() {
   const nextMatch = matches.find((m) => m.kickoff.getTime() > now.getTime());
   const hoursToNext = nextMatch ? (nextMatch.kickoff.getTime() - now.getTime()) / 3600_000 : null;
 
+  // Ostatni rozegrany mecz tego usera (jeśli ma predykcję)
+  const finishedWithPred = matches
+    .filter((m) => m.homeScore !== null && m.predictions[0])
+    .sort((a, b) => b.kickoff.getTime() - a.kickoff.getTime());
+  const lastMatch = finishedWithPred[0];
+  const lastPred = lastMatch?.predictions[0];
+  const lastBoosted = lastMatch ? lastMatch.boosts.length > 0 : false;
+  const lastPts = lastPred ? (lastBoosted ? lastPred.pointsAwarded * 3 : lastPred.pointsAwarded) : 0;
+  const lastExact = lastMatch && lastPred && lastPred.homeScore === lastMatch.homeScore && lastPred.awayScore === lastMatch.awayScore;
+
   // Boost reminder for current matchday
   const currentMd = nextMatch?.matchday;
   const currentMdMatches = currentMd ? matches.filter((m) => m.matchday === currentMd) : [];
@@ -155,6 +165,65 @@ export default async function Dashboard() {
             <div className="text-sm text-app-muted">+10 pkt jeśli trafisz. Można zmieniać do końca fazy grupowej.</div>
           </div>
           <div className="chip bg-wc-gold/15 text-wc-gold">Wybierz →</div>
+        </Link>
+      )}
+
+      {user.currentRank != null && user.previousRank != null && user.currentRank !== user.previousRank && (() => {
+        const delta = user.previousRank - user.currentRank; // dodatnie = awans
+        const up = delta > 0;
+        return (
+          <Link
+            href="/leaderboard"
+            className={`card p-4 mb-6 flex items-center gap-4 hover:bg-app-hover transition ${
+              up ? "border-wc-green/40 bg-wc-green/5" : "border-wc-red/30 bg-wc-red/5"
+            }`}
+          >
+            <div className="text-3xl">{up ? "🚀" : "📉"}</div>
+            <div className="flex-1">
+              <div className="font-black">
+                {up
+                  ? `Wskoczyłeś o ${delta} ${delta === 1 ? "miejsce" : "miejsca"}!`
+                  : `Spadłeś o ${-delta} ${-delta === 1 ? "miejsce" : "miejsca"}`}
+              </div>
+              <div className="text-sm text-app-muted">
+                {user.previousRank}. → <b className={up ? "text-wc-green" : "text-wc-red"}>{user.currentRank}. miejsce</b> po ostatnich wynikach
+              </div>
+            </div>
+            <div className="chip bg-app-hover text-xs">Ranking →</div>
+          </Link>
+        );
+      })()}
+
+      {lastMatch && lastPred && (
+        <Link
+          href={`/match/${lastMatch.id}`}
+          className={`card p-4 mb-6 flex items-center gap-4 hover:bg-app-hover transition ${
+            lastPts >= 10 ? "border-wc-gold/40 bg-wc-gold/5" : lastPts > 0 ? "border-wc-green/30" : "border-wc-red/20"
+          }`}
+        >
+          <div className="text-3xl shrink-0">
+            {lastExact ? "🎯" : lastPts >= 5 ? "✨" : lastPts > 0 ? "👍" : "🧊"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs uppercase tracking-wider text-app-subtle">Twój ostatni mecz</div>
+            <div className="font-black flex items-center gap-1.5 flex-wrap mt-0.5">
+              <Flag emoji={lastMatch.homeTeam.flag} size="sm" />
+              <span>{lastMatch.homeTeam.shortCode}</span>
+              <span className="text-wc-gold tabular-nums">{lastMatch.homeScore}:{lastMatch.awayScore}</span>
+              <span>{lastMatch.awayTeam.shortCode}</span>
+              <Flag emoji={lastMatch.awayTeam.flag} size="sm" />
+            </div>
+            <div className="text-xs text-app-muted mt-0.5">
+              Twój typ: <b>{lastPred.homeScore}:{lastPred.awayScore}</b>
+              {lastBoosted && <span className="ml-1.5 chip bg-wc-gold/15 text-wc-gold text-[10px]">x3 ⚡</span>}
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <div className={`text-2xl font-black tabular-nums ${lastPts > 0 ? "text-wc-green" : "text-app-subtle"}`}>
+              {lastPts > 0 ? `+${lastPts}` : "0"}
+            </div>
+            <div className="text-[10px] text-app-subtle uppercase tracking-wider">pkt</div>
+          </div>
         </Link>
       )}
 
