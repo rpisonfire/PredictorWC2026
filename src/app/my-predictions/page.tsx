@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { matchGlowStyle } from "@/lib/teamColors";
 
 // Cache 5 min - typy zmieniają się rzadko, revalidate po zapisie usera + po wpisaniu wyniku.
 export const revalidate = 300;
@@ -66,8 +67,8 @@ export default async function MyPredictions() {
       </div>
 
       {sparkPoints.length >= 2 && (
-        <div className="card p-4 mb-6">
-          <div className="text-xs uppercase tracking-wider text-app-subtle mb-1">Twoja forma (pkt/mecz)</div>
+        <div className="stat-section mb-6">
+          <h2>📈 Twoja forma (pkt/mecz)</h2>
           <Sparkline points={sparkPoints} labels={sparkLabels} />
         </div>
       )}
@@ -135,44 +136,52 @@ function Row({ p, boosted, resolved }: { p: any; boosted: boolean; resolved?: bo
     ? "bg-wc-red/10 border border-wc-red/40 text-wc-red"
     : "bg-app-hover";
   return (
-    <Link href={`/match/${m.id}`} className="card p-4 block hover:border-wc-red/40 transition">
-      <div className="flex items-center justify-between text-xs text-app-subtle mb-2">
-        <span>{m.stage} · Kolejka {m.matchday}</span>
-        <span>{fmtDateTime(m.kickoff)}</span>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 flex-1">
-          <Flag emoji={m.homeTeam.flag} size="sm" alt={m.homeTeam.name} />
-          <span className="font-bold">{m.homeTeam.shortCode}</span>
+    <Link
+      href={`/match/${m.id}`}
+      className="match-tile block"
+      style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
+    >
+      <div className="match-tile-inner">
+        <div className="match-tile-meta">
+          <span>{m.stage} · Kolejka {m.matchday}</span>
+          <span>{fmtDateTime(m.kickoff)}</span>
         </div>
-        <div className="text-center px-3">
-          <div className="text-xl font-black">{p.homeScore} : {p.awayScore}</div>
-          {resolved && (
-            <div className="text-xs font-black text-wc-gold">wynik: {m.homeScore} : {m.awayScore}</div>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-1 justify-end">
-          <span className="font-bold">{m.awayTeam.shortCode}</span>
-          <Flag emoji={m.awayTeam.flag} size="sm" alt={m.awayTeam.name} />
-        </div>
-      </div>
-      <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
-          {p.player && (
-            <div className={`flex items-center gap-1.5 chip ${scorerChipClass}`}>
-              <PlayerAvatar name={p.player.name} photoUrl={p.player.photoUrl} size={20} />
-              <span>{p.player.name}</span>
-              {scorerHit && <span>✓</span>}
-              {scorerMiss && <span>✗</span>}
-            </div>
-          )}
-          {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
-        </div>
-        {resolved && (
-          <div className={`font-black ${pts > 0 ? "text-wc-green" : "text-app-subtle"}`}>
-            {pts > 0 ? `+${pts}` : "0"} pkt
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-2 flex-1">
+            <Flag emoji={m.homeTeam.flag} size="md" alt={m.homeTeam.name} />
+            <span className="font-bold text-white">{m.homeTeam.shortCode}</span>
           </div>
-        )}
+          <div className="text-center px-3">
+            <div className="text-xl font-black text-white" style={{ fontFamily: "'Courier New', monospace" }}>{p.homeScore} : {p.awayScore}</div>
+            {resolved && (
+              <div className="text-xs font-black mt-0.5" style={{ color: "#F1B434", fontFamily: "'Courier New', monospace", textShadow: "0 0 6px rgba(241,180,52,0.4)" }}>
+                wynik: {m.homeScore} : {m.awayScore}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-1 justify-end">
+            <span className="font-bold text-white">{m.awayTeam.shortCode}</span>
+            <Flag emoji={m.awayTeam.flag} size="md" alt={m.awayTeam.name} />
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            {p.player && (
+              <div className={`flex items-center gap-1.5 chip ${scorerChipClass}`}>
+                <PlayerAvatar name={p.player.name} photoUrl={p.player.photoUrl} size={20} />
+                <span>{p.player.name}</span>
+                {scorerHit && <span>✓</span>}
+                {scorerMiss && <span>✗</span>}
+              </div>
+            )}
+            {boosted && <span className="chip-boost">x3</span>}
+          </div>
+          {resolved && (
+            <span className={`chip-pts ${pts > 0 ? "" : "zero"}`}>
+              {pts > 0 ? `+${pts}` : "0"} pkt
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );

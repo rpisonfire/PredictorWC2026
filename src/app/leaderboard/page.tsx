@@ -165,9 +165,9 @@ async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
 
 function Mini({ label, value, small }: { label: string; value: string; small?: boolean }) {
   return (
-    <div className="card p-3">
-      <div className="text-[10px] uppercase tracking-wider text-app-subtle">{label}</div>
-      <div className={`font-black ${small ? "text-sm" : "text-xl"} truncate`}>{value}</div>
+    <div className="led-tile">
+      <div className={`led-tile-value ${small ? "led-tile-value-small" : ""}`}>{value}</div>
+      <div className="led-tile-label">{label}</div>
     </div>
   );
 }
