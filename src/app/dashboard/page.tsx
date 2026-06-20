@@ -361,14 +361,23 @@ function MatchCard({
         </div>
       )}
 
-      <div className="mt-2 sm:mt-3 flex items-center gap-1.5 flex-wrap pr-11">
+      <div className="mt-2 sm:mt-3 flex items-center gap-1 flex-wrap pr-12">
         {live && <LiveChip small />}
         {finished ? (
-          <span className="chip-after-match">Po meczu</span>
+          <span className="chip-after-match">
+            <span className="sm:hidden">Koniec</span>
+            <span className="hidden sm:inline">Po meczu</span>
+          </span>
         ) : pred ? (
-          <span className="chip-accepted">Zaakceptowano</span>
+          <span className="chip-accepted">
+            <span className="sm:hidden">Typ ok</span>
+            <span className="hidden sm:inline">Zaakceptowano</span>
+          </span>
         ) : (
-          <span className="chip-no-pick">Brak typu</span>
+          <span className="chip-no-pick">
+            <span className="sm:hidden">Typuj</span>
+            <span className="hidden sm:inline">Brak typu</span>
+          </span>
         )}
         {boosted && <span className="chip-boost">x3</span>}
         {locked && !finished && <span className="chip-lock">Lock</span>}

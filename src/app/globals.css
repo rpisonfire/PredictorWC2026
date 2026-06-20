@@ -127,16 +127,17 @@ html { background: var(--bg); }
   background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
   color: white;
   box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2), 0 1px 3px rgba(220,38,38,0.4);
-  position: relative;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .chip-no-pick::before {
   content: "";
+  flex-shrink: 0;
   width: 14px;
   height: 18px;
   background: #FCD34D;
   border-radius: 2px;
   box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
-  margin-right: 2px;
 }
 
 /* "Po meczu" - finalny gwizdek, złoty z czarnym tłem jak tablica wyników */
@@ -155,8 +156,10 @@ html { background: var(--bg); }
   border: 1px solid rgba(241, 180, 52, 0.4);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 8px rgba(241,180,52,0.15);
   font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.chip-after-match::before { content: "⚪"; font-size: 7px; }
+.chip-after-match::before { content: "⚪"; font-size: 7px; flex-shrink: 0; }
 
 /* "Zaakceptowano" - typ wpłynął, zielona karta z check */
 .chip-accepted {
@@ -172,16 +175,18 @@ html { background: var(--bg); }
   color: #4ADE80;
   border: 1px solid rgba(34, 197, 94, 0.35);
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .chip-accepted::before {
   content: "";
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
   background: #4ADE80;
   border-radius: 50%;
   box-shadow: inset -1px -1px 2px rgba(0,0,0,0.2);
-  position: relative;
 }
 
 /* "Lock" - kłódka stylizowana jak zegar gwizdka */
@@ -198,10 +203,13 @@ html { background: var(--bg); }
   color: #CBD5E1;
   border: 1px dashed rgba(148, 163, 184, 0.4);
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .chip-lock::before {
   content: "🔒";
   font-size: 10px;
+  flex-shrink: 0;
 }
 
 /* "Boost x3" - złota karta z błyskiem */
@@ -218,8 +226,10 @@ html { background: var(--bg); }
   color: #1F2937;
   box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2), 0 1px 4px rgba(245,158,11,0.4);
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.chip-boost::after { content: "⚡"; font-size: 12px; }
+.chip-boost::after { content: "⚡"; font-size: 12px; flex-shrink: 0; }
 
 /* "Punkty" - duża żółta z monospace */
 .chip-pts {
@@ -234,6 +244,8 @@ html { background: var(--bg); }
   border: 1px solid rgba(34, 197, 94, 0.4);
   font-family: 'Courier New', monospace;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .chip-pts.zero {
   background: linear-gradient(180deg, rgba(100, 116, 139, 0.25), rgba(51, 65, 85, 0.15));
