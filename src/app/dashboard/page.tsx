@@ -361,7 +361,7 @@ function MatchCard({
         </div>
       )}
 
-      <div className="mt-2 sm:mt-3 flex items-center gap-1.5 flex-wrap">
+      <div className="mt-2 sm:mt-3 flex items-center gap-1.5 flex-wrap pr-11">
         {live && <LiveChip small />}
         {finished ? (
           <span className="chip-after-match">Po meczu</span>

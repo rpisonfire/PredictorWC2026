@@ -1410,3 +1410,13 @@ details[open] > .collapse-header .collapse-chev {
 .main-shift {
   transition: padding-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Bezwzględne ukrycie hamburgera + sidebara na mobile (mobile ma własny bottom nav) */
+@media (max-width: 767px) {
+  .sidebar-panel,
+  button[aria-label="Otwórz menu"],
+  button[aria-label="Zamknij menu"] {
+    display: none !important;
+  }
+  body { --sidebar-w: 0px !important; }
+}
