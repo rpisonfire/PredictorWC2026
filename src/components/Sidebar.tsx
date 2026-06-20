@@ -25,8 +25,8 @@ export function Sidebar({
   return (
     <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col bg-[var(--card-bg)] border-r border-[var(--border)] backdrop-blur z-30">
       <Link href="/" className="flex items-center gap-2 font-black text-lg px-5 py-5 border-b border-[var(--border)]">
-        <span className="text-2xl leading-none">⚽</span>
-        <span>WC Predictor <span className="text-wc-lime">2026</span></span>
+        <span className="text-2xl leading-none ball-spin">⚽</span>
+        <span className="jersey-logo">WC PREDICTOR <span className="text-wc-lime">2026</span></span>
       </Link>
 
       <nav className="flex-1 px-3 py-4 overflow-y-auto">

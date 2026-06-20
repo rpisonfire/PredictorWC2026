@@ -11,6 +11,7 @@ import { isLive } from "@/lib/matchStatus";
 import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
+import { matchGlowStyle } from "@/lib/teamColors";
 
 async function quickBoost(formData: FormData) {
   "use server";
@@ -379,7 +380,10 @@ function MatchCard({
   // Boost dostępny tylko gdy do gwizdka > 5 min (identycznie jak typowanie)
   const canBoost = !finished && !live && m.kickoff.getTime() - Date.now() > 5 * 60 * 1000;
   return (
-    <div className={`card p-3 sm:p-4 transition relative ${highlight ? "border-wc-red/20" : ""}`}>
+    <div
+      className={`card match-glow p-3 sm:p-4 transition relative ${highlight ? "border-wc-red/20" : ""}`}
+      style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
+    >
       <Link href={`/match/${m.id}`} className="absolute inset-0 z-0" aria-label={`${m.homeTeam.name} vs ${m.awayTeam.name}`} />
       <div className="relative z-10 pointer-events-none">
       <div className="flex items-center justify-between text-[11px] sm:text-xs text-app-subtle">
@@ -448,7 +452,7 @@ function MatchCard({
             }
             className={`w-8 h-8 rounded-full flex items-center justify-center text-base transition active:scale-90 ${
               boosted
-                ? "bg-wc-gold text-wc-ink shadow-lg shadow-wc-gold/30"
+                ? "bg-wc-gold text-wc-ink shadow-lg shadow-wc-gold/30 boost-lightning"
                 : "bg-app-hover hover:bg-wc-gold/20 text-app-muted hover:text-wc-gold"
             }`}
           >
@@ -472,7 +476,7 @@ function TeamRow({
           <span className="hidden sm:inline">{name}</span>
         </span>
       </div>
-      <span className={`font-black text-xl sm:text-2xl tabular-nums shrink-0 ${color}`}>
+      <span className={`score-stadium text-xl sm:text-2xl shrink-0 ${color}`}>
         {score ?? <span className="text-white/20">-</span>}
       </span>
     </div>

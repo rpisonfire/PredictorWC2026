@@ -30,6 +30,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 import { Emoji } from "@/components/Emoji";
 import { UserPickSearch } from "@/components/UserPickSearch";
+import { matchGlowStyle } from "@/lib/teamColors";
 import { ConfettiCelebration } from "@/components/ConfettiCelebration";
 
 async function savePrediction(formData: FormData) {
@@ -232,7 +233,10 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       {finished && pred && pred.homeScore === match.homeScore && pred.awayScore === match.awayScore && (
         <ConfettiCelebration matchId={match.id} gold={boosted} />
       )}
-      <div className="card p-6">
+      <div
+        className="card match-glow p-6"
+        style={matchGlowStyle(match.homeTeam.shortCode, match.awayTeam.shortCode)}
+      >
         <div className="flex justify-between items-center text-xs text-app-subtle">
           <span>{match.stage} · Kolejka {match.matchday}</span>
           <div className="flex items-center gap-2">
@@ -242,14 +246,18 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </div>
         <div className="mt-3 flex items-center justify-between text-center">
           <div className="flex-1">
-            <Flag emoji={match.homeTeam.flag} size="xl" alt={match.homeTeam.name} className="mx-auto" />
+            <span className="flag-wave inline-block">
+              <Flag emoji={match.homeTeam.flag} size="xl" alt={match.homeTeam.name} className="mx-auto" />
+            </span>
             <div className="font-black mt-1">{match.homeTeam.name}</div>
           </div>
-          <div className="px-3 text-3xl font-black text-app-subtle">
+          <div className={`px-3 score-stadium text-3xl ${finished ? "text-wc-gold" : "text-app-subtle"}`}>
             {finished ? `${match.homeScore} : ${match.awayScore}` : "vs"}
           </div>
           <div className="flex-1">
-            <Flag emoji={match.awayTeam.flag} size="xl" alt={match.awayTeam.name} className="mx-auto" />
+            <span className="flag-wave inline-block" style={{ animationDelay: "1.5s" }}>
+              <Flag emoji={match.awayTeam.flag} size="xl" alt={match.awayTeam.name} className="mx-auto" />
+            </span>
             <div className="font-black mt-1">{match.awayTeam.name}</div>
           </div>
         </div>

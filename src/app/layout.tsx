@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { MobileNav } from "@/components/MobileNav";
 import { RegisterSW } from "@/components/RegisterSW";
 import { AutoToast } from "@/components/Toast";
+import { GoalCelebration } from "@/components/GoalCelebration";
 import { Suspense } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeInitScript, ThemeToggle } from "@/components/ThemeToggle";
@@ -44,14 +45,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="pl">
       <head><ThemeInitScript /></head>
       <body>
+        {/* Pasek mundialowy USA/CAN/MEX */}
+        <div className="mundial-bar" aria-hidden="true" />
+
+        {/* Floating ⚽ w tle */}
+        <div className="pitch-particles" aria-hidden="true">
+          <span>⚽</span>
+          <span>⚽</span>
+          <span>⚽</span>
+          <span>⚽</span>
+          <span>⚽</span>
+        </div>
+
         {user && <Sidebar nickname={user.nickname} avatar={user.avatar} isAdmin={user.isAdmin} />}
 
         {/* Mobile / niezalogowani: górny pasek */}
         <header className={`sticky top-0 z-20 backdrop-blur border-b border-app ${user ? "md:hidden" : ""}`} style={{ background: "var(--header-bg)" }}>
           <nav className="mx-auto max-w-5xl flex items-center justify-between px-4 py-2">
             <Link href="/" className="flex items-center gap-1.5 font-black">
-              <span className="text-xl leading-none">⚽</span>
-              <span className="text-base">WC Predictor <span className="text-wc-lime">2026</span></span>
+              <span className="text-xl leading-none ball-spin">⚽</span>
+              <span className="jersey-logo text-base">WC PREDICTOR <span className="text-wc-lime">2026</span></span>
             </Link>
             {user ? (
               <ThemeToggle compact />
@@ -75,6 +88,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {user && <MobileNav isAdmin={user.isAdmin} />}
         <RegisterSW />
         <Suspense fallback={null}><AutoToast /></Suspense>
+        <Suspense fallback={null}><GoalCelebration /></Suspense>
         <Analytics />
         <SpeedInsights />
       </body>
