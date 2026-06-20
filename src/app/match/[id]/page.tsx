@@ -304,7 +304,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       })()}
 
       {!locked ? (
-        <form action={savePrediction} className="card p-6 mt-4 space-y-5">
+        <form action={savePrediction} className="stat-section mt-4 space-y-5">
           <input type="hidden" name="matchId" value={match.id} />
           <h2 className="font-black text-lg">Twój typ</h2>
 
@@ -533,8 +533,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         )
       )}
 
-      <div className="card p-6 mt-4">
-        <h2 className="font-black text-lg mb-3">💬 Czat meczowy</h2>
+      <div className="stat-section mt-4">
+        <h2>💬 Czat meczowy</h2>
         <form action={postComment} className="flex gap-2 mb-4">
           <input type="hidden" name="matchId" value={match.id} />
           <input name="body" required maxLength={500} placeholder="Napisz coś..." className="input" />
