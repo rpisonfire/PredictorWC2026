@@ -100,15 +100,14 @@ export default async function MyPredictions() {
               0,
             );
             return (
-              <details key={md} open={isNewest} className="mb-3 group">
-                <summary className="cursor-pointer flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-app-hover hover:bg-app font-bold">
-                  <span>
-                    <span className="group-open:hidden">▶</span>
-                    <span className="hidden group-open:inline">▼</span>
-                    {" "}Kolejka {md}{" "}
-                    <span className="text-app-subtle font-normal">· {list.length} {list.length === 1 ? "mecz" : "meczy"}</span>
+              <details key={md} open={isNewest} className="mb-3">
+                <summary className="collapse-header">
+                  <span className="flex items-center gap-2">
+                    <span className="collapse-chev">▶</span>
+                    Kolejka {md}
+                    <span className="collapse-count">· {list.length} {list.length === 1 ? "mecz" : "meczy"}</span>
                   </span>
-                  <span className={`chip text-xs ${sumPts > 0 ? "bg-wc-green/15 text-wc-green" : "bg-app-hover text-app-subtle"}`}>
+                  <span className={`chip-pts ${sumPts > 0 ? "" : "zero"}`}>
                     {sumPts > 0 ? `+${sumPts}` : "0"} pkt
                   </span>
                 </summary>

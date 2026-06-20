@@ -582,14 +582,14 @@ export default async function Admin({
               const list = byMatchday.get(md)!;
               const isCurrent = md === currentMd;
               return (
-                <details key={md} open={isCurrent} className="mb-4 group">
-                  <summary className="cursor-pointer flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-app-hover hover:bg-app font-bold">
-                    <span>
-                      <span className="group-open:hidden">▶</span>
-                      <span className="hidden group-open:inline">▼</span>
-                      {" "}Kolejka {md} <span className="text-app-subtle font-normal">· {list.length} {list.length === 1 ? "mecz" : "meczy"}</span>
+                <details key={md} open={isCurrent} className="mb-4">
+                  <summary className="collapse-header">
+                    <span className="flex items-center gap-2">
+                      <span className="collapse-chev">▶</span>
+                      Kolejka {md}
+                      <span className="collapse-count">· {list.length} {list.length === 1 ? "mecz" : "meczy"}</span>
                     </span>
-                    {isCurrent && <span className="chip bg-wc-red/15 text-wc-red text-[10px]">aktualna</span>}
+                    {isCurrent && <span className="chip-no-pick">aktualna</span>}
                   </summary>
                   <div className="space-y-4 mt-4">
                     {list.map((m) => (
@@ -602,8 +602,13 @@ export default async function Admin({
 
             {finished.length > 0 && (
               <details className="mt-8">
-                <summary className="cursor-pointer text-sm font-bold text-app-subtle hover:text-app py-2 px-3 rounded-lg bg-app-hover inline-block">
-                  ✅ Rozegrane ({finished.length}) — rozwiń żeby edytować
+                <summary className="collapse-header">
+                  <span className="flex items-center gap-2">
+                    <span className="collapse-chev">▶</span>
+                    Rozegrane
+                    <span className="collapse-count">· {finished.length} {finished.length === 1 ? "mecz" : "meczy"}</span>
+                  </span>
+                  <span className="chip-after-match">edytuj</span>
                 </summary>
                 <div className="space-y-4 mt-4">
                   {finished.map((m) => (

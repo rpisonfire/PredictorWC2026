@@ -12,6 +12,7 @@ import { LiveChip } from "@/components/LiveChip";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 import { matchGlowStyle } from "@/lib/teamColors";
+import { PersonalScoreboard } from "@/components/PersonalScoreboard";
 
 async function quickBoost(formData: FormData) {
   "use server";
@@ -135,28 +136,30 @@ export default async function Dashboard() {
         Cześć <b>{user.nickname}</b>. Poniżej znajdziesz mecze Mistrzostw Świata 2026. Wytypuj wynik, drużynę, która jako pierwsza trafi do siatki rywali, a nawet gracza, który otworzy wynik spotkania. Użyj boosta, aby odskoczyć rywalom w tabeli. Pamiętaj, że możliwość obstawiania zamyka się na 5 minut przed pierwszym gwizdkiem, powodzenia!
       </p>
 
-      {nextMatch && hoursToNext !== null && hoursToNext < 48 && (
-        <div className="card p-4 mb-6 flex items-center gap-4 border-wc-gold/30 bg-wc-gold/5">
-          <div className="text-3xl">⏰</div>
-          <div className="flex-1">
-            <div className="font-black flex items-center gap-1.5 flex-wrap">
-              <span>Najbliższy mecz:</span>
-              <Flag emoji={nextMatch.homeTeam.flag} size="sm" />
-              <span>{nextMatch.homeTeam.shortCode} vs {nextMatch.awayTeam.shortCode}</span>
-              <Flag emoji={nextMatch.awayTeam.flag} size="sm" />
-            </div>
-            <div className="text-sm text-app-muted">
-              {hoursToNext < 1
-                ? `Za ${Math.ceil(hoursToNext * 60)} min`
-                : `Za ${Math.floor(hoursToNext)}h ${Math.round((hoursToNext % 1) * 60)}min`}
-              {!currentMdHasBoost && currentMd && <> · <b className="text-wc-red">Nie użyłeś boosta w kolejce {currentMd}!</b></>}
-              {currentMdMissingPredictions.length > 0 && (
-                <> · Brak typu na {currentMdMissingPredictions.length} {currentMdMissingPredictions.length === 1 ? "mecz" : "mecze"}</>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <PersonalScoreboard
+        nextMatch={nextMatch && hoursToNext !== null && hoursToNext < 48 ? {
+          id: nextMatch.id,
+          homeTeam: { flag: nextMatch.homeTeam.flag, shortCode: nextMatch.homeTeam.shortCode },
+          awayTeam: { flag: nextMatch.awayTeam.flag, shortCode: nextMatch.awayTeam.shortCode },
+          hoursToNext,
+          missingPicks: currentMdMissingPredictions.length,
+          noBoost: !currentMdHasBoost,
+          currentMd: currentMd ?? null,
+        } : null}
+        rank={user.currentRank != null && user.previousRank != null ? { current: user.currentRank, previous: user.previousRank } : null}
+        lastMatch={lastMatch && lastPred ? {
+          id: lastMatch.id,
+          homeTeam: { flag: lastMatch.homeTeam.flag, shortCode: lastMatch.homeTeam.shortCode },
+          awayTeam: { flag: lastMatch.awayTeam.flag, shortCode: lastMatch.awayTeam.shortCode },
+          homeScore: lastMatch.homeScore!,
+          awayScore: lastMatch.awayScore!,
+          myHome: lastPred.homeScore,
+          myAway: lastPred.awayScore,
+          pts: lastPts,
+          boosted: lastBoosted,
+          exact: !!lastExact,
+        } : null}
+      />
 
       {needsChampionPick && (
         <Link href="/champion" className="card p-4 mb-6 border-wc-gold/40 flex items-center gap-4 hover:bg-app-hover">
@@ -166,65 +169,6 @@ export default async function Dashboard() {
             <div className="text-sm text-app-muted">+10 pkt jeśli trafisz. Można zmieniać do końca fazy grupowej.</div>
           </div>
           <div className="chip bg-wc-gold/15 text-wc-gold">Wybierz →</div>
-        </Link>
-      )}
-
-      {user.currentRank != null && user.previousRank != null && user.currentRank !== user.previousRank && (() => {
-        const delta = user.previousRank - user.currentRank; // dodatnie = awans
-        const up = delta > 0;
-        return (
-          <Link
-            href="/leaderboard"
-            className={`card p-4 mb-6 flex items-center gap-4 hover:bg-app-hover transition ${
-              up ? "border-wc-green/40 bg-wc-green/5" : "border-wc-red/30 bg-wc-red/5"
-            }`}
-          >
-            <div className="text-3xl">{up ? "🚀" : "📉"}</div>
-            <div className="flex-1">
-              <div className="font-black">
-                {up
-                  ? `Wskoczyłeś o ${delta} ${delta === 1 ? "miejsce" : "miejsca"}!`
-                  : `Spadłeś o ${-delta} ${-delta === 1 ? "miejsce" : "miejsca"}`}
-              </div>
-              <div className="text-sm text-app-muted">
-                {user.previousRank}. → <b className={up ? "text-wc-green" : "text-wc-red"}>{user.currentRank}. miejsce</b> po ostatnich wynikach
-              </div>
-            </div>
-            <div className="chip bg-app-hover text-xs">Ranking →</div>
-          </Link>
-        );
-      })()}
-
-      {lastMatch && lastPred && (
-        <Link
-          href={`/match/${lastMatch.id}`}
-          className={`card p-4 mb-6 flex items-center gap-4 hover:bg-app-hover transition ${
-            lastPts >= 10 ? "border-wc-gold/40 bg-wc-gold/5" : lastPts > 0 ? "border-wc-green/30" : "border-wc-red/20"
-          }`}
-        >
-          <div className="text-3xl shrink-0">
-            {lastExact ? "🎯" : lastPts >= 5 ? "✨" : lastPts > 0 ? "👍" : "🧊"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs uppercase tracking-wider text-app-subtle">Twój ostatni mecz</div>
-            <div className="font-black flex items-center gap-1.5 flex-wrap mt-0.5">
-              <Flag emoji={lastMatch.homeTeam.flag} size="sm" />
-              <span>{lastMatch.homeTeam.shortCode}</span>
-              <span className="text-wc-gold tabular-nums">{lastMatch.homeScore}:{lastMatch.awayScore}</span>
-              <span>{lastMatch.awayTeam.shortCode}</span>
-              <Flag emoji={lastMatch.awayTeam.flag} size="sm" />
-            </div>
-            <div className="text-xs text-app-muted mt-0.5">
-              Twój typ: <b>{lastPred.homeScore}:{lastPred.awayScore}</b>
-              {lastBoosted && <span className="ml-1.5 chip bg-wc-gold/15 text-wc-gold text-[10px]">x3 ⚡</span>}
-            </div>
-          </div>
-          <div className="text-right shrink-0">
-            <div className={`text-2xl font-black tabular-nums ${lastPts > 0 ? "text-wc-green" : "text-app-subtle"}`}>
-              {lastPts > 0 ? `+${lastPts}` : "0"}
-            </div>
-            <div className="text-[10px] text-app-subtle uppercase tracking-wider">pkt</div>
-          </div>
         </Link>
       )}
 
@@ -259,11 +203,13 @@ export default async function Dashboard() {
             <>
               {todayUpcoming.length > 0 && renderToday(todayUpcoming)}
               {todayFinished.length > 0 && (
-                <details className={todayUpcoming.length > 0 ? "mt-4 group" : "group"} open={todayUpcoming.length === 0}>
-                  <summary className="cursor-pointer flex items-center gap-2 py-2 px-3 rounded-lg bg-app-hover hover:bg-app text-sm font-bold text-app-subtle hover:text-app mb-2">
-                    <span className="group-open:hidden">▶</span>
-                    <span className="hidden group-open:inline">▼</span>
-                    Rozegrane dzisiaj ({todayFinished.length})
+                <details className={todayUpcoming.length > 0 ? "mt-4" : ""} open={todayUpcoming.length === 0}>
+                  <summary className="collapse-header mb-3">
+                    <span className="flex items-center gap-2">
+                      <span className="collapse-chev">▶</span>
+                      Rozegrane dzisiaj
+                    </span>
+                    <span className="collapse-count">{todayFinished.length} {todayFinished.length === 1 ? "mecz" : "meczy"}</span>
                   </summary>
                   <div className="opacity-60">{renderToday(todayFinished)}</div>
                 </details>
@@ -301,14 +247,14 @@ export default async function Dashboard() {
         // Cała kolejka rozegrana → schowaj w collapsible (domyślnie zwiniętą)
         if (allFinished) {
           return (
-            <details key={md} className="mb-4 group">
-              <summary className="cursor-pointer flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-app-hover hover:bg-app font-bold">
-                <span>
-                  <span className="group-open:hidden">▶</span>
-                  <span className="hidden group-open:inline">▼</span>
-                  {" "}Kolejka {md} <span className="text-app-subtle font-normal">· {finished.length} {finished.length === 1 ? "mecz rozegrany" : "rozegranych"}</span>
+            <details key={md} className="mb-4">
+              <summary className="collapse-header">
+                <span className="flex items-center gap-2">
+                  <span className="collapse-chev">▶</span>
+                  Kolejka {md}
+                  <span className="collapse-count">· {finished.length} rozegranych</span>
                 </span>
-                <span className="chip bg-wc-green/15 text-wc-green text-[10px]">✅ zakończona</span>
+                <span className="chip-after-match">zakończona</span>
               </summary>
               <div className="opacity-60 mt-3">{renderCards(finished)}</div>
             </details>
