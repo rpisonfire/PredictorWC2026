@@ -53,7 +53,7 @@ export function PersonalScoreboard({
           <div className="scoreboard-value">
             <Flag emoji={nextMatch.homeTeam.flag} size="sm" />
             <span className="font-black">{nextMatch.homeTeam.shortCode}</span>
-            <span className="text-app-subtle">vs</span>
+            <span style={{ color: "rgba(255,255,255,0.5)" }}>vs</span>
             <span className="font-black">{nextMatch.awayTeam.shortCode}</span>
             <Flag emoji={nextMatch.awayTeam.flag} size="sm" />
           </div>
@@ -78,8 +78,8 @@ export function PersonalScoreboard({
           <Link href="/leaderboard" className={`scoreboard-cell ${up ? "scoreboard-up" : "scoreboard-down"}`}>
             <div className="scoreboard-label">{up ? "🚀 Awans" : "📉 Spadek"}</div>
             <div className="scoreboard-value">
-              <span className="text-app-subtle text-base">{rank.previous}.</span>
-              <span className="text-app-subtle">→</span>
+              <span className="text-base" style={{ color: "rgba(255,255,255,0.5)" }}>{rank.previous}.</span>
+              <span style={{ color: "rgba(255,255,255,0.4)" }}>→</span>
               <span className={`font-black text-2xl score-stadium ${up ? "text-wc-green" : "text-wc-red"}`}>
                 {rank.current}.
               </span>
@@ -103,7 +103,7 @@ export function PersonalScoreboard({
           </div>
           <div className="scoreboard-meta flex items-center justify-center gap-1.5">
             <span>Typ {lastMatch.myHome}:{lastMatch.myAway}</span>
-            <span className={`score-stadium font-black ${lastMatch.pts > 0 ? "text-wc-green" : "text-app-subtle"}`}>
+            <span className={`score-stadium font-black ${lastMatch.pts > 0 ? "text-wc-green" : ""}`} style={lastMatch.pts > 0 ? undefined : { color: "rgba(255,255,255,0.5)" }}>
               {lastMatch.pts > 0 ? `+${lastMatch.pts}` : "0"} pkt
             </span>
             {lastMatch.boosted && <span className="text-wc-gold">⚡</span>}
