@@ -238,79 +238,103 @@ html { background: var(--bg); }
   border-color: rgba(148, 163, 184, 0.3);
 }
 
-/* ===== PERSONAL SCOREBOARD - 3-w-1 widget ===== */
+/* ===== PERSONAL SCOREBOARD - stadionowy LED display (zawsze ciemny) ===== */
 .scoreboard {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0;
-  background: linear-gradient(180deg, #0F1419 0%, #050810 100%);
-  border: 1px solid rgba(241, 180, 52, 0.25);
+  background: linear-gradient(180deg, #0a0e1a 0%, #050810 100%);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0 -1px 0 rgba(0,0,0,0.5);
+  position: relative;
+}
+/* Pasek mundialowy na górze - jako akcent stadionu */
+.scoreboard::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    #BF0A30 0%, #BF0A30 33%,
+    #FFFFFF 33%, #FFFFFF 66%,
+    #006847 66%, #006847 100%
+  );
+  z-index: 1;
+}
+/* Subtelny scanline efekt - jak stary LED */
+.scoreboard::after {
+  content: "";
+  position: absolute;
+  inset: 3px 0 0 0;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 2px,
+    rgba(255,255,255,0.015) 2px,
+    rgba(255,255,255,0.015) 3px
+  );
+  pointer-events: none;
 }
 .scoreboard-cell {
-  padding: 12px 16px;
+  padding: 14px 16px 12px;
   text-align: center;
-  border-right: 1px dashed rgba(241, 180, 52, 0.18);
-  transition: background 0.2s ease, transform 0.2s ease;
+  border-right: 1px solid rgba(241, 180, 52, 0.12);
+  transition: background 0.2s ease;
   position: relative;
   text-decoration: none;
   color: inherit;
+  z-index: 2;
 }
 .scoreboard-cell:last-child { border-right: 0; }
 .scoreboard-cell:hover {
-  background: rgba(241, 180, 52, 0.05);
+  background: rgba(241, 180, 52, 0.06);
 }
 .scoreboard-label {
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: rgba(241, 180, 52, 0.7);
-  margin-bottom: 4px;
+  color: #F1B434;
+  margin-bottom: 6px;
   font-family: 'Courier New', monospace;
+  text-shadow: 0 0 8px rgba(241, 180, 52, 0.4);
 }
 .scoreboard-value {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 15px;
   color: white;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  font-weight: 800;
 }
 .scoreboard-meta {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.6);
   font-weight: 600;
 }
-.scoreboard-up { background: linear-gradient(180deg, rgba(34, 197, 94, 0.08), transparent); }
-.scoreboard-down { background: linear-gradient(180deg, rgba(220, 38, 38, 0.08), transparent); }
+.scoreboard-up .scoreboard-label { color: #4ADE80; text-shadow: 0 0 8px rgba(74, 222, 128, 0.5); }
+.scoreboard-down .scoreboard-label { color: #F87171; text-shadow: 0 0 8px rgba(248, 113, 113, 0.5); }
 
 @media (max-width: 640px) {
   .scoreboard-cell {
     border-right: 0;
-    border-bottom: 1px dashed rgba(241, 180, 52, 0.18);
+    border-bottom: 1px solid rgba(241, 180, 52, 0.12);
   }
   .scoreboard-cell:last-child { border-bottom: 0; }
 }
 
-/* Light mode adjustments */
-:root[data-theme="light"] .scoreboard {
-  background: linear-gradient(180deg, #F8F4ED 0%, #EFE9DD 100%);
-  border-color: rgba(150, 100, 30, 0.3);
-}
-:root[data-theme="light"] .scoreboard-cell { border-right-color: rgba(150, 100, 30, 0.2); }
-:root[data-theme="light"] .scoreboard-label { color: rgba(150, 100, 30, 0.9); }
-:root[data-theme="light"] .scoreboard-value { color: var(--text); }
-
-/* ===== COLLAPSIBLE - scoreboard style ===== */
+/* ===== COLLAPSIBLE - jersey/ticket style ===== */
 .collapse-header {
-  background: linear-gradient(180deg, rgba(241, 180, 52, 0.05) 0%, rgba(241, 180, 52, 0.02) 100%);
-  border: 1px solid rgba(241, 180, 52, 0.2);
+  position: relative;
+  background: linear-gradient(135deg, #0a0e1a 0%, #050810 100%);
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 11px 14px 11px 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -318,23 +342,34 @@ html { background: var(--bg); }
   gap: 12px;
   font-family: 'Courier New', monospace;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   font-size: 12px;
-  color: rgba(241, 180, 52, 0.9);
-  transition: background 0.2s ease, border-color 0.2s ease;
+  color: #F1B434;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   list-style: none;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  text-shadow: 0 0 6px rgba(241, 180, 52, 0.3);
 }
 .collapse-header::-webkit-details-marker { display: none; }
+/* Mundialowy pasek po lewej - jak naszywka na koszulce */
+.collapse-header::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #BF0A30 0%, #BF0A30 33%, #FFFFFF 33%, #FFFFFF 66%, #006847 66%, #006847 100%);
+}
 .collapse-header:hover {
-  background: linear-gradient(180deg, rgba(241, 180, 52, 0.1) 0%, rgba(241, 180, 52, 0.05) 100%);
-  border-color: rgba(241, 180, 52, 0.4);
+  transform: translateX(2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 20px rgba(241,180,52,0.15);
 }
 .collapse-chev {
   display: inline-block;
   transition: transform 0.25s ease;
-  font-size: 10px;
-  color: rgba(241, 180, 52, 0.7);
+  font-size: 11px;
+  color: rgba(241, 180, 52, 0.8);
 }
 details[open] > .collapse-header .collapse-chev {
   transform: rotate(90deg);
@@ -342,17 +377,11 @@ details[open] > .collapse-header .collapse-chev {
 .collapse-count {
   font-weight: 500;
   text-transform: none;
-  letter-spacing: 0.2px;
-  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.3px;
+  color: rgba(255,255,255,0.55);
   font-family: var(--font-sans, sans-serif);
+  text-shadow: none;
 }
-:root[data-theme="light"] .collapse-header {
-  background: linear-gradient(180deg, rgba(150, 100, 30, 0.06) 0%, rgba(150, 100, 30, 0.02) 100%);
-  border-color: rgba(150, 100, 30, 0.2);
-  color: rgba(150, 100, 30, 0.95);
-}
-:root[data-theme="light"] .collapse-count { color: rgba(11, 15, 25, 0.5); }
-:root[data-theme="light"] .collapse-chev { color: rgba(150, 100, 30, 0.8); }
 
 /* Pomocnicze klasy mapujące na zmienne — żeby nie używać var() w JSX */
 .text-accent { color: var(--accent); }
