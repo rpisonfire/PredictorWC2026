@@ -255,7 +255,7 @@ export default async function StatsPage({
         )}
       </div>
 
-      {/* Two cols layout */}
+      {/* Two cols layout - LED stadium scoreboard sections */}
       <div className="grid sm:grid-cols-2 gap-4">
 
         {/* Leader card */}
@@ -277,7 +277,7 @@ export default async function StatsPage({
         )}
 
         {/* Champion picks */}
-        <div className="card p-5">
+        <div className="stat-section">
           <h2 className="text-lg font-black mb-3">🏆 Najczęstszy typ na mistrza</h2>
           {champRows.length === 0 && <div className="text-app-subtle text-sm">Nikt jeszcze nie wybrał.</div>}
           <ul className="space-y-3">
@@ -302,7 +302,7 @@ export default async function StatsPage({
         </div>
 
         {/* Top scorer picks */}
-        <div className="card p-5">
+        <div className="stat-section">
           <h2 className="text-lg font-black mb-3">⚽ Najczęstszy strzelec</h2>
           {scorerRows.length === 0 && <div className="text-app-subtle text-sm">Brak typów na strzelców.</div>}
           <ul className="space-y-2">
@@ -320,7 +320,7 @@ export default async function StatsPage({
         </div>
 
         {/* Goals stats card */}
-        <div className="card p-5">
+        <div className="stat-section">
           <h2 className="text-lg font-black mb-3">📊 Bramki w typach</h2>
           <div className="grid grid-cols-2 gap-3">
             <Mini value={avgGoals.toFixed(2)} label="średnia/mecz" color="text-wc-gold" />
@@ -331,7 +331,7 @@ export default async function StatsPage({
         </div>
 
         {/* Top scores */}
-        <div className="card p-5">
+        <div className="stat-section">
           <h2 className="text-lg font-black mb-3">🎯 Top wyniki typowane</h2>
           {topScores.length === 0 && <div className="text-app-subtle text-sm">Brak typów.</div>}
           <ul className="space-y-1.5">
@@ -356,7 +356,7 @@ export default async function StatsPage({
 
         {/* Boldest prediction */}
         {bold && (bold.homeScore + bold.awayScore) >= 4 && (
-          <div className="card p-5">
+          <div className="stat-section">
             <h2 className="text-lg font-black mb-3">🔥 Najodważniejszy typ</h2>
             <div className="flex items-center gap-3">
               <Emoji char={bold.user.avatar} size="xl" alt={bold.user.nickname} />
@@ -372,7 +372,7 @@ export default async function StatsPage({
         )}
 
         {/* Złoty boost */}
-        <div className="card p-5">
+        <div className="stat-section">
           <h2 className="text-lg font-black mb-3">💎 Złoty boost</h2>
           {goldenBoost ? (
             <div className="flex items-center gap-3">
@@ -397,7 +397,7 @@ export default async function StatsPage({
 
         {/* Most popular match */}
         {popularMatch && (
-          <div className="card p-5">
+          <div className="stat-section">
             <h2 className="text-lg font-black mb-3">👥 Najpopularniejszy mecz</h2>
             <div className="flex items-center gap-3">
               <Flag emoji={popularMatch.homeTeam.flag} size="lg" />
@@ -413,7 +413,7 @@ export default async function StatsPage({
 
         {/* Most boosted match */}
         {boostMatch && (
-          <div className="card p-5">
+          <div className="stat-section">
             <h2 className="text-lg font-black mb-3">⚡ Najczęściej boostowany</h2>
             <div className="flex items-center gap-3">
               <Flag emoji={boostMatch.homeTeam.flag} size="lg" />

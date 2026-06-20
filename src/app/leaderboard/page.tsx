@@ -7,6 +7,7 @@ import { leaderboard, leaderboardForMatchday, leagueAggregateStats } from "@/lib
 // Ranking zmienia się tylko po wpisaniu wyniku - cache na 15 min (admin invaliduje natychmiast po setResult).
 export const revalidate = 900;
 import { Sparkline } from "@/components/Sparkline";
+import { PaniniCardLarge, PaniniCardMini } from "@/components/PaniniCard";
 import { Emoji } from "@/components/Emoji";
 
 export default async function Leaderboard({
@@ -99,63 +100,65 @@ function Tab({ href, active, label }: { href: string; active: boolean; label: st
 async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
   const [rows, agg] = await Promise.all([leaderboard(leagueId), leagueAggregateStats(leagueId)]);
   if (rows.length === 0) return <Empty />;
-  const sparkHasData = rows.some((r) => r.spark.some((v) => v > 0));
+  const top3 = rows.slice(0, 3);
+  const rest = rows.slice(3);
+
   return (
     <>
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-3 gap-2 mb-6">
         <Mini label="Graczy" value={String(agg.players)} />
         <Mini label="Średnia pkt" value={agg.avgPoints.toFixed(1)} />
         <Mini label="Najlepsza kolejka" value={agg.bestMatchday ? `${agg.bestMatchday.points} (${agg.bestMatchday.nickname})` : "-"} small />
       </div>
-      <div className="card overflow-hidden">
-        {rows.map((r, i) => {
-          const medal = ["🥇", "🥈", "🥉"][i] ?? `${i + 1}.`;
-          const isMe = r.userId === meId;
-          return (
-            <div
-              key={r.userId}
-              className={`flex items-center justify-between gap-3 px-5 py-3 border-b border-app last:border-0 ${isMe ? "bg-wc-red/5" : ""}`}
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="w-8 text-center font-black text-lg">{medal}</span>
-                {isMe ? (
-                  <Emoji char={r.avatar} size="lg" alt={r.nickname} />
-                ) : (
-                  <Link href={`/compare/${r.userId}`} title={`Pojedynek z ${r.nickname}`} className="hover:scale-110 transition shrink-0">
-                    <Emoji char={r.avatar} size="lg" alt={r.nickname} />
-                  </Link>
-                )}
-                <div className="min-w-0">
-                  <div className="font-bold flex items-center gap-2 flex-wrap">
-                    {isMe ? (
-                      <span className="truncate">{r.nickname}</span>
-                    ) : (
-                      <Link href={`/compare/${r.userId}`} className="truncate hover:text-wc-red transition">
-                        {r.nickname}
-                      </Link>
-                    )}
-                    {isMe && <span className="text-xs text-wc-red">(ty)</span>}
-                    {r.badges.map((b) => (
-                      <span key={b.key} title={`${b.label} - ${b.description}`} className="text-base">{b.emoji}</span>
-                    ))}
-                  </div>
-                  <div className="text-xs text-app-subtle">
-                    {r.stats.finishedCount} rozegranych meczy
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {sparkHasData && r.spark.length >= 2 && (
-                  <div className="hidden sm:block w-20 opacity-70">
-                    <Sparkline points={r.spark} />
-                  </div>
-                )}
-                <div className="text-2xl font-black tabular-nums">{r.stats.totalPoints} <span className="text-sm text-app-subtle">pkt</span></div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+
+      {/* Podium - top 3 jako duże karty Panini */}
+      {top3.length > 0 && (
+        <div className="mb-6">
+          <div className="text-xs uppercase tracking-wider text-app-subtle mb-3 text-center">🏆 PODIUM</div>
+          <div className="flex justify-center gap-4 flex-wrap">
+            {top3.map((r, i) => (
+              <PaniniCardLarge
+                key={r.userId}
+                data={{
+                  nickname: r.nickname,
+                  avatar: r.avatar,
+                  rank: i + 1,
+                  totalPoints: r.stats.totalPoints,
+                  exactScoreHits: r.stats.exactScoreHits,
+                  avgPointsPerMatch: r.stats.avgPointsPerMatch,
+                  scorerHits: r.stats.scorerHits,
+                  badges: r.badges,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Reszta - mini Panini cards */}
+      {rest.length > 0 && (
+        <div>
+          <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">📋 Reszta tabeli</div>
+          {rest.map((r, i) => {
+            const isMe = r.userId === meId;
+            return (
+              <PaniniCardMini
+                key={r.userId}
+                href={isMe ? undefined : `/compare/${r.userId}`}
+                isMe={isMe}
+                data={{
+                  nickname: r.nickname,
+                  avatar: r.avatar,
+                  rank: i + 4,
+                  totalPoints: r.stats.totalPoints,
+                  exactScoreHits: r.stats.exactScoreHits,
+                  badges: r.badges,
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }

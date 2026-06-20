@@ -383,6 +383,57 @@ details[open] > .collapse-header .collapse-chev {
   text-shadow: none;
 }
 
+/* ===== /stats page - LED scoreboard style sections ===== */
+.stat-section {
+  background: linear-gradient(180deg, #0a0e1a 0%, #050810 100%);
+  border-radius: 14px;
+  padding: 16px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.stat-section::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #BF0A30, #FFFFFF 50%, #006847);
+}
+.stat-section::after {
+  content: "";
+  position: absolute;
+  inset: 2px 0 0 0;
+  background: repeating-linear-gradient(180deg, transparent 0, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 3px);
+  pointer-events: none;
+}
+.stat-section h2 {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #F1B434;
+  text-shadow: 0 0 8px rgba(241, 180, 52, 0.4);
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 2;
+}
+.stat-section .text-app-subtle,
+.stat-section .text-app-muted { color: rgba(255,255,255,0.55) !important; }
+.stat-section .text-app { color: white !important; }
+.stat-section .card {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(241,180,52,0.15);
+}
+/* LED value text inside stat-section */
+.stat-section .led {
+  font-family: 'Courier New', monospace;
+  font-weight: 900;
+  color: #F1B434;
+  text-shadow: 0 0 8px rgba(241, 180, 52, 0.3);
+}
+
 /* Pomocnicze klasy mapujące na zmienne — żeby nie używać var() w JSX */
 .text-accent { color: var(--accent); }
 .bg-accent { background-color: var(--accent); }
@@ -695,6 +746,310 @@ details[open] > .collapse-header .collapse-chev {
 
 .score-bounce {
   animation: scoreBounce 2s ease-in-out infinite;
+}
+
+/* ===== PANINI CARD - large ===== */
+.panini-card {
+  width: 280px;
+  border-radius: 18px;
+  padding: 3px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: inline-block;
+}
+.panini-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+}
+.panini-inner {
+  background: linear-gradient(180deg, #0a0e1a 0%, #050810 100%);
+  border-radius: 16px;
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  min-height: 440px;
+  display: flex;
+  flex-direction: column;
+}
+.panini-foil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.18) 55%, transparent 70%);
+  background-size: 250% 100%;
+  animation: foilSlide 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: overlay;
+}
+.panini-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255,255,255,0.025) 12px, rgba(255,255,255,0.025) 14px);
+  pointer-events: none;
+}
+@keyframes foilSlide {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -100% 0; }
+}
+.panini-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.panini-card-num {
+  background: rgba(0,0,0,0.7);
+  color: #F1B434;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  font-family: 'Courier New', monospace;
+  border: 1px solid rgba(241,180,52,0.4);
+}
+.panini-medal {
+  min-width: 42px;
+  height: 42px;
+  padding: 0 10px;
+  border-radius: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0a0e1a;
+  border: 2px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.panini-avatar-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
+}
+.panini-aureola {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,215,0,0.4) 0%, transparent 70%);
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}
+.panini-avatar {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 4px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5), inset 0 -4px 8px rgba(0,0,0,0.3);
+}
+.panini-name-banner {
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.65));
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(241,180,52,0.4);
+  margin: 8px auto 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: white;
+  align-self: center;
+}
+.panini-name { line-height: 1; }
+.panini-subtitle {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+.panini-stats {
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.3));
+  border: 1px solid rgba(241,180,52,0.3);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 10px 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.panini-stat { text-align: center; }
+.panini-stat-val {
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.panini-stat-label {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+}
+.panini-badges {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.panini-badge {
+  font-size: 18px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+.panini-footer {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  font-family: 'Impact', sans-serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(241,180,52,0.6);
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+/* ===== PANINI CARD - mini (wiersz rankingu) ===== */
+.panini-mini {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 14px;
+  padding: 2px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 8px;
+}
+.panini-mini:hover {
+  transform: translateX(4px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+.panini-mini.is-me {
+  box-shadow: 0 0 0 2px rgba(228, 0, 43, 0.5), 0 6px 18px rgba(0,0,0,0.25);
+}
+.panini-mini-inner {
+  background: linear-gradient(180deg, #0a0e1a 0%, #050810 100%);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.panini-mini-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.04) 50%, transparent 60%);
+  background-size: 200% 100%;
+  animation: foilSlide 8s linear infinite;
+  pointer-events: none;
+}
+.panini-mini-rank {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Impact', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0a0e1a;
+  border: 2px solid rgba(255,255,255,0.9);
+  flex-shrink: 0;
+}
+.panini-mini-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(241,180,52,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.panini-mini-content {
+  flex: 1;
+  min-width: 0;
+}
+.panini-mini-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  color: white;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+.panini-mini-me {
+  background: rgba(228, 0, 43, 0.25);
+  color: #FCA5A5;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  border: 1px solid rgba(228, 0, 43, 0.4);
+}
+.panini-mini-meta {
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  margin-top: 2px;
+  display: flex;
+  gap: 6px;
+}
+.panini-mini-pts {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(241,180,52,0.15), rgba(241,180,52,0.05));
+  border: 1px solid rgba(241,180,52,0.3);
+  border-radius: 8px;
+  padding: 4px 10px;
+  min-width: 60px;
+}
+.panini-mini-pts-val {
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  color: #F1B434;
+  line-height: 1;
+}
+.panini-mini-pts-label {
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: rgba(241,180,52,0.7);
+  font-weight: 800;
+  margin-top: 2px;
 }
 
 /* ===== HAMBURGER + SIDEBAR ===== */
