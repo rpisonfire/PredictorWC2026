@@ -118,10 +118,22 @@ async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="w-8 text-center font-black text-lg">{medal}</span>
-                <Emoji char={r.avatar} size="lg" alt={r.nickname} />
+                {isMe ? (
+                  <Emoji char={r.avatar} size="lg" alt={r.nickname} />
+                ) : (
+                  <Link href={`/compare/${r.userId}`} title={`Pojedynek z ${r.nickname}`} className="hover:scale-110 transition shrink-0">
+                    <Emoji char={r.avatar} size="lg" alt={r.nickname} />
+                  </Link>
+                )}
                 <div className="min-w-0">
                   <div className="font-bold flex items-center gap-2 flex-wrap">
-                    <span className="truncate">{r.nickname}</span>
+                    {isMe ? (
+                      <span className="truncate">{r.nickname}</span>
+                    ) : (
+                      <Link href={`/compare/${r.userId}`} className="truncate hover:text-wc-red transition">
+                        {r.nickname}
+                      </Link>
+                    )}
                     {isMe && <span className="text-xs text-wc-red">(ty)</span>}
                     {r.badges.map((b) => (
                       <span key={b.key} title={`${b.label} - ${b.description}`} className="text-base">{b.emoji}</span>

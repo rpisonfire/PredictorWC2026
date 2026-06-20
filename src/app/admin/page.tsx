@@ -493,6 +493,9 @@ export default async function Admin({
                       Nowe hasło: <code className="bg-wc-gold/15 text-wc-gold px-2 py-1 rounded font-bold">{tempPw}</code>
                     </div>
                   )}
+                  <Link href={`/admin/user/${u.id}`} className="text-xs py-1.5 px-3 rounded-xl bg-app-hover hover:bg-wc-blue/15 font-bold">
+                    📝 Typy
+                  </Link>
                   <form action={resetPassword}>
                     <input type="hidden" name="userId" value={u.id} />
                     <button className="btn-ghost text-xs py-1.5 px-3">Reset hasła</button>
