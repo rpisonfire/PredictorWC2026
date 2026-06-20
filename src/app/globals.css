@@ -45,15 +45,20 @@ html, body {
 }
 
 body {
-  background-image:
-    radial-gradient(1200px 600px at 50% -10%, rgba(20,30,60,0.5), transparent 70%);
-  background-attachment: fixed;
+  background: transparent;
 }
 
 :root[data-theme="light"] body {
-  background-image:
-    linear-gradient(180deg, #B8DFFF 0%, #E8F4FF 40%, #FAF7F2 100%);
-  background-attachment: fixed;
+  background: transparent;
+}
+
+/* HTML to bottom-layer - tylko on ma kolor tła */
+html { background: var(--bg); }
+:root[data-theme="dark"] html {
+  background: linear-gradient(180deg, #0a1428 0%, #0B0F19 60%, #050810 100%);
+}
+:root[data-theme="light"] html {
+  background: linear-gradient(180deg, #B8DFFF 0%, #D8E8F2 40%, #FAF7F2 100%);
 }
 
 .card {
@@ -101,6 +106,136 @@ body {
 
 .chip {
   @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+}
+
+/* ===== STATUS CHIPS - football themed ===== */
+
+/* "Brak typu" - karta żółta, sygnał ostrzegawczy */
+.chip-no-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  color: white;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2), 0 1px 3px rgba(220,38,38,0.4);
+  position: relative;
+}
+.chip-no-pick::before {
+  content: "";
+  width: 14px;
+  height: 18px;
+  background: #FCD34D;
+  border-radius: 2px;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
+  margin-right: 2px;
+}
+
+/* "Po meczu" - finalny gwizdek, złoty z czarnym tłem jak tablica wyników */
+.chip-after-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #1F2937 0%, #111827 100%);
+  color: #F1B434;
+  border: 1px solid rgba(241, 180, 52, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 8px rgba(241,180,52,0.15);
+  font-family: 'Courier New', monospace;
+}
+.chip-after-match::before { content: "⚪"; font-size: 7px; }
+
+/* "Zaakceptowano" - typ wpłynął, zielona karta z check */
+.chip-accepted {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.1) 100%);
+  color: #4ADE80;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  text-transform: uppercase;
+}
+.chip-accepted::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: #4ADE80;
+  border-radius: 50%;
+  box-shadow: inset -1px -1px 2px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+/* "Lock" - kłódka stylizowana jak zegar gwizdka */
+.chip-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, rgba(100, 116, 139, 0.25), rgba(71, 85, 105, 0.15));
+  color: #CBD5E1;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  text-transform: uppercase;
+}
+.chip-lock::before {
+  content: "🔒";
+  font-size: 10px;
+}
+
+/* "Boost x3" - złota karta z błyskiem */
+.chip-boost {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #1F2937;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2), 0 1px 4px rgba(245,158,11,0.4);
+  text-transform: uppercase;
+}
+.chip-boost::after { content: "⚡"; font-size: 12px; }
+
+/* "Punkty" - duża żółta z monospace */
+.chip-pts {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  background: linear-gradient(180deg, #064E3B 0%, #022C22 100%);
+  color: #4ADE80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+.chip-pts.zero {
+  background: linear-gradient(180deg, rgba(100, 116, 139, 0.25), rgba(51, 65, 85, 0.15));
+  color: #94A3B8;
+  border-color: rgba(148, 163, 184, 0.3);
 }
 
 /* Pomocnicze klasy mapujące na zmienne — żeby nie używać var() w JSX */
@@ -214,16 +349,16 @@ body {
 }
 /* Dark mode = noc */
 .stadium-stand {
-  fill: #050810;
+  fill: rgba(20, 30, 50, 0.85);
 }
 .stadium-rim {
-  stroke: rgba(241, 180, 52, 0.18);
+  stroke: rgba(241, 180, 52, 0.4);
   stroke-width: 1.5;
 }
-.stadium-mast line { stroke: rgba(255, 255, 255, 0.1); }
+.stadium-mast line { stroke: rgba(255, 255, 255, 0.2); }
 .stadium-mast ellipse {
-  fill: rgba(255, 240, 200, 0.85);
-  filter: blur(1px);
+  fill: rgba(255, 245, 210, 1);
+  filter: blur(0.5px) drop-shadow(0 0 20px rgba(255, 240, 180, 0.7));
   animation: floodlightPulse 4s ease-in-out infinite;
 }
 .stadium-mast:nth-child(3) ellipse { animation-delay: 1.5s; }
@@ -238,7 +373,7 @@ body {
   height: 600px;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(255, 240, 180, 0.08) 0%, transparent 60%);
+  background: radial-gradient(ellipse at center, rgba(255, 240, 180, 0.18) 0%, transparent 60%);
   filter: blur(40px);
 }
 .floodlight-1 { top: -200px; left: -200px; animation: floodlightFade 6s ease-in-out infinite; }
