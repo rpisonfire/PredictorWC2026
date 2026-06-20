@@ -430,11 +430,15 @@ export default async function StatsPage({
       </div>
 
       {styles.length > 0 && (
-        <div className="stat-section mt-6">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2>🎨 Style typowania ekipy</h2>
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>profile graczy</span>
-          </div>
+        <details className="mt-6">
+          <summary className="collapse-header">
+            <span className="flex items-center gap-2">
+              <span className="collapse-chev">▶</span>
+              🎨 Style typowania ekipy
+              <span className="collapse-count">· {styles.length} graczy</span>
+            </span>
+          </summary>
+          <div className="stat-section mt-3">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {styles.map((s) => (
               <div key={s.userId} className="style-card">
@@ -472,7 +476,8 @@ export default async function StatsPage({
               ))}
             </div>
           </div>
-        </div>
+          </div>
+        </details>
       )}
     </section>
   );
