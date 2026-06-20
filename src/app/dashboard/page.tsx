@@ -327,12 +327,12 @@ function MatchCard({
   const canBoost = !finished && !live && m.kickoff.getTime() - Date.now() > 5 * 60 * 1000;
   return (
     <div
-      className={`card match-glow p-3 sm:p-4 transition relative ${highlight ? "border-wc-red/20" : ""}`}
+      className="match-tile relative"
       style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
     >
       <Link href={`/match/${m.id}`} className="absolute inset-0 z-0" aria-label={`${m.homeTeam.name} vs ${m.awayTeam.name}`} />
-      <div className="relative z-10 pointer-events-none">
-      <div className="flex items-center justify-between text-[11px] sm:text-xs text-app-subtle">
+      <div className="match-tile-inner relative z-10 pointer-events-none">
+      <div className="match-tile-meta">
         <span className="truncate">{m.stage}</span>
         <span className="shrink-0 ml-2">{fmtDateTime(m.kickoff)}</span>
       </div>
@@ -344,19 +344,19 @@ function MatchCard({
           shortCode={m.homeTeam.shortCode}
           name={m.homeTeam.name}
           score={finished ? m.homeScore : pred?.homeScore ?? null}
-          color={finished ? "text-wc-gold" : "text-app"}
+          finished={finished}
         />
         <TeamRow
           flag={m.awayTeam.flag}
           shortCode={m.awayTeam.shortCode}
           name={m.awayTeam.name}
           score={finished ? m.awayScore : pred?.awayScore ?? null}
-          color={finished ? "text-wc-gold" : "text-app"}
+          finished={finished}
         />
       </div>
 
       {finished && pred && (
-        <div className="mt-1.5 text-[10px] text-app-subtle uppercase tracking-wider">
+        <div className="mt-1.5 text-[10px] uppercase tracking-wider" style={{ color: "rgba(241,180,52,0.55)", fontFamily: "'Courier New', monospace" }}>
           twój typ: {pred.homeScore}:{pred.awayScore}
         </div>
       )}
@@ -409,19 +409,25 @@ function MatchCard({
 }
 
 function TeamRow({
-  flag, shortCode, name, score, color,
-}: { flag: string; shortCode: string; name: string; score: number | null; color: string }) {
+  flag, shortCode, name, score, finished,
+}: { flag: string; shortCode: string; name: string; score: number | null; finished?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
-        <span className="text-xl sm:text-2xl shrink-0">{flag}</span>
-        <span className="font-bold truncate">
+        <Flag emoji={flag} size="md" />
+        <span className="font-bold truncate text-white">
           <span className="sm:hidden">{shortCode}</span>
           <span className="hidden sm:inline">{name}</span>
         </span>
       </div>
-      <span className={`score-stadium text-xl sm:text-2xl shrink-0 ${color}`}>
-        {score ?? <span className="text-white/20">-</span>}
+      <span
+        className="score-stadium text-xl sm:text-2xl shrink-0"
+        style={{
+          color: finished ? "#F1B434" : "white",
+          textShadow: finished ? "0 0 8px rgba(241,180,52,0.5)" : "none",
+        }}
+      >
+        {score ?? <span style={{ color: "rgba(255,255,255,0.2)" }}>-</span>}
       </span>
     </div>
   );
