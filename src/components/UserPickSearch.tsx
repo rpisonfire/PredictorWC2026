@@ -96,22 +96,24 @@ export function UserPickSearch({
   }
 
   return (
-    <div className="card p-5">
-      <h2 className="font-black text-lg mb-3">🔎 Czyje typy chcesz zobaczyć?</h2>
+    <div className="stat-section">
+      <h2>🔎 Czyje typy chcesz zobaczyć?</h2>
       <div className="relative mb-3">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-app-subtle text-sm">🔍</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: "rgba(241,180,52,0.7)" }}>🔍</span>
         <input
           type="text"
           placeholder="Wpisz nick gracza..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="input pl-9 pr-9"
+          style={{ background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.25)", color: "white" }}
         />
         {query && (
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-app-subtle hover:text-app text-sm w-6 h-6 flex items-center justify-center rounded"
+            className="absolute right-2 top-1/2 -translate-y-1/2 hover:text-white text-sm w-6 h-6 flex items-center justify-center rounded"
+            style={{ color: "rgba(255,255,255,0.5)" }}
             aria-label="Wyczyść"
           >
             ✕
@@ -120,7 +122,7 @@ export function UserPickSearch({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-sm text-app-subtle text-center py-6">
+        <div className="text-sm text-center py-6" style={{ color: "rgba(255,255,255,0.55)" }}>
           {query ? `Brak gracza pasującego do "${query}"` : "Brak typów na ten mecz."}
         </div>
       ) : (
@@ -134,26 +136,22 @@ export function UserPickSearch({
             const rows = result ? breakdown(p, result) : null;
 
             return (
-              <li key={p.userId} className="rounded-xl bg-app-hover overflow-hidden">
+              <li key={p.userId} className="others-row overflow-hidden flex-col items-stretch !p-0">
                 <button
                   type="button"
                   onClick={() => result && toggle(p.userId)}
-                  className={`w-full p-3 ${result ? "cursor-pointer hover:bg-white/5 transition" : "cursor-default"}`}
+                  className={`w-full p-3 text-left ${result ? "cursor-pointer hover:bg-white/5 transition" : "cursor-default"}`}
                 >
                   <div className="flex items-center gap-3">
                     <Emoji char={p.avatar} size="md" alt={p.nickname} />
-                    <div className="font-bold flex-1 text-left">{p.nickname}</div>
-                    <div className="text-2xl font-black tabular-nums">
+                    <div className="font-bold flex-1 text-white">{p.nickname}</div>
+                    <div className="text-xl font-black others-score">
                       {p.homeScore}:{p.awayScore}
                     </div>
-                    {p.boosted && (
-                      <span className="chip bg-wc-gold/20 text-wc-gold">x3 ⚡</span>
-                    )}
-                    <span className={`chip text-[10px] ${finalPts > 0 ? "bg-wc-green/15 text-wc-green" : "bg-app-hover text-app-subtle"}`}>
-                      {finalPts} pkt
-                    </span>
+                    {p.boosted && <span className="chip-boost">x3</span>}
+                    <span className={`chip-pts ${finalPts > 0 ? "" : "zero"}`}>{finalPts} pkt</span>
                     {result && (
-                      <span className={`text-app-subtle text-xs transition-transform ${isExpanded ? "rotate-180" : ""}`}>▾</span>
+                      <span className="text-xs transition-transform" style={{ color: "rgba(241,180,52,0.7)", transform: isExpanded ? "rotate(180deg)" : "none" }}>▾</span>
                     )}
                   </div>
                   <div className="mt-2 pl-12 flex flex-wrap items-center gap-2 text-xs">
@@ -163,48 +161,48 @@ export function UserPickSearch({
                       </span>
                     )}
                     {p.firstGoalPlayer ? (
-                      <div className="chip bg-app-hover flex items-center gap-1.5 pl-1">
+                      <div className="others-player flex items-center gap-1.5 pl-1">
                         <PlayerAvatar name={p.firstGoalPlayer.name} photoUrl={p.firstGoalPlayer.photoUrl} position={p.firstGoalPlayer.position} size={20} />
                         <span>1. strzelec: <b>{p.firstGoalPlayer.name}</b></span>
                       </div>
                     ) : (
-                      <span className="chip bg-app-hover text-app-subtle">brak typu na strzelca</span>
+                      <span className="chip-lock">brak strzelca</span>
                     )}
                   </div>
                 </button>
 
                 {isExpanded && rows && (
                   <div className="px-3 pb-3 pt-1">
-                    <div className="rounded-lg bg-app-hover/60 border border-app divide-y divide-app">
+                    <div className="rounded-lg overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(241,180,52,0.25)" }}>
                       {rows.map((r, i) => (
-                        <div key={i} className="flex items-center justify-between px-3 py-2 text-sm">
+                        <div key={i} className="flex items-center justify-between px-3 py-2 text-sm" style={{ borderBottom: "1px dashed rgba(241,180,52,0.15)" }}>
                           <div className="flex items-center gap-2">
-                            <span className={r.hit ? "text-wc-green" : "text-app-subtle"}>
+                            <span style={{ color: r.hit ? "#4ADE80" : "rgba(255,255,255,0.4)" }}>
                               {r.hit ? "✅" : "❌"}
                             </span>
-                            <span>{r.label}</span>
+                            <span style={{ color: "rgba(255,255,255,0.85)" }}>{r.label}</span>
                           </div>
-                          <span className={`font-black tabular-nums ${r.hit ? "text-wc-green" : "text-app-subtle"}`}>
+                          <span className="font-black tabular-nums" style={{ fontFamily: "'Courier New', monospace", color: r.hit ? "#4ADE80" : "rgba(255,255,255,0.4)" }}>
                             +{r.pts}
                           </span>
                         </div>
                       ))}
-                      <div className="flex items-center justify-between px-3 py-2 text-sm font-bold">
+                      <div className="flex items-center justify-between px-3 py-2 text-sm font-bold" style={{ color: "rgba(255,255,255,0.75)" }}>
                         <span>Razem za mecz</span>
-                        <span className="tabular-nums">{p.pointsAwarded} pkt</span>
+                        <span className="tabular-nums" style={{ fontFamily: "'Courier New', monospace" }}>{p.pointsAwarded} pkt</span>
                       </div>
                       {p.boosted && (
-                        <div className="flex items-center justify-between px-3 py-2 text-sm">
-                          <span className="flex items-center gap-2">
-                            <span className="text-wc-gold">⚡</span>
+                        <div className="flex items-center justify-between px-3 py-2 text-sm" style={{ background: "rgba(241,180,52,0.08)" }}>
+                          <span className="flex items-center gap-2" style={{ color: "#F1B434" }}>
+                            <span>⚡</span>
                             Boost x3
                           </span>
-                          <span className="font-black tabular-nums text-wc-gold">×3</span>
+                          <span className="font-black tabular-nums" style={{ color: "#F1B434", fontFamily: "'Courier New', monospace" }}>×3</span>
                         </div>
                       )}
-                      <div className="flex items-center justify-between px-3 py-2 text-base font-black">
-                        <span>SUMA</span>
-                        <span className={`tabular-nums ${finalPts > 0 ? "text-wc-green" : "text-app-subtle"}`}>
+                      <div className="flex items-center justify-between px-3 py-2 text-base font-black" style={{ background: "rgba(0,0,0,0.3)" }}>
+                        <span style={{ color: "white" }}>SUMA</span>
+                        <span className="tabular-nums" style={{ fontFamily: "'Courier New', monospace", color: finalPts > 0 ? "#4ADE80" : "rgba(255,255,255,0.5)", textShadow: finalPts > 0 ? "0 0 8px rgba(74,222,128,0.4)" : "none" }}>
                           {finalPts} pkt
                         </span>
                       </div>

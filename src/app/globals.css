@@ -40,8 +40,11 @@ html, body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  padding-top: env(safe-area-inset-top);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+/* Safe area tylko na body - inaczej iOS PWA dubluje padding (html + body) */
+body {
+  padding-top: env(safe-area-inset-top);
 }
 
 body {

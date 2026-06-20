@@ -25,8 +25,18 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
 
   useEffect(() => { setMoreOpen(false); }, [pathname]);
 
+  // Admin: zamiast Typów (które są dostępne z menu Więcej) - bezpośredni dostęp
+  const primary = isAdmin
+    ? [
+        { href: "/dashboard",      label: "Mecze",   emoji: "⚽" },
+        { href: "/groups",         label: "Grupy",   emoji: "📊" },
+        { href: "/leaderboard",    label: "Ranking", emoji: "🏆" },
+        { href: "/admin",          label: "Admin",   emoji: "🛠️" },
+      ]
+    : PRIMARY;
+
   const secondary = isAdmin
-    ? [...SECONDARY, { href: "/admin", label: "Admin", emoji: "🛠️" }]
+    ? [...SECONDARY, { href: "/my-predictions", label: "Moje typy", emoji: "📋" }]
     : SECONDARY;
 
   const isActive = (href: string) =>
@@ -81,7 +91,7 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-[env(safe-area-inset-bottom)]" aria-label="Główna nawigacja">
         <div className="mx-3 mb-3 rounded-2xl border border-app shadow-2xl backdrop-blur" style={{ background: "var(--header-bg)" }}>
           <ul className="grid grid-cols-5">
-            {PRIMARY.map((it) => {
+            {primary.map((it) => {
               const active = isActive(it.href);
               return (
                 <li key={it.href}>
