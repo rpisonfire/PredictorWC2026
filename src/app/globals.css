@@ -46,16 +46,14 @@ html, body {
 
 body {
   background-image:
-    radial-gradient(1000px 500px at 10% -10%, rgba(228,0,43,0.10), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgba(10,49,97,0.18), transparent 60%),
-    radial-gradient(700px 400px at 50% 110%, rgba(0,104,71,0.14), transparent 60%);
+    radial-gradient(1200px 600px at 50% -10%, rgba(20,30,60,0.5), transparent 70%);
   background-attachment: fixed;
 }
 
 :root[data-theme="light"] body {
   background-image:
-    radial-gradient(1000px 500px at 10% -10%, rgba(228,0,43,0.06), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgba(10,49,97,0.08), transparent 60%);
+    linear-gradient(180deg, #B8DFFF 0%, #E8F4FF 40%, #FAF7F2 100%);
+  background-attachment: fixed;
 }
 
 .card {
@@ -196,6 +194,118 @@ body {
   animation: boostFlash 3.5s ease-in-out infinite;
 }
 
+/* ===== STADION W TLE ===== */
+.stadium-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+.stadium-svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 50vh;
+  min-height: 320px;
+  max-height: 500px;
+}
+/* Dark mode = noc */
+.stadium-stand {
+  fill: #050810;
+}
+.stadium-rim {
+  stroke: rgba(241, 180, 52, 0.18);
+  stroke-width: 1.5;
+}
+.stadium-mast line { stroke: rgba(255, 255, 255, 0.1); }
+.stadium-mast ellipse {
+  fill: rgba(255, 240, 200, 0.85);
+  filter: blur(1px);
+  animation: floodlightPulse 4s ease-in-out infinite;
+}
+.stadium-mast:nth-child(3) ellipse { animation-delay: 1.5s; }
+.stadium-mast:nth-child(4) ellipse { animation-delay: 2.8s; }
+.stadium-pitch {
+  fill: rgba(40, 80, 30, 0.4);
+}
+/* Reflektory - poświata radial gradient */
+.floodlight {
+  position: absolute;
+  width: 800px;
+  height: 600px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(255, 240, 180, 0.08) 0%, transparent 60%);
+  filter: blur(40px);
+}
+.floodlight-1 { top: -200px; left: -200px; animation: floodlightFade 6s ease-in-out infinite; }
+.floodlight-2 { top: -250px; left: 50%; transform: translateX(-50%); animation: floodlightFade 7s ease-in-out infinite 1.5s; }
+.floodlight-3 { top: -200px; right: -200px; animation: floodlightFade 6.5s ease-in-out infinite 3s; }
+/* Gwiazdy */
+.stars { position: absolute; inset: 0; pointer-events: none; }
+.stars span {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: starTwinkle 3s ease-in-out infinite;
+}
+/* Chmury - ukryte w dark mode */
+.cloud { display: none; }
+
+/* LIGHT MODE = dzień */
+:root[data-theme="light"] .stadium-stand {
+  fill: rgba(180, 195, 210, 0.4);
+}
+:root[data-theme="light"] .stadium-rim {
+  stroke: rgba(120, 130, 140, 0.3);
+}
+:root[data-theme="light"] .stadium-mast line { stroke: rgba(120, 130, 140, 0.3); }
+:root[data-theme="light"] .stadium-mast ellipse {
+  fill: rgba(180, 190, 200, 0.4);
+  filter: none;
+  animation: none;
+}
+:root[data-theme="light"] .stadium-pitch {
+  fill: rgba(100, 160, 80, 0.35);
+}
+:root[data-theme="light"] .floodlight {
+  background: radial-gradient(ellipse at center, rgba(255, 250, 220, 0.5) 0%, transparent 70%);
+}
+:root[data-theme="light"] .stars { display: none; }
+:root[data-theme="light"] .cloud {
+  display: block;
+  position: absolute;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 100px;
+  filter: blur(20px);
+}
+:root[data-theme="light"] .cloud-1 { width: 250px; height: 60px; top: 10%; left: 5%; animation: cloudDrift 60s linear infinite; }
+:root[data-theme="light"] .cloud-2 { width: 320px; height: 80px; top: 18%; right: 20%; animation: cloudDrift 80s linear infinite reverse; }
+:root[data-theme="light"] .cloud-3 { width: 200px; height: 50px; top: 25%; left: 40%; animation: cloudDrift 70s linear infinite; }
+
+@keyframes floodlightFade {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+@keyframes floodlightPulse {
+  0%, 100% { opacity: 0.7; filter: blur(1px); }
+  50% { opacity: 1; filter: blur(2px); }
+}
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.9; }
+}
+@keyframes cloudDrift {
+  from { transform: translateX(-100px); }
+  to { transform: translateX(calc(100vw + 100px)); }
+}
+
 /* Floating ⚽ piłki w tle */
 .pitch-particles {
   position: fixed;
@@ -310,4 +420,74 @@ body {
 
 .score-bounce {
   animation: scoreBounce 2s ease-in-out infinite;
+}
+
+/* ===== HAMBURGER + SIDEBAR ===== */
+.hamburger {
+  width: 18px;
+  height: 14px;
+  position: relative;
+  display: inline-block;
+}
+.hamburger span {
+  display: block;
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.2s ease, top 0.3s ease;
+}
+.hamburger span:nth-child(1) { top: 0; }
+.hamburger span:nth-child(2) { top: 6px; }
+.hamburger span:nth-child(3) { top: 12px; }
+.hamburger[data-open="true"] span:nth-child(1) { top: 6px; transform: rotate(45deg); }
+.hamburger[data-open="true"] span:nth-child(2) { opacity: 0; }
+.hamburger[data-open="true"] span:nth-child(3) { top: 6px; transform: rotate(-45deg); }
+
+/* Sidebar panel - slide in/out */
+.sidebar-panel {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+.sidebar-panel.is-closed {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+.sidebar-panel.is-open {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Item - wychodzą z tunelu (z lewej, z opóźnieniem każdy) */
+.sidebar-item {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+.sidebar-panel.is-open .sidebar-item {
+  animation: tunnelEntry 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes tunnelEntry {
+  0% { opacity: 0; transform: translateX(-40px); }
+  60% { opacity: 1; transform: translateX(4px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Hover: link wysuwa się o kilka pikseli */
+.sidebar-link {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding-left 0.25s ease;
+}
+.sidebar-link:hover {
+  transform: translateX(6px);
+}
+
+/* Margin lewy dla main gdy sidebar otwarty */
+:root { --sidebar-w: 0px; }
+@media (min-width: 768px) {
+  body:has(.sidebar-panel.is-open) { --sidebar-w: 15rem; }
+  body:has(.sidebar-panel.is-closed) { --sidebar-w: 4rem; } /* miejsce na hamburger */
+}
+.main-shift {
+  transition: padding-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -6,6 +6,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { RegisterSW } from "@/components/RegisterSW";
 import { AutoToast } from "@/components/Toast";
 import { GoalCelebration } from "@/components/GoalCelebration";
+import { StadiumBackground } from "@/components/StadiumBackground";
 import { Suspense } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeInitScript, ThemeToggle } from "@/components/ThemeToggle";
@@ -48,6 +49,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Pasek mundialowy USA/CAN/MEX */}
         <div className="mundial-bar" aria-hidden="true" />
 
+        {/* Stadion w tle - noc/dzień zależnie od motywu */}
+        <StadiumBackground />
+
         {/* Floating ⚽ w tle */}
         <div className="pitch-particles" aria-hidden="true">
           <span>⚽</span>
@@ -77,11 +81,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </nav>
         </header>
 
-        <main className={`mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-6 pb-24 md:pb-6 ${user ? "md:pl-64" : ""}`}>
+        <main
+          className="mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-6 pb-24 md:pb-6 main-shift"
+          style={user ? { paddingLeft: "max(0.75rem, var(--sidebar-w))" } : undefined}
+        >
           {children}
         </main>
 
-        <footer className={`mx-auto max-w-5xl px-4 py-10 pb-28 md:pb-10 text-center text-xs ${user ? "md:pl-64" : ""}`} style={{ color: "var(--text-subtle)" }}>
+        <footer
+          className="mx-auto max-w-5xl px-4 py-10 pb-28 md:pb-10 text-center text-xs main-shift"
+          style={user ? { paddingLeft: "max(1rem, var(--sidebar-w))", color: "var(--text-subtle)" } : { color: "var(--text-subtle)" }}
+        >
           Aplikacja wykonana przez rpisonfire &amp; Claude Code na Mistrzostwa Świata 2026 w piłce nożnej ⚽
         </footer>
 
