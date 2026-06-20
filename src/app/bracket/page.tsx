@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { fmtDateTime } from "@/lib/dates";
 import { Flag } from "@/components/Flag";
+import { matchGlowStyle } from "@/lib/teamColors";
 
 // Drabinka zmienia się rzadko - cache 30 min, admin invaliduje po wpisaniu wyniku.
 export const revalidate = 1800;
@@ -52,10 +53,10 @@ export default async function BracketPage() {
       <p className="text-app-muted mb-6">Wszystkie mecze fazy pucharowej. Pary awansowe pojawią się po zakończeniu fazy grupowej.</p>
 
       {stages.length === 0 ? (
-        <div className="card p-10 text-center">
+        <div className="stat-section text-center" style={{ padding: "40px 20px" }}>
           <div className="text-5xl mb-3">🌳</div>
-          <div className="font-bold">Drabinka jeszcze pusta</div>
-          <p className="text-sm text-app-subtle mt-1">Mecze pucharowe pojawią się po fazie grupowej.</p>
+          <div className="font-bold text-white">Drabinka jeszcze pusta</div>
+          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>Mecze pucharowe pojawią się po fazie grupowej.</p>
         </div>
       ) : (
         <div className="overflow-x-auto -mx-4 px-4">
@@ -64,7 +65,15 @@ export default async function BracketPage() {
               const list = byStage.get(s) ?? [];
               return (
                 <div key={s} className="flex flex-col gap-3 min-w-[240px]">
-                  <div className="text-xs uppercase tracking-wider text-app-subtle sticky top-0 bg-[var(--header-bg)] backdrop-blur py-2 px-3 rounded-lg">
+                  <div className="sticky top-0 z-10 py-2 px-3 rounded-lg text-xs uppercase tracking-wider font-black"
+                       style={{
+                         background: "linear-gradient(180deg, #0a0e1a 0%, #050810 100%)",
+                         color: "#F1B434",
+                         fontFamily: "'Courier New', monospace",
+                         letterSpacing: "2px",
+                         border: "1px solid rgba(241,180,52,0.3)",
+                         textShadow: "0 0 6px rgba(241,180,52,0.4)",
+                       }}>
                     {COLUMN_LABEL[s] ?? s} · {list.length}
                   </div>
                   <div className="flex flex-col gap-3 justify-around flex-1">
@@ -76,22 +85,29 @@ export default async function BracketPage() {
                         <a
                           key={m.id}
                           href={`/match/${m.id}`}
-                          className="card p-3 hover:border-wc-red/40 transition block"
+                          className="match-tile block"
+                          style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
                         >
-                          <div className="text-[10px] text-app-subtle">{fmtDateTime(m.kickoff)}</div>
-                          <div className={`flex items-center justify-between mt-1 ${awayWon ? "opacity-50" : ""}`}>
-                            <div className="flex items-center gap-2 min-w-0">
-                              <Flag emoji={m.homeTeam.flag} size="sm" />
-                              <span className={`font-bold truncate ${homeWon ? "text-wc-gold" : ""}`}>{m.homeTeam.shortCode}</span>
+                          <div className="match-tile-inner" style={{ padding: "10px 12px" }}>
+                            <div className="match-tile-meta" style={{ marginBottom: 4 }}>{fmtDateTime(m.kickoff)}</div>
+                            <div className={`flex items-center justify-between ${awayWon ? "opacity-50" : ""}`}>
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Flag emoji={m.homeTeam.flag} size="sm" />
+                                <span className="font-bold truncate" style={{ color: homeWon ? "#F1B434" : "white" }}>{m.homeTeam.shortCode}</span>
+                              </div>
+                              <span className="font-black text-lg" style={{ fontFamily: "'Courier New', monospace", color: homeWon ? "#F1B434" : "white", textShadow: homeWon ? "0 0 6px rgba(241,180,52,0.4)" : "none" }}>
+                                {m.homeScore ?? "-"}
+                              </span>
                             </div>
-                            <span className={`font-black text-lg tabular-nums ${homeWon ? "text-wc-gold" : ""}`}>{m.homeScore ?? "-"}</span>
-                          </div>
-                          <div className={`flex items-center justify-between mt-1 ${homeWon ? "opacity-50" : ""}`}>
-                            <div className="flex items-center gap-2 min-w-0">
-                              <Flag emoji={m.awayTeam.flag} size="sm" />
-                              <span className={`font-bold truncate ${awayWon ? "text-wc-gold" : ""}`}>{m.awayTeam.shortCode}</span>
+                            <div className={`flex items-center justify-between mt-1 ${homeWon ? "opacity-50" : ""}`}>
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Flag emoji={m.awayTeam.flag} size="sm" />
+                                <span className="font-bold truncate" style={{ color: awayWon ? "#F1B434" : "white" }}>{m.awayTeam.shortCode}</span>
+                              </div>
+                              <span className="font-black text-lg" style={{ fontFamily: "'Courier New', monospace", color: awayWon ? "#F1B434" : "white", textShadow: awayWon ? "0 0 6px rgba(241,180,52,0.4)" : "none" }}>
+                                {m.awayScore ?? "-"}
+                              </span>
                             </div>
-                            <span className={`font-black text-lg tabular-nums ${awayWon ? "text-wc-gold" : ""}`}>{m.awayScore ?? "-"}</span>
                           </div>
                         </a>
                       );

@@ -41,29 +41,29 @@ export default async function ChampionPage() {
       </p>
 
       {currentTeam && (
-        <div className="card p-4 mb-5 border-wc-gold/40">
-          <div className="text-xs uppercase tracking-wider text-app-subtle">Twój aktualny typ</div>
-          <div className="mt-1 flex items-center gap-3">
+        <div className="stat-section mb-5">
+          <h2>👑 Twój aktualny typ</h2>
+          <div className="flex items-center gap-3">
             <Flag emoji={currentTeam.flag} size="lg" alt={currentTeam.name} />
-            <span className="font-black text-xl">{currentTeam.name}</span>
+            <span className="font-black text-xl text-white">{currentTeam.name}</span>
           </div>
         </div>
       )}
 
       {lock.locked ? (
-        <div className="card p-6 text-center border-app">
+        <div className="stat-section text-center" style={{ padding: "40px 20px" }}>
           <div className="text-4xl mb-2">🔒</div>
-          <div className="font-black">Wybór zablokowany</div>
-          <p className="text-sm text-app-muted mt-1">
+          <div className="font-black text-white text-lg">Wybór zablokowany</div>
+          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.6)" }}>
             Faza grupowa się skończyła. Twój typ na mistrza został utrwalony.
           </p>
           <Link href="/profile" className="btn-ghost mt-4 inline-flex">Wróć do profilu</Link>
         </div>
       ) : (
-        <form action={setChampion} className="card p-6 space-y-4">
+        <form action={setChampion} className="stat-section space-y-4">
           {lock.lockAt && (
-            <div className="text-xs text-app-subtle">
-              ⏰ Możesz zmieniać do {fmtDateTimeLong(lock.lockAt)}
+            <div className="text-xs" style={{ color: "rgba(241,180,52,0.85)", fontFamily: "'Courier New', monospace", letterSpacing: "1px" }}>
+              ⏰ MOŻESZ ZMIENIAĆ DO {fmtDateTimeLong(lock.lockAt).toUpperCase()}
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto p-1">
@@ -72,9 +72,10 @@ export default async function ChampionPage() {
               return (
                 <label key={t.id} className="cursor-pointer">
                   <input type="radio" name="teamId" value={t.id} defaultChecked={active} className="peer sr-only" />
-                  <span className={`flex items-center gap-2 p-3 rounded-xl border border-app peer-checked:border-wc-gold peer-checked:bg-wc-gold/10 hover:bg-app-hover ${active ? "ring-1 ring-wc-gold/30" : ""}`}>
+                  <span className={`flex items-center gap-2 p-3 rounded-xl border peer-checked:border-wc-gold peer-checked:bg-wc-gold/15 hover:bg-white/5 transition ${active ? "ring-1 ring-wc-gold/40" : ""}`}
+                        style={{ borderColor: active ? "#F1B434" : "rgba(241,180,52,0.15)", background: active ? "rgba(241,180,52,0.1)" : "rgba(255,255,255,0.03)" }}>
                     <Flag emoji={t.flag} size="md" alt={t.name} />
-                    <span className="font-bold text-sm truncate">{t.name}</span>
+                    <span className="font-bold text-sm truncate text-white">{t.name}</span>
                   </span>
                 </label>
               );

@@ -26,11 +26,13 @@ export default async function GroupsPage() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {groups.map((g) => (
-          <div key={g.name} className="card overflow-hidden">
-            <div className="px-4 py-3 bg-app-hover border-b border-app font-black">{g.name}</div>
-            <table className="w-full text-sm">
+          <div key={g.name} className="stat-section" style={{ padding: 0 }}>
+            <div className="px-4 py-3 border-b" style={{ borderColor: "rgba(241,180,52,0.2)", background: "rgba(241,180,52,0.08)" }}>
+              <h2 style={{ marginBottom: 0 }}>{g.name}</h2>
+            </div>
+            <table className="w-full text-sm" style={{ position: "relative", zIndex: 2 }}>
               <thead>
-                <tr className="text-[10px] uppercase tracking-wider text-app-subtle">
+                <tr style={{ color: "rgba(241,180,52,0.7)", fontFamily: "'Courier New', monospace" }} className="text-[10px] uppercase tracking-wider">
                   <th className="text-left py-2 pl-3"></th>
                   <th className="text-left">Drużyna</th>
                   <th className="text-center w-8">M</th>
@@ -40,17 +42,17 @@ export default async function GroupsPage() {
               </thead>
               <tbody>
                 {g.teams.map((t, i) => (
-                  <tr key={t.teamId} className="border-t border-app">
-                    <td className="pl-3 py-2 text-app-subtle font-black">{i + 1}.</td>
+                  <tr key={t.teamId} style={{ borderTop: "1px solid rgba(241,180,52,0.1)" }}>
+                    <td className="pl-3 py-2 font-black" style={{ color: i < 2 ? "#4ADE80" : "rgba(255,255,255,0.4)", fontFamily: "'Courier New', monospace" }}>{i + 1}.</td>
                     <td className="py-2">
                       <div className="flex items-center gap-2">
                         <Flag emoji={t.flag} size="sm" alt={t.name} />
-                        <span className="font-bold truncate">{t.shortCode}</span>
+                        <span className="font-bold truncate text-white">{t.shortCode}</span>
                       </div>
                     </td>
-                    <td className="text-center text-app-muted">{t.played}</td>
-                    <td className="text-center text-app-muted tabular-nums">{t.gd >= 0 ? `+${t.gd}` : t.gd}</td>
-                    <td className="text-center pr-3 font-black text-wc-gold">{t.points}</td>
+                    <td className="text-center" style={{ color: "rgba(255,255,255,0.6)", fontFamily: "'Courier New', monospace" }}>{t.played}</td>
+                    <td className="text-center tabular-nums" style={{ color: "rgba(255,255,255,0.6)", fontFamily: "'Courier New', monospace" }}>{t.gd >= 0 ? `+${t.gd}` : t.gd}</td>
+                    <td className="text-center pr-3 font-black" style={{ color: "#F1B434", fontFamily: "'Courier New', monospace", textShadow: "0 0 6px rgba(241,180,52,0.3)" }}>{t.points}</td>
                   </tr>
                 ))}
               </tbody>
