@@ -231,16 +231,19 @@ export default async function StatsPage({
         </div>
       )}
 
-      {/* HERO: progress bar */}
-      <div className="card p-5 mb-4">
+      {/* HERO: progress bar - stadionowy LED */}
+      <div className="stat-section mb-4">
         <div className="flex items-baseline justify-between mb-2">
-          <div className="text-sm uppercase tracking-wider text-app-subtle">Przebieg turnieju</div>
-          <div className="text-sm text-app-muted"><b className="text-app">{finishedMatches}</b> / {TOTAL_WC_MATCHES} meczów</div>
+          <h2 style={{ marginBottom: 0 }}>Przebieg turnieju</h2>
+          <div className="text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <b className="led" style={{ color: "#F1B434", fontFamily: "'Courier New', monospace" }}>{finishedMatches}</b>
+            <span style={{ color: "rgba(255,255,255,0.5)" }}> / {TOTAL_WC_MATCHES} meczów</span>
+          </div>
         </div>
-        <div className="h-3 rounded-full bg-app-hover overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-wc-red via-wc-gold to-wc-green" style={{ width: `${progressPct}%` }} />
+        <div className="h-3 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+          <div className="h-full bg-gradient-to-r from-wc-red via-wc-gold to-wc-green" style={{ width: `${progressPct}%`, boxShadow: "0 0 12px rgba(241,180,52,0.5)" }} />
         </div>
-        <div className="text-xs text-app-subtle mt-2 text-right">{progressPct.toFixed(0)}% rozegrane</div>
+        <div className="text-xs mt-2 text-right" style={{ color: "rgba(255,255,255,0.55)", fontFamily: "'Courier New', monospace", letterSpacing: "1px" }}>{progressPct.toFixed(0)}% ROZEGRANE</div>
       </div>
 
       {/* Big numbers row */}
@@ -260,17 +263,17 @@ export default async function StatsPage({
 
         {/* Leader card */}
         {leader && leader.pts > 0 && (
-          <div className="card p-5 sm:col-span-2 bg-gradient-to-br from-wc-gold/10 to-transparent border-wc-gold/30">
-            <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">👑 Aktualny lider</div>
+          <div className="stat-section sm:col-span-2">
+            <h2>👑 Aktualny lider</h2>
             <div className="flex items-center gap-4">
               <Emoji char={leader.user.avatar} size="2xl" alt={leader.user.nickname} />
               <div className="flex-1">
-                <div className="font-black text-2xl">{leader.user.nickname}</div>
-                <div className="text-sm text-app-muted">{leader.count} typów</div>
+                <div className="font-black text-2xl text-white">{leader.user.nickname}</div>
+                <div className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>{leader.count} typów</div>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-black text-wc-gold tabular-nums">{leader.pts}</div>
-                <div className="text-xs text-app-subtle uppercase tracking-wider">punktów</div>
+                <div className="text-4xl font-black led" style={{ fontFamily: "'Courier New', monospace", color: "#F1B434" }}>{leader.pts}</div>
+                <div className="text-[10px] uppercase tracking-wider" style={{ color: "rgba(241,180,52,0.7)" }}>punktów</div>
               </div>
             </div>
           </div>
@@ -476,50 +479,43 @@ export default async function StatsPage({
       )}
 
       {styles.length > 0 && (
-        <div className="mt-8">
+        <div className="stat-section mt-6">
           <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-2xl font-black">🎨 Style typowania ekipy</h2>
-            <span className="text-xs text-app-subtle">profile graczy</span>
+            <h2>🎨 Style typowania ekipy</h2>
+            <span className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>profile graczy</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {styles.map((s) => (
-              <div key={s.userId} className="card p-4 text-center">
+              <div key={s.userId} className="style-card">
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <Emoji char={s.avatar} size="md" alt={s.nickname} />
-                  <span className="font-black text-sm truncate">{s.nickname}</span>
+                  <span className="font-black text-sm truncate text-white">{s.nickname}</span>
                 </div>
-                <div className="text-5xl leading-none mb-2">{s.style.emoji}</div>
-                <div className="font-black text-base text-accent">{s.style.label}</div>
-                <div className="mt-3 pt-3 border-t border-app grid grid-cols-3 gap-1">
-                  <div>
-                    <div className="text-sm font-black tabular-nums">{s.avgGoals.toFixed(1)}</div>
-                    <div className="text-[9px] uppercase tracking-wider text-app-subtle">br/mecz</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-black tabular-nums">{(s.drawRate * 100).toFixed(0)}%</div>
-                    <div className="text-[9px] uppercase tracking-wider text-app-subtle">remisy</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-black tabular-nums">{s.total}</div>
-                    <div className="text-[9px] uppercase tracking-wider text-app-subtle">typów</div>
-                  </div>
+                <div className="text-5xl leading-none mb-2 text-center">{s.style.emoji}</div>
+                <div className="style-card-label">{s.style.label}</div>
+                <div className="mt-3 pt-3 grid grid-cols-3 gap-1" style={{ borderTop: "1px dashed rgba(241,180,52,0.2)" }}>
+                  <StyleStat value={s.avgGoals.toFixed(1)} label="BR/MECZ" />
+                  <StyleStat value={`${(s.drawRate * 100).toFixed(0)}%`} label="REMISY" />
+                  <StyleStat value={String(s.total)} label="TYPÓW" />
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-5 card p-4">
-            <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">Jak wyliczany jest styl</div>
-            <p className="text-xs text-app-muted mb-3">
+          <div className="mt-5 stat-section" style={{ padding: "14px" }}>
+            <div className="text-xs uppercase tracking-wider mb-3" style={{ color: "rgba(241,180,52,0.8)", fontFamily: "'Courier New', monospace" }}>
+              ℹ Jak wyliczany jest styl
+            </div>
+            <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.6)" }}>
               Każdy typ uzyskuje "dopasowanie" do każdego stylu. Wygrywa najmocniejsze. Sprawdzane są:
-              <b className="text-app"> dokładność trafień, średnia bramek, % remisów, % wysokich wyników (4+ br)</b>.
+              <b className="text-white"> dokładność trafień, średnia bramek, % remisów, % wysokich wyników (4+ br)</b>.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
               {STYLE_RULES_LEGEND.map((s) => (
                 <div key={s.label} className="flex items-center gap-2">
                   <span className="text-xl">{s.emoji}</span>
                   <div>
-                    <div className="font-bold">{s.label}</div>
-                    <div className="text-[10px] text-app-subtle">{s.desc}</div>
+                    <div className="font-bold text-white">{s.label}</div>
+                    <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>{s.desc}</div>
                   </div>
                 </div>
               ))}
@@ -533,10 +529,10 @@ export default async function StatsPage({
 
 function BigStat({ emoji, value, label, small }: { emoji: string; value: number | string; label: string; small?: boolean }) {
   return (
-    <div className="card p-4 text-center">
-      <div className="text-2xl mb-1">{emoji}</div>
-      <div className={`font-black ${small ? "text-base leading-tight px-1" : "text-3xl tabular-nums"} truncate`}>{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-app-subtle mt-1">{label}</div>
+    <div className="led-tile">
+      <div className="led-tile-emoji">{emoji}</div>
+      <div className={`led-tile-value ${small ? "led-tile-value-small" : ""}`}>{value}</div>
+      <div className="led-tile-label">{label}</div>
     </div>
   );
 }
@@ -546,6 +542,15 @@ function Mini({ value, label, color }: { value: string; label: string; color: st
     <div className="rounded-xl bg-app-hover p-3 text-center">
       <div className={`text-2xl font-black tabular-nums ${color}`}>{value}</div>
       <div className="text-[10px] uppercase tracking-wider text-app-subtle mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+function StyleStat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="text-center">
+      <div className="text-sm font-black tabular-nums" style={{ fontFamily: "'Courier New', monospace", color: "#F1B434" }}>{value}</div>
+      <div className="text-[9px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.45)" }}>{label}</div>
     </div>
   );
 }

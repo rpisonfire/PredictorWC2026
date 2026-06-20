@@ -434,6 +434,104 @@ details[open] > .collapse-header .collapse-chev {
   text-shadow: 0 0 8px rgba(241, 180, 52, 0.3);
 }
 
+/* ===== LED tile - kafel z dużą liczbą (Graczy/Typów/Boostów) ===== */
+.led-tile {
+  background: linear-gradient(180deg, #0a0e1a 0%, #050810 100%);
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.led-tile::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #BF0A30, #FFFFFF 50%, #006847);
+}
+.led-tile::after {
+  content: "";
+  position: absolute;
+  inset: 2px 0 0 0;
+  background: repeating-linear-gradient(180deg, transparent 0, transparent 2px, rgba(255,255,255,0.015) 2px, rgba(255,255,255,0.015) 3px);
+  pointer-events: none;
+}
+.led-tile-emoji {
+  font-size: 22px;
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 8px rgba(241,180,52,0.3));
+}
+.led-tile-value {
+  font-family: 'Courier New', monospace;
+  font-size: 30px;
+  font-weight: 900;
+  color: #F1B434;
+  text-shadow: 0 0 10px rgba(241, 180, 52, 0.4);
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  font-variant-numeric: tabular-nums;
+}
+.led-tile-value-small {
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Impact', sans-serif;
+  text-shadow: none;
+}
+.led-tile-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(241,180,52,0.7);
+  margin-top: 8px;
+  font-family: 'Courier New', monospace;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== Style card - kafel stylu typowania w LED stadium ===== */
+.style-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(241,180,52,0.18);
+  border-radius: 12px;
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.style-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #BF0A30, #FFFFFF 50%, #006847);
+  opacity: 0.7;
+}
+.style-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(241,180,52,0.4);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3), 0 0 16px rgba(241,180,52,0.1);
+}
+.style-card-label {
+  text-align: center;
+  font-family: 'Impact', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #F1B434;
+  text-shadow: 0 0 6px rgba(241, 180, 52, 0.3);
+}
+
 /* Pomocnicze klasy mapujące na zmienne — żeby nie używać var() w JSX */
 .text-accent { color: var(--accent); }
 .bg-accent { background-color: var(--accent); }
