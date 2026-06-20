@@ -234,38 +234,48 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         <ConfettiCelebration matchId={match.id} gold={boosted} />
       )}
       <div
-        className="card match-glow p-6"
+        className="match-hero"
         style={matchGlowStyle(match.homeTeam.shortCode, match.awayTeam.shortCode)}
       >
-        <div className="flex justify-between items-center text-xs text-app-subtle">
-          <span>{match.stage} · Kolejka {match.matchday}</span>
-          <div className="flex items-center gap-2">
-            {live && <LiveChip small />}
-            <span>{fmtDateTimeLong(match.kickoff)}</span>
+        <div className="match-hero-inner">
+          <div className="match-hero-meta">
+            <span>{match.stage} · Kolejka {match.matchday}</span>
+            <div className="flex items-center gap-2">
+              {live && <LiveChip small />}
+              <span>{fmtDateTimeLong(match.kickoff)}</span>
+            </div>
           </div>
-        </div>
-        <div className="mt-3 flex items-center justify-between text-center">
-          <div className="flex-1">
-            <span className="flag-wave inline-block">
-              <Flag emoji={match.homeTeam.flag} size="xl" alt={match.homeTeam.name} className="mx-auto" />
-            </span>
-            <div className="font-black mt-1">{match.homeTeam.name}</div>
-          </div>
-          <div className={`px-3 score-stadium text-3xl ${finished ? "text-wc-gold" : "text-app-subtle"}`}>
-            {finished ? `${match.homeScore} : ${match.awayScore}` : "vs"}
-          </div>
-          <div className="flex-1">
-            <span className="flag-wave inline-block" style={{ animationDelay: "1.5s" }}>
-              <Flag emoji={match.awayTeam.flag} size="xl" alt={match.awayTeam.name} className="mx-auto" />
-            </span>
-            <div className="font-black mt-1">{match.awayTeam.name}</div>
+          <div className="match-hero-teams">
+            <div className="match-hero-team">
+              <span className="flag-wave inline-block">
+                <Flag emoji={match.homeTeam.flag} size="xl" alt={match.homeTeam.name} className="mx-auto" />
+              </span>
+              <div className="match-hero-name">{match.homeTeam.name}</div>
+            </div>
+            <div className="match-hero-score">
+              {finished ? (
+                <>
+                  <span className="match-hero-score-num">{match.homeScore}</span>
+                  <span className="match-hero-colon">:</span>
+                  <span className="match-hero-score-num">{match.awayScore}</span>
+                </>
+              ) : (
+                <span className="match-hero-vs">VS</span>
+              )}
+            </div>
+            <div className="match-hero-team">
+              <span className="flag-wave inline-block" style={{ animationDelay: "1.5s" }}>
+                <Flag emoji={match.awayTeam.flag} size="xl" alt={match.awayTeam.name} className="mx-auto" />
+              </span>
+              <div className="match-hero-name">{match.awayTeam.name}</div>
+            </div>
           </div>
         </div>
       </div>
 
       {showForm && (
-        <div className="card p-4 mt-4">
-          <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">📈 Forma na mundialu</div>
+        <div className="stat-section mt-4">
+          <h2>📈 Forma na mundialu</h2>
           <div className="space-y-3">
             <TeamFormRow flag={match.homeTeam.flag} code={match.homeTeam.shortCode} form={homeForm} />
             <TeamFormRow flag={match.awayTeam.flag} code={match.awayTeam.shortCode} form={awayForm} />
@@ -276,17 +286,15 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       {crowdTop.length > 0 && (() => {
         const total = crowdAggregate.length;
         return (
-          <div className="card p-4 mt-4">
-            <div className="text-xs uppercase tracking-wider text-app-subtle mb-3">
-              🔮 Tłum typuje (anonimowo, top wyniki)
-            </div>
+          <div className="stat-section mt-4">
+            <h2>🔮 Tłum typuje (anonimowo)</h2>
             <div className="grid grid-cols-3 gap-3">
               {crowdTop.map((c) => {
                 const pct = Math.round((c.count / total) * 100);
                 return (
                   <div key={c.score} className="text-center">
-                    <div className="text-xl font-black text-wc-gold tabular-nums">{pct}%</div>
-                    <div className="font-black text-2xl tabular-nums mt-1">{c.score}</div>
+                    <div className="text-xl font-black led" style={{ color: "#F1B434", fontFamily: "'Courier New', monospace" }}>{pct}%</div>
+                    <div className="font-black text-2xl mt-1 text-white" style={{ fontFamily: "'Courier New', monospace" }}>{c.score}</div>
                   </div>
                 );
               })}
@@ -419,14 +427,18 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <button className="btn-primary w-full">Zapisz typ</button>
         </form>
       ) : (
-        <div className="card p-6 mt-4">
-          <div className="font-black text-center">Typowanie zamknięte 🔒</div>
+        <div className="stat-section mt-4">
+          <h2 style={{ textAlign: "center" }}>🔒 Typowanie zamknięte</h2>
           {pred ? (
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center justify-center gap-2 text-lg">
-                <span>Twój typ:</span>
-                <b className="text-2xl tabular-nums">{pred.homeScore} : {pred.awayScore}</b>
-                {boosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3 ⚡</span>}
+            <div className="mt-3 space-y-3">
+              <div className="text-center">
+                <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.5)", fontFamily: "'Courier New', monospace" }}>Twój typ</div>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-4xl font-black led" style={{ fontFamily: "'Courier New', monospace", color: "#F1B434" }}>
+                    {pred.homeScore} : {pred.awayScore}
+                  </span>
+                  {boosted && <span className="chip-boost">x3</span>}
+                </div>
               </div>
               <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
                 {pred.firstScorerTeam && pred.firstScorerTeam !== "NONE" && (
@@ -443,22 +455,22 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   </span>
                 )}
                 {pred.player ? (
-                  <div className="chip bg-app-hover flex items-center gap-1.5 pl-1">
+                  <div className="chip bg-app-hover flex items-center gap-1.5 pl-1" style={{ borderColor: "rgba(241,180,52,0.3)" }}>
                     <PlayerAvatar
                       name={pred.player.name}
                       photoUrl={pred.player.photoUrl}
                       position={pred.player.position}
                       size={20}
                     />
-                    <span>1. strzelec: <b>{pred.player.name}</b></span>
+                    <span style={{ color: "white" }}>1. strzelec: <b>{pred.player.name}</b></span>
                   </div>
                 ) : (
-                  <span className="chip bg-app-hover text-app-subtle">brak typu na strzelca</span>
+                  <span className="chip-lock">brak typu na strzelca</span>
                 )}
               </div>
             </div>
           ) : (
-            <div className="mt-2 text-sm text-app-subtle text-center">Nie wytypowałeś tego meczu.</div>
+            <div className="mt-2 text-sm text-center" style={{ color: "rgba(255,255,255,0.6)" }}>Nie wytypowałeś tego meczu.</div>
           )}
         </div>
       )}
@@ -496,23 +508,23 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             />
           </div>
         ) : (
-          <div className="card p-6 mt-4">
-            <h2 className="font-black text-lg mb-3">👀 Typy innych</h2>
+          <div className="stat-section mt-4">
+            <h2>👀 Typy innych</h2>
             <ul className="space-y-2">
               {othersPredictions.map((op) => {
                 const opBoosted = boostedUserIds.has(op.userId);
                 return (
-                  <li key={op.id} className="flex items-center gap-3 py-2 border-b border-app last:border-0">
+                  <li key={op.id} className="others-row">
                     <Emoji char={op.user.avatar} size="md" alt={op.user.nickname} />
-                    <span className="font-bold flex-1">{op.user.nickname}</span>
-                    <span className="font-black text-lg">{op.homeScore} : {op.awayScore}</span>
+                    <span className="others-name">{op.user.nickname}</span>
+                    <span className="others-score">{op.homeScore} : {op.awayScore}</span>
                     {op.player && (
-                      <span className="hidden sm:flex items-center gap-1.5 chip bg-app-hover">
+                      <span className="hidden sm:flex items-center gap-1.5 others-player">
                         <PlayerAvatar name={op.player.name} photoUrl={op.player.photoUrl} size={18} />
                         <span className="text-xs">{op.player.name}</span>
                       </span>
                     )}
-                    {opBoosted && <span className="chip bg-wc-gold/15 text-wc-gold">x3</span>}
+                    {opBoosted && <span className="chip-boost">x3</span>}
                   </li>
                 );
               })}

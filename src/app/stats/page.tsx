@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { Flag } from "@/components/Flag";
 import { Emoji } from "@/components/Emoji";
-import { matchInsights, userStyles, STYLE_RULES } from "@/lib/stats";
+import { userStyles, STYLE_RULES } from "@/lib/stats";
 
 const STYLE_RULES_LEGEND = STYLE_RULES;
 
@@ -58,7 +58,6 @@ export default async function StatsPage({
     boostUsage,
     allBoosts,
     ranking,
-    insights,
     styles,
   ] = await Promise.all([
     prisma.user.count({ where: userIdInFilter }),
@@ -118,7 +117,6 @@ export default async function StatsPage({
       },
     }),
     Promise.resolve({ series: [], matchdays: [] as number[] }),
-    matchInsights(memberUserIds),
     userStyles(memberUserIds),
   ]);
 
@@ -430,53 +428,6 @@ export default async function StatsPage({
           </div>
         )}
       </div>
-
-      {(insights.easiest || insights.divisive || insights.killing) && (
-        <div className="grid sm:grid-cols-2 gap-4 mt-4">
-          {insights.easiest && (
-            <div className="card p-4">
-              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">✅ Najprostszy mecz</div>
-              <div className="flex items-center gap-2">
-                <Flag emoji={insights.easiest.match.homeTeam.flag} size="sm" />
-                <span className="font-bold text-sm">{insights.easiest.match.homeTeam.shortCode}</span>
-                <span className="text-app-subtle text-xs">vs</span>
-                <span className="font-bold text-sm">{insights.easiest.match.awayTeam.shortCode}</span>
-                <Flag emoji={insights.easiest.match.awayTeam.flag} size="sm" />
-              </div>
-              <div className="text-2xl font-black text-wc-green mt-2 tabular-nums">{(insights.easiest.hitRate * 100).toFixed(0)}%</div>
-              <div className="text-[10px] text-app-subtle">graczy zdobyło punkty</div>
-            </div>
-          )}
-          {insights.divisive && (
-            <div className="card p-4">
-              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">🤯 Najbardziej kontrowersyjny</div>
-              <div className="flex items-center gap-2">
-                <Flag emoji={insights.divisive.match.homeTeam.flag} size="sm" />
-                <span className="font-bold text-sm">{insights.divisive.match.homeTeam.shortCode}</span>
-                <span className="text-app-subtle text-xs">vs</span>
-                <span className="font-bold text-sm">{insights.divisive.match.awayTeam.shortCode}</span>
-                <Flag emoji={insights.divisive.match.awayTeam.flag} size="sm" />
-              </div>
-              <div className="text-2xl font-black text-wc-blue mt-2 tabular-nums">{insights.divisive.uniqueScores}</div>
-              <div className="text-[10px] text-app-subtle">różnych typów z {insights.divisive.total} graczy</div>
-            </div>
-          )}
-          {insights.killing && (
-            <div className="card p-4">
-              <div className="text-xs uppercase tracking-wider text-app-subtle mb-2">💀 Killing field</div>
-              <div className="flex items-center gap-2">
-                <Flag emoji={insights.killing.match.homeTeam.flag} size="sm" />
-                <span className="font-bold text-sm">{insights.killing.match.homeTeam.shortCode}</span>
-                <span className="text-app-subtle text-xs">vs</span>
-                <span className="font-bold text-sm">{insights.killing.match.awayTeam.shortCode}</span>
-                <Flag emoji={insights.killing.match.awayTeam.flag} size="sm" />
-              </div>
-              <div className="text-2xl font-black text-accent mt-2 tabular-nums">0 pkt</div>
-              <div className="text-[10px] text-app-subtle">wszyscy ({insights.killing.total}) na zero</div>
-            </div>
-          )}
-        </div>
-      )}
 
       {styles.length > 0 && (
         <div className="stat-section mt-6">
