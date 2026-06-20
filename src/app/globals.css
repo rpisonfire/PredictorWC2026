@@ -329,58 +329,60 @@ html { background: var(--bg); }
   animation: boostFlash 3.5s ease-in-out infinite;
 }
 
-/* ===== STADION W TLE ===== */
-.stadium-bg {
+/* ===== BOISKO W TLE ===== */
+.pitch-bg {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: -1;
   overflow: hidden;
 }
-.stadium-svg {
+.pitch-svg {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   width: 100%;
-  height: 50vh;
-  min-height: 320px;
-  max-height: 500px;
+  height: 100%;
+  opacity: 0.55;
 }
-/* Dark mode = noc */
-.stadium-stand {
-  fill: rgba(20, 30, 50, 0.85);
+.pitch-line {
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 2;
+  fill: none;
 }
-.stadium-rim {
-  stroke: rgba(241, 180, 52, 0.4);
-  stroke-width: 1.5;
+.pitch-line-dot {
+  fill: rgba(255, 255, 255, 0.25);
 }
-.stadium-mast line { stroke: rgba(255, 255, 255, 0.2); }
-.stadium-mast ellipse {
-  fill: rgba(255, 245, 210, 1);
-  filter: blur(0.5px) drop-shadow(0 0 20px rgba(255, 240, 180, 0.7));
-  animation: floodlightPulse 4s ease-in-out infinite;
+/* Pasy murawy - alternujące zielone */
+.pitch-stripes {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(15, 50, 25, 0.45) 0,
+      rgba(15, 50, 25, 0.45) 8%,
+      rgba(20, 70, 30, 0.55) 8%,
+      rgba(20, 70, 30, 0.55) 16%
+    );
 }
-.stadium-mast:nth-child(3) ellipse { animation-delay: 1.5s; }
-.stadium-mast:nth-child(4) ellipse { animation-delay: 2.8s; }
-.stadium-pitch {
-  fill: rgba(40, 80, 30, 0.4);
-}
-/* Reflektory - poświata radial gradient */
+/* Reflektory - poświata w rogach */
 .floodlight {
   position: absolute;
-  width: 800px;
+  width: 600px;
   height: 600px;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(255, 240, 180, 0.18) 0%, transparent 60%);
+  background: radial-gradient(ellipse at center, rgba(255, 240, 180, 0.20) 0%, transparent 60%);
   filter: blur(40px);
+  mix-blend-mode: screen;
 }
 .floodlight-1 { top: -200px; left: -200px; animation: floodlightFade 6s ease-in-out infinite; }
-.floodlight-2 { top: -250px; left: 50%; transform: translateX(-50%); animation: floodlightFade 7s ease-in-out infinite 1.5s; }
-.floodlight-3 { top: -200px; right: -200px; animation: floodlightFade 6.5s ease-in-out infinite 3s; }
-/* Gwiazdy */
-.stars { position: absolute; inset: 0; pointer-events: none; }
+.floodlight-2 { top: -200px; right: -200px; animation: floodlightFade 7s ease-in-out infinite 1.5s; }
+.floodlight-3 { bottom: -200px; left: -200px; animation: floodlightFade 6.5s ease-in-out infinite 3s; }
+.floodlight-4 { bottom: -200px; right: -200px; animation: floodlightFade 7.5s ease-in-out infinite 4.5s; }
+
+/* Gwiazdy - tło nocy nad boiskiem */
+.stars { position: absolute; inset: 0; pointer-events: none; opacity: 0.3; }
 .stars span {
   position: absolute;
   width: 2px;
@@ -390,39 +392,32 @@ html { background: var(--bg); }
   opacity: 0.6;
   animation: starTwinkle 3s ease-in-out infinite;
 }
-/* Chmury - ukryte w dark mode */
-.cloud { display: none; }
 
-/* LIGHT MODE = dzień */
-:root[data-theme="light"] .stadium-stand {
-  fill: rgba(180, 195, 210, 0.4);
+/* LIGHT MODE = murawa w słońcu */
+:root[data-theme="light"] .pitch-line {
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 2;
 }
-:root[data-theme="light"] .stadium-rim {
-  stroke: rgba(120, 130, 140, 0.3);
+:root[data-theme="light"] .pitch-line-dot {
+  fill: rgba(255, 255, 255, 0.85);
 }
-:root[data-theme="light"] .stadium-mast line { stroke: rgba(120, 130, 140, 0.3); }
-:root[data-theme="light"] .stadium-mast ellipse {
-  fill: rgba(180, 190, 200, 0.4);
-  filter: none;
+:root[data-theme="light"] .pitch-stripes {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(90, 160, 80, 0.4) 0,
+      rgba(90, 160, 80, 0.4) 8%,
+      rgba(110, 180, 95, 0.5) 8%,
+      rgba(110, 180, 95, 0.5) 16%
+    );
+}
+:root[data-theme="light"] .pitch-svg { opacity: 0.7; }
+:root[data-theme="light"] .floodlight {
+  background: radial-gradient(ellipse at center, rgba(255, 250, 220, 0.4) 0%, transparent 70%);
+  mix-blend-mode: normal;
   animation: none;
 }
-:root[data-theme="light"] .stadium-pitch {
-  fill: rgba(100, 160, 80, 0.35);
-}
-:root[data-theme="light"] .floodlight {
-  background: radial-gradient(ellipse at center, rgba(255, 250, 220, 0.5) 0%, transparent 70%);
-}
 :root[data-theme="light"] .stars { display: none; }
-:root[data-theme="light"] .cloud {
-  display: block;
-  position: absolute;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 100px;
-  filter: blur(20px);
-}
-:root[data-theme="light"] .cloud-1 { width: 250px; height: 60px; top: 10%; left: 5%; animation: cloudDrift 60s linear infinite; }
-:root[data-theme="light"] .cloud-2 { width: 320px; height: 80px; top: 18%; right: 20%; animation: cloudDrift 80s linear infinite reverse; }
-:root[data-theme="light"] .cloud-3 { width: 200px; height: 50px; top: 25%; left: 40%; animation: cloudDrift 70s linear infinite; }
 
 @keyframes floodlightFade {
   0%, 100% { opacity: 0.8; }
