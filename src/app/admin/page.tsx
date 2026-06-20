@@ -8,6 +8,7 @@ import { hashPassword } from "@/lib/password";
 import { getCurrentUser } from "@/lib/session";
 import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
 import { sendPushToAll, sendPushToUser } from "@/lib/push";
+import { matchGlowStyle } from "@/lib/teamColors";
 import { syncFinishedResults } from "@/lib/syncResults";
 import { cookies } from "next/headers";
 import { Emoji } from "@/components/Emoji";
@@ -632,73 +633,86 @@ function MatchForm({
   compact?: boolean;
 }) {
   return (
-    <form action={action} className={`card p-4 ${compact ? "border-app/40" : ""}`}>
-      <input type="hidden" name="matchId" value={m.id} />
-      <div className="flex items-center justify-between mb-3 text-sm text-app-subtle">
-        <span>{m.stage} · Kolejka {m.matchday}</span>
-        <span>{fmtDateTimeLong(m.kickoff)}</span>
-      </div>
-      {/* Drużyny zawsze widoczne nad inputami - jeden layout dla mobile i desktop */}
-      <div className="flex items-center justify-between mb-3 gap-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <Flag emoji={m.homeTeam.flag} size="sm" />
-          <span className="font-bold truncate">
-            <span className="sm:hidden">{m.homeTeam.shortCode}</span>
-            <span className="hidden sm:inline">{m.homeTeam.name}</span>
-          </span>
+    <form
+      action={action}
+      className="match-tile block"
+      style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
+    >
+      <div className="match-tile-inner" style={{ padding: "16px" }}>
+        <input type="hidden" name="matchId" value={m.id} />
+        <div className="match-tile-meta">
+          <span>{m.stage} · Kolejka {m.matchday}</span>
+          <span>{fmtDateTimeLong(m.kickoff)}</span>
         </div>
-        <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-          <span className="font-bold truncate text-right">
-            <span className="sm:hidden">{m.awayTeam.shortCode}</span>
-            <span className="hidden sm:inline">{m.awayTeam.name}</span>
-          </span>
-          <Flag emoji={m.awayTeam.flag} size="sm" />
-        </div>
-      </div>
-      <div className="flex items-center justify-center gap-3">
-        <input
-          type="number" name="homeScore" min={0} max={20}
-          defaultValue={m.homeScore ?? ""}
-          className="input w-20 sm:w-24 text-center px-1 text-xl font-black"
-        />
-        <span className="font-black text-app-subtle text-xl">:</span>
-        <input
-          type="number" name="awayScore" min={0} max={20}
-          defaultValue={m.awayScore ?? ""}
-          className="input w-20 sm:w-24 text-center px-1 text-xl font-black"
-        />
-      </div>
-      <div className="grid sm:grid-cols-2 gap-3 mt-3">
-        <div>
-          <label className="text-xs text-app-subtle">Pierwsza drużyna ze strzałem</label>
-          <div className="mt-1">
-            <TeamRadioPicker
-              name="firstScorerTeam"
-              defaultValue={
-                m.firstScorerTeamId === m.homeTeamId ? "HOME"
-                : m.firstScorerTeamId === m.awayTeamId ? "AWAY"
-                : "NONE"
-              }
-              home={{ flag: m.homeTeam.flag, shortCode: m.homeTeam.shortCode }}
-              away={{ flag: m.awayTeam.flag, shortCode: m.awayTeam.shortCode }}
-            />
+        {/* Drużyny */}
+        <div className="flex items-center justify-between gap-2 mt-3 mb-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Flag emoji={m.homeTeam.flag} size="md" />
+            <span className="font-bold truncate text-white">
+              <span className="sm:hidden">{m.homeTeam.shortCode}</span>
+              <span className="hidden sm:inline">{m.homeTeam.name}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+            <span className="font-bold truncate text-right text-white">
+              <span className="sm:hidden">{m.awayTeam.shortCode}</span>
+              <span className="hidden sm:inline">{m.awayTeam.name}</span>
+            </span>
+            <Flag emoji={m.awayTeam.flag} size="md" />
           </div>
         </div>
-        <div>
-          <label className="text-xs text-app-subtle">Pierwszy strzelec</label>
-          <div className="mt-1">
-            <PlayerPicker
-              name="firstGoalPlayerId"
-              defaultValue={m.firstGoalPlayerId}
-              groups={[
-                { name: m.homeTeam.name, flag: m.homeTeam.flag, players: sortByPosition(m.homeTeam.players) },
-                { name: m.awayTeam.name, flag: m.awayTeam.flag, players: sortByPosition(m.awayTeam.players) },
-              ]}
-            />
+        {/* Score inputs */}
+        <div className="flex items-center justify-center gap-3">
+          <input
+            type="number" name="homeScore" min={0} max={20}
+            defaultValue={m.homeScore ?? ""}
+            className="input w-20 sm:w-24 text-center px-1 text-2xl font-black"
+            style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.3)", color: "#F1B434", textShadow: "0 0 8px rgba(241,180,52,0.4)" }}
+          />
+          <span className="font-black text-2xl" style={{ color: "rgba(241,180,52,0.5)", fontFamily: "'Courier New', monospace" }}>:</span>
+          <input
+            type="number" name="awayScore" min={0} max={20}
+            defaultValue={m.awayScore ?? ""}
+            className="input w-20 sm:w-24 text-center px-1 text-2xl font-black"
+            style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.3)", color: "#F1B434", textShadow: "0 0 8px rgba(241,180,52,0.4)" }}
+          />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3 mt-4">
+          <div>
+            <label className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(241,180,52,0.75)", fontFamily: "'Courier New', monospace" }}>
+              Pierwsza drużyna ze strzałem
+            </label>
+            <div className="mt-1">
+              <TeamRadioPicker
+                name="firstScorerTeam"
+                defaultValue={
+                  m.firstScorerTeamId === m.homeTeamId ? "HOME"
+                  : m.firstScorerTeamId === m.awayTeamId ? "AWAY"
+                  : "NONE"
+                }
+                home={{ flag: m.homeTeam.flag, shortCode: m.homeTeam.shortCode }}
+                away={{ flag: m.awayTeam.flag, shortCode: m.awayTeam.shortCode }}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(241,180,52,0.75)", fontFamily: "'Courier New', monospace" }}>
+              Pierwszy strzelec
+            </label>
+            <div className="mt-1">
+              <PlayerPicker
+                name="firstGoalPlayerId"
+                defaultValue={m.firstGoalPlayerId}
+                groups={[
+                  { name: m.homeTeam.name, flag: m.homeTeam.flag, players: sortByPosition(m.homeTeam.players) },
+                  { name: m.awayTeam.name, flag: m.awayTeam.flag, players: sortByPosition(m.awayTeam.players) },
+                ]}
+              />
+            </div>
           </div>
         </div>
+        <button className="btn-primary w-full mt-4">Zapisz wynik i przelicz punkty</button>
       </div>
-      <button className="btn-primary w-full mt-4">Zapisz wynik i przelicz punkty</button>
     </form>
   );
 }
