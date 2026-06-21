@@ -128,7 +128,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const boosted = match.boosts.length > 0;
   const locked = match.kickoff.getTime() - Date.now() < 5 * 60 * 1000;
   const finished = match.homeScore !== null && match.awayScore !== null;
-  const revealOthers = locked || finished;
+  // Typy innych pokazujemy DOPIERO po zakończeniu meczu.
+  // Gdy locked ale nie finished - oglądamy mecz na żywo, brak spojlerów.
+  const revealOthers = finished;
 
   // Wszystkie dodatkowe równolegle
   const [matchdayBoost, othersPredictions, allBoostsForMatch, crowdAggregate, teamFormMatches] = await Promise.all([
@@ -147,7 +149,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       ? prisma.boost.findMany({ where: { matchId: match.id } })
       : Promise.resolve([] as any[]),
     // Wisdom of the crowd - przed lockiem agreguj typy innych (tylko wyniki, anonimowo)
-    !revealOthers && !finished
+    !locked && !finished
       ? prisma.prediction.findMany({
           where: { matchId: match.id, NOT: { userId: user.id } },
           select: { homeScore: true, awayScore: true },
@@ -472,6 +474,19 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           ) : (
             <div className="mt-2 text-sm text-center" style={{ color: "rgba(255,255,255,0.6)" }}>Nie wytypowałeś tego meczu.</div>
           )}
+        </div>
+      )}
+
+      {/* Komunikat "oglądaj na żywo" - po locku, przed końcem meczu */}
+      {locked && !finished && (
+        <div className="stat-section mt-4 text-center" style={{ padding: "20px" }}>
+          <div className="text-4xl mb-3">📺⚽</div>
+          <div className="font-black text-white text-base mb-1" style={{ fontFamily: "'Impact', sans-serif", letterSpacing: "1px" }}>
+            ZMYKAJ ZE STRONY I OBEJRZYJ TO WIDOWISKO NA ŻYWO
+          </div>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.65)" }}>
+            Punkty dla Ciebie i znajomych zostaną przyznane po spotkaniu.
+          </p>
         </div>
       )}
 
