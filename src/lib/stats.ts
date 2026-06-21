@@ -381,10 +381,21 @@ export async function leaderboardForMatchday(matchday: number, leagueId?: string
     .map((u) => {
       const boostMatchIds = new Set(u.boosts.map((b) => b.matchId));
       let pts = 0;
+      let boostPts = 0;
       for (const p of u.predictions) {
-        pts += boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
+        const boosted = boostMatchIds.has(p.matchId);
+        pts += boosted ? p.pointsAwarded * 3 : p.pointsAwarded;
+        if (boosted) boostPts = p.pointsAwarded * 3;
       }
-      return { userId: u.id, nickname: u.nickname, avatar: u.avatar, points: pts, count: u.predictions.length };
+      return {
+        userId: u.id,
+        nickname: u.nickname,
+        avatar: u.avatar,
+        points: pts,
+        count: u.predictions.length,
+        usedBoost: u.boosts.length > 0,
+        boostPts,
+      };
     })
     .filter((r) => r.count > 0)
     .sort((a, b) => b.points - a.points);

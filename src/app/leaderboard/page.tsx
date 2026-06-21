@@ -175,28 +175,38 @@ function Mini({ label, value, small }: { label: string; value: string; small?: b
 async function PerMatchday({ md, leagueId, meId }: { md: number; leagueId: string; meId: string }) {
   const rows = await leaderboardForMatchday(md, leagueId);
   if (rows.length === 0) {
-    return <div className="card p-10 text-center text-app-subtle">Nikt jeszcze nie typował w tej kolejce.</div>;
+    return <div className="stat-section text-center" style={{ padding: "40px 20px", color: "rgba(255,255,255,0.6)" }}>Nikt jeszcze nie typował w tej kolejce.</div>;
   }
   return (
-    <div className="card overflow-hidden">
+    <div>
       {rows.map((r, i) => {
-        const medal = ["🥇", "🥈", "🥉"][i] ?? `${i + 1}.`;
         const isMe = r.userId === meId;
         return (
-          <div
+          <PaniniCardMini
             key={r.userId}
-            className={`flex items-center justify-between px-5 py-3 border-b border-app last:border-0 ${isMe ? "bg-wc-red/5" : ""}`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="w-8 text-center font-black text-lg">{medal}</span>
-              <span className="text-2xl">{r.avatar}</span>
-              <div>
-                <div className="font-bold">{r.nickname} {isMe && <span className="text-xs text-wc-red">(ty)</span>}</div>
-                <div className="text-xs text-app-subtle">{r.count} typów</div>
-              </div>
-            </div>
-            <div className="text-2xl font-black">{r.points} <span className="text-sm text-app-subtle">pkt</span></div>
-          </div>
+            isMe={isMe}
+            data={{
+              nickname: r.nickname,
+              avatar: r.avatar,
+              rank: i + 1,
+              totalPoints: r.points,
+              badges: [
+                ...(r.usedBoost
+                  ? [{
+                      emoji: r.boostPts > 0 ? "⚡" : "💤",
+                      label: r.boostPts > 0 ? `Boost trafiony (+${r.boostPts} pkt)` : "Boost użyty (0 pkt)",
+                      description: r.boostPts > 0 ? "Wykorzystał boost x3 i zdobył punkty" : "Wykorzystał boost x3 ale nie zdobył punktów",
+                    }]
+                  : [{
+                      emoji: "❌",
+                      label: "Boost niewykorzystany",
+                      description: "Nie użył boosta w tej kolejce - przepadnie po jej końcu",
+                    }]),
+              ],
+              styleLabel: `${r.count} ${r.count === 1 ? "typ" : r.count < 5 ? "typy" : "typów"}`,
+              styleEmoji: "🎯",
+            }}
+          />
         );
       })}
     </div>
