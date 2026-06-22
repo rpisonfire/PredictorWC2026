@@ -1,29 +1,43 @@
 # ⚽ WC Predictor 2026
 
-Prywatna apka do typowania meczów Mistrzostw Świata 2026 dla Ciebie i znajomych. Działa jako PWA na telefonie, pełnoekranowa, z powiadomieniami push.
+Prywatna apka do typowania meczów Mistrzostw Świata 2026 dla Ciebie i znajomych. Działa jako PWA na telefonie, pełnoekranowa, z powiadomieniami push i całkowicie mundialowym wyglądem (LED stadium scoreboardy + karty Panini + boisko w tle).
 
 🔗 **Live demo**: [wc-predictor-one.vercel.app](https://wc-predictor-one.vercel.app)
 
 ---
 
+## 🎨 Wygląd
+
+- 🏟️ **Boisko w tle** — widziane z góry (pasy koszenia + linie + reflektory). Noc w dark mode, dzień w light mode.
+- 🇺🇸🇨🇦🇲🇽 **Pasek mundialowy** — gradient host country na samej górze + jako accent na collapsy i kafelkach
+- 📺 **LED stadium scoreboards** — wszystkie sekcje statystyk, leaderboard, collapsy, scoreboard widget na dashboardzie
+- 🃏 **Karty Panini** — profile graczy w stylu kolekcjonerskich naklejek z foil shine, kolor wg pozycji (#1 złoto, #2 srebro, #3 brąz, reszta wg championa)
+- ⚡ **Animacje** — kręcąca się piłka w logo, falujące flagi, pulsujący LIVE chip, mrugające boost-y, dramatic match hero z reflektorami
+- 🍔 **Sidebar tunnel-entry** — kliknięcie hamburgera otwiera panel z animacją "zawodników wychodzących z tunelu"
+- 🎉 **"GOOOOL!"** — fullscreen celebracja po wpisaniu wyniku przez admina
+
 ## ✨ Co potrafi
 
 ### Dla graczy
-- 🎯 **Typowanie meczów** — dokładny wynik, pierwsza drużyna ze strzałem, pierwszy strzelec (z anty-spoiler lock 5 min przed gwizdkiem)
+- 🎯 **Typowanie meczów** — dokładny wynik, pierwsza drużyna ze strzałem, pierwszy strzelec (anty-spoiler lock 5 min przed gwizdkiem)
 - ⚡ **Boost x3** — jeden mecz na kolejkę z potrójnymi punktami (możesz zmieniać między meczami do gwizdka)
 - 🏆 **Typ na mistrza** — wybierasz zwycięzcę całego turnieju (+10 pkt bonus, lock przy starcie 1/16 finału)
-- 📊 **Ranking** — ogólny i per kolejka, z odznakami i wykresem formy (sparkline per gracz, hover dla szczegółów meczu)
-- 📈 **Statystyki turnieju** — lider, najczęstsze typy, najpopularniejsze wyniki, style typowania, "Złoty boost", najbardziej kontrowersyjny mecz
+- 📺 **Personal scoreboard** na dashboardzie — 3-w-1 widget: najbliższy mecz, awans/spadek w rankingu, ostatni mecz z punktami
+- 📊 **Ranking** — ogólny (top 3 jako Panini cards, reszta mini) i per kolejka z badge'em użycia boosta
+- 📈 **Statystyki turnieju** — lider, najczęstsze typy, najpopularniejsze wyniki, style typowania, "Złoty boost", przebieg
+- ⚔️ **Pojedynek (Compare)** — H2H z każdym kumplem - statystyki, wynik mecz po meczu
+- 🃏 **Profil jako karta Panini** — Twoja kolekcjonerska karta z avatarem, stylem, statystykami, badge'ami
 - 🔮 **Wisdom of the crowd** — przed lockiem widzisz top 3 najczęściej typowane wyniki (anonimowo)
-- 📈 **Forma drużyn** — W/D/L z meczów WC (pokazuje się od 2. kolejki), z mini-flagami przeciwników
+- 📈 **Forma drużyn** — W/D/L z meczów WC (od 2. kolejki) z mini-flagami przeciwników
 - 💬 **Czat pod każdym meczem** — komentarze i trash talk
-- 👀 **Typy innych** — po zablokowaniu meczu zobaczysz co wytypowali pozostali, z możliwością rozwinięcia breakdown punktów
-- 🎉 **Confetti** — przy trafieniu dokładnego wyniku 🦈
+- ⏱️ **Reveal countdown** — po locku stadionowy zegar do odsłonięcia typów innych (kickoff + 45 min)
+- 👀 **Typy innych** — pełny breakdown punktów per kategoria z ✅/❌
+- 🎁 **Tournament Wrapped** (po finale) — Spotify-style podsumowanie sezonu
 - 🌍 **Tabele grupowe + drabinka pucharowa** — auto-liczone z wyników
 - 🏟️ **Multi-liga** — możesz tworzyć osobne ligi dla różnych grup znajomych
-- 🌙 **Dark/Light mode**
+- 🌙 **Dark/Light mode** z dopasowanym stadium background
 - 🔔 **Powiadomienia push** — Web Push z VAPID, działa też na iOS PWA
-- 📱 **PWA** — instalacja jak natywna apka (Add to Home Screen, anty-stale-cache SW)
+- 📱 **PWA** — instalacja jak natywna apka (Add to Home Screen, anty-stale-cache SW v4 z timeoutami)
 
 ### 🎖️ Odznaki w rankingu
 
@@ -37,9 +51,10 @@ Prywatna apka do typowania meczów Mistrzostw Świata 2026 dla Ciebie i znajomyc
 - 🧊 **Lodowaty** — 0 pkt w ostatnim rozegranym meczu
 
 ### Dla admina (Ciebie)
-- 🛠️ Panel admina: wpisywanie wyników z **collapsible kolejkami** (tylko aktualna otwarta, rozegrane schowane na dole)
-- 🔄 Ręczny przycisk sync z [football-data.org](https://www.football-data.org/) (cron domyślnie wyłączony — wpisuj wyniki ręcznie)
-- ✅ **Toast po zapisie wyniku** ("Wynik dla meczu zapisany - punkty zostały rozdane")
+- 🛠️ Panel admina: wpisywanie wyników z **collapsible kolejkami** (aktualna otwarta, rozegrane schowane na dole) - karty wyników w stylu **stadionowych boards LED**
+- 👥 **Zarządzanie userami** — lista z badge'ami aktywności (kiedy ostatni typ), przycisk usuń konto (cascade), reset hasła, edycja pojedynczych typów graczy
+- 🔄 Ręczny przycisk sync z [football-data.org](https://www.football-data.org/) (cron domyślnie wyłączony)
+- ✅ **Toast + GOOOL animacja** po zapisaniu wyniku
 - 🔔 Wysyłanie powiadomień do wybranego usera lub wszystkich
 - 🔒 Reset hasła kumpla, dodawanie ludzi do ligi
 - 🛡️ Ochrona przed bruteforce (5 prób → 15 min blokada; admin niblokowalny)
@@ -212,38 +227,49 @@ src/
 │   ├── groups                # Tabele grupowe (auto-liczone)
 │   ├── bracket               # Drabinka pucharowa
 │   ├── leaderboard           # Ranking ogólny + per kolejka
-│   ├── stats                 # Statystyki turnieju (lider, styl typowania, top wyniki)
-│   ├── leagues               # Multi-liga: stwórz/dołącz/opuść
-│   ├── profile               # Stats konta, styl, motyw, hasło
-│   ├── admin                 # Panel admina (mecze/userzy/ligi/mistrz/push)
-│   ├── my-predictions        # Lista typów z wykresem formy
+│   ├── stats                 # Statystyki turnieju (lider, styl typowania, top wyniki) - LED sections
+│   ├── leagues               # Multi-liga: stwórz/dołącz/opuść (nie linkowane w sidebar)
+│   ├── profile               # Hero Panini card + statystyki + ustawienia
+│   ├── admin                 # Panel admina (mecze/userzy/ligi/mistrz/push) - LED scoreboards
+│   ├── admin/user/[userId]   # Edycja typów konkretnego usera (admin)
+│   ├── compare               # Lista przeciwników do Pojedynku
+│   ├── compare/[userId]      # Pojedynek H2H z wybranym graczem
+│   ├── wrapped               # Tournament Wrapped - podsumowanie sezonu (lock do finału)
+│   ├── my-predictions        # Lista typów z wykresem formy + LED match tiles
 │   └── api/
 │       ├── cron/sync         # Ręczny sync z football-data (cron domyślnie wyłączony)
 │       ├── push/subscribe    # Subskrypcje Web Push
 │       └── push/test         # Test notyfikacji
 ├── components/               # Reusable UI
-│   ├── Sidebar, MobileNav    # Nawigacja desktop + mobile
-│   ├── MatchCard*            # Karty meczów
+│   ├── Sidebar               # Nawigacja desktop z hamburger trigger + tunnel-entry stagger
+│   ├── MobileNav             # Bottom nav (admin dostaje swój slot)
+│   ├── PaniniCard            # Karta gracza w stylu Panini (Large + Mini variants)
+│   ├── PersonalScoreboard    # 3-w-1 widget na dashboardzie (LED display)
 │   ├── PlayerPicker          # Custom picker zawodników z search
 │   ├── TeamRadioPicker       # Picker drużyny (pierwszy gol) z flagą
 │   ├── PlayerAvatar          # Awatar z kolorem pozycji (inicjały gdy brak photoUrl)
 │   ├── Flag                  # SVG flagi przez FlagCDN
 │   ├── Emoji                 # Cross-platform emoji przez Twemoji
-│   ├── Countdown             # Timer do kickoffu
-│   ├── Sparkline             # Mini-wykres formy
+│   ├── Countdown             # Timer do kickoffu turnieju
+│   ├── RevealCountdown       # Stadium zegar do odsłonięcia typów innych (kickoff+45min)
+│   ├── StadiumBackground     # Boisko w tle (noc/dzień) z reflektorami
+│   ├── Sparkline             # Mini-wykres formy z hover labels per mecz
 │   ├── UserPickSearch        # Search + expandable breakdown punktów typów innych
 │   ├── ConfettiCelebration   # Konfetti po trafieniu dokładnego wyniku
+│   ├── GoalCelebration       # Fullscreen "GOOOOL!" po wpisaniu wyniku przez admina
 │   ├── Toast / AutoToast     # Powiadomienia akcji
 │   ├── ThemeToggle           # Dark/Light
-│   ├── LiveChip              # 🔴 LIVE indicator
+│   ├── LiveChip              # 🔴 LIVE indicator z dramatic pulse
+│   ├── Skeleton              # Loading placeholdery dla SSR routes
 │   ├── NotificationsButton   # Subskrypcja push
-│   └── RegisterSW            # Service worker registration
+│   └── RegisterSW            # Service worker registration + auto-update
 ├── lib/                      # Logika i utils
 │   ├── db.ts                 # Singleton Prisma client
 │   ├── session.ts            # Auth (requireAuth, requireAdmin)
 │   ├── password.ts           # scrypt hashing
 │   ├── scoring.ts            # Silnik punktacji
-│   ├── stats.ts              # Ranking, leaderboard, styles
+│   ├── stats.ts              # Ranking, leaderboard, styles, badges
+│   ├── teamColors.ts         # Mapa shortCode→kolory flagi do match-tile glow (48 drużyn)
 │   ├── groups.ts             # Klasyfikacja grupowa
 │   ├── championLock.ts       # Lock typu mistrza po fazie grupowej
 │   ├── matchStatus.ts        # isLive() helper
@@ -274,9 +300,12 @@ src/
 ## 🎨 Personalizacja
 
 - **Kolory** w `tailwind.config.ts` (paleta `wc.*`) i `globals.css` (CSS vars)
+- **Tematy LED + Panini cards + boisko w tle** — wszystkie style w `src/app/globals.css` (sekcje `===== ... =====`)
+- **Kolory drużyn** (per-match team glow) — `src/lib/teamColors.ts`, mapowanie shortCode → primary/secondary/glow rgba
 - **Skoring** w `src/lib/scoring.ts` — zmień liczbę punktów per akcja
 - **Boost** w `src/app/match/[id]/page.tsx` — zmień mnożnik z 3
 - **Odznaki** w `src/lib/stats.ts` → `badgesFor()` — dodaj/usuń badge, zmień progi
+- **Reveal threshold** typów innych — `src/app/match/[id]/page.tsx`, obecnie `kickoff + 45min`
 - **Ikony PWA** generowane przez `npx tsx scripts/generate-icons.ts` (z SVG źródłowego)
 - **ISR cache windows** — każda strona z `export const revalidate = N` w `src/app/<page>/page.tsx`
 - **Service Worker** (timeouty, precache) — `public/sw.js`. Bump `CACHE = "wcp-vN"` żeby wymusić aktywację nowej wersji.
