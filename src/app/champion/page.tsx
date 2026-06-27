@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/session";
 import { championPickIsLocked } from "@/lib/championLock";
 import { fmtDateTimeLong } from "@/lib/dates";
 import { Flag } from "@/components/Flag";
+import { ChampionLockCountdown } from "@/components/ChampionLockCountdown";
 
 async function setChampion(formData: FormData) {
   "use server";
@@ -60,10 +61,16 @@ export default async function ChampionPage() {
           <Link href="/profile" className="btn-ghost mt-4 inline-flex">Wróć do profilu</Link>
         </div>
       ) : (
+        <>
+          {lock.lockAt && (
+            <div className="mb-4">
+              <ChampionLockCountdown lockAtIso={lock.lockAt.toISOString()} />
+            </div>
+          )}
         <form action={setChampion} className="stat-section space-y-4">
           {lock.lockAt && (
-            <div className="text-xs" style={{ color: "rgba(241,180,52,0.85)", fontFamily: "'Courier New', monospace", letterSpacing: "1px" }}>
-              ⏰ MOŻESZ ZMIENIAĆ DO {fmtDateTimeLong(lock.lockAt).toUpperCase()}
+            <div className="text-xs text-center" style={{ color: "rgba(241,180,52,0.75)", fontFamily: "'Courier New', monospace", letterSpacing: "1px" }}>
+              ZAMKNIĘCIE: {fmtDateTimeLong(lock.lockAt).toUpperCase()}
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto p-1">
@@ -83,6 +90,7 @@ export default async function ChampionPage() {
           </div>
           <button className="btn-primary w-full">Zapisz typ na mistrza</button>
         </form>
+        </>
       )}
     </section>
   );
