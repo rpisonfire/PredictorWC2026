@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -5,8 +6,9 @@ import { fmtDateTime } from "@/lib/dates";
 import { Flag } from "@/components/Flag";
 import { matchGlowStyle } from "@/lib/teamColors";
 
-// Drabinka zmienia się rzadko - cache 30 min, admin invaliduje po wpisaniu wyniku.
-export const revalidate = 1800;
+// Cache 5 min - po fazie grupowej awansowanie + lock typu mistrza ma znaczenie.
+// Cron + admin invaliduje natychmiast po sync.
+export const revalidate = 300;
 
 const STAGE_ORDER = [
   "Faza grupowa",
@@ -41,18 +43,30 @@ export default async function BracketPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  // Bierz wszystkie mecze nie-grupowe (włącznie z surowymi stage'ami jeśli sync jeszcze nie zaktualizował)
   const matches = await prisma.match.findMany({
-    where: { stage: { in: STAGE_ORDER.filter((s) => s !== "Faza grupowa") } },
+    where: { NOT: { stage: { startsWith: "Grupa" } } },
     include: { homeTeam: true, awayTeam: true },
     orderBy: { kickoff: "asc" },
   });
 
-  // group by stage
+  // Re-map surowych stage'ów do polskich (awaryjny defensywny mapping gdy DB ma stare)
+  const STAGE_REMAP: Record<string, string> = {
+    "LAST_32": "1/16 finału",
+    "LAST_16": "1/8 finału",
+    "QUARTER_FINALS": "Ćwierćfinał",
+    "SEMI_FINALS": "Półfinał",
+    "THIRD_PLACE": "Mecz o 3. miejsce",
+    "FINAL": "Finał",
+  };
+
+  // group by stage (z remappingiem)
   const byStage = new Map<string, typeof matches>();
   for (const m of matches) {
-    const arr = byStage.get(m.stage) ?? [];
+    const stage = STAGE_REMAP[m.stage] ?? m.stage;
+    const arr = byStage.get(stage) ?? [];
     arr.push(m);
-    byStage.set(m.stage, arr);
+    byStage.set(stage, arr);
   }
 
   // Pokaż WSZYSTKIE etapy - nawet bez meczy w bazie (jako placeholders)
@@ -119,9 +133,10 @@ export default async function BracketPage() {
                       const homeWon = finished && m.homeScore! > m.awayScore!;
                       const awayWon = finished && m.awayScore! > m.homeScore!;
                       return (
-                        <a
+                        <Link
                           key={m.id}
                           href={`/match/${m.id}`}
+                          prefetch={false}
                           className="match-tile block"
                           style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
                         >
@@ -146,7 +161,7 @@ export default async function BracketPage() {
                               </span>
                             </div>
                           </div>
-                        </a>
+                        </Link>
                       );
                     })}
                   </div>
