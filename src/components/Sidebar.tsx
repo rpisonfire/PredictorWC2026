@@ -13,12 +13,12 @@ export function Sidebar({
 }: { nickname: string; avatar: string; isAdmin?: boolean }) {
   const items: Item[] = [
     { href: "/dashboard",       label: "Mecze",            emoji: "⚽" },
-    { href: "/my-predictions",  label: "Moje typy",        emoji: "📋" },
-    { href: "/champion",        label: "Typ na mistrza",   emoji: "🏆" },
-    { href: "/groups",          label: "Grupy",            emoji: "📊" },
     { href: "/bracket",         label: "Drabinka",         emoji: "🌳" },
+    { href: "/my-predictions",  label: "Moje typy",        emoji: "📋" },
     { href: "/leaderboard",     label: "Ranking",          emoji: "🥇" },
     { href: "/stats",           label: "Statystyki",       emoji: "🌍" },
+    { href: "/groups",          label: "Grupy",            emoji: "📊" },
+    { href: "/champion",        label: "Typ na mistrza",   emoji: "🏆" },
   ];
   if (isAdmin) items.push({ href: "/admin", label: "Admin", emoji: "🛠️", gold: true });
 

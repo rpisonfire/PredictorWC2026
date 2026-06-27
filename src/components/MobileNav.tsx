@@ -6,15 +6,15 @@ import { useState, useEffect } from "react";
 type NavItem = { href: string; label: string; emoji: string };
 
 const PRIMARY: NavItem[] = [
-  { href: "/dashboard",      label: "Mecze",   emoji: "⚽" },
-  { href: "/groups",         label: "Grupy",   emoji: "📊" },
-  { href: "/leaderboard",    label: "Ranking", emoji: "🏆" },
-  { href: "/my-predictions", label: "Typy",    emoji: "📋" },
+  { href: "/dashboard",      label: "Mecze",     emoji: "⚽" },
+  { href: "/bracket",        label: "Drabinka",  emoji: "🌳" },
+  { href: "/leaderboard",    label: "Ranking",   emoji: "🏆" },
+  { href: "/my-predictions", label: "Typy",      emoji: "📋" },
 ];
 
 const SECONDARY: NavItem[] = [
   { href: "/champion",     label: "Typ na mistrza",    emoji: "🏆" },
-  { href: "/bracket",      label: "Drabinka",          emoji: "🌳" },
+  { href: "/groups",       label: "Grupy",             emoji: "📊" },
   { href: "/stats",        label: "Statystyki",        emoji: "🌍" },
   { href: "/profile",      label: "Profil",            emoji: "👤" },
 ];
@@ -28,10 +28,10 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
   // Admin: zamiast Typów (które są dostępne z menu Więcej) - bezpośredni dostęp
   const primary = isAdmin
     ? [
-        { href: "/dashboard",      label: "Mecze",   emoji: "⚽" },
-        { href: "/groups",         label: "Grupy",   emoji: "📊" },
-        { href: "/leaderboard",    label: "Ranking", emoji: "🏆" },
-        { href: "/admin",          label: "Admin",   emoji: "🛠️" },
+        { href: "/dashboard",      label: "Mecze",    emoji: "⚽" },
+        { href: "/bracket",        label: "Drabinka", emoji: "🌳" },
+        { href: "/leaderboard",    label: "Ranking",  emoji: "🏆" },
+        { href: "/admin",          label: "Admin",    emoji: "🛠️" },
       ]
     : PRIMARY;
 
