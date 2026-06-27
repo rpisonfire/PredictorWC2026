@@ -183,7 +183,8 @@ async function main() {
         const homeId = home?.id ?? tbdTeam.id;
         const awayId = away?.id ?? tbdTeam.id;
         const stage = m.group ? `Grupa ${m.group.replace("GROUP_", "")}` : translateStage(m.stage);
-        const md = m.matchday ?? stageOrder(m.stage);
+        // Faza grupowa = matchday z API (1-3). Knockout = wymuszone od stage (100+).
+        const md = m.stage === "GROUP_STAGE" ? (m.matchday ?? 1) : stageOrder(m.stage);
         const finished = m.status === "FINISHED";
 
         // Sprawdź czy mecz już istniał z TBD - jeśli tak i teraz mamy realne drużyny, log it
@@ -224,6 +225,7 @@ async function main() {
 function translateStage(s: string): string {
   const m: Record<string, string> = {
     GROUP_STAGE: "Faza grupowa",
+    LAST_32: "1/16 finału",
     LAST_16: "1/8 finału",
     QUARTER_FINALS: "Ćwierćfinał",
     SEMI_FINALS: "Półfinał",
@@ -234,9 +236,15 @@ function translateStage(s: string): string {
 }
 
 function stageOrder(s: string): number {
+  // Matchday wymuszony per stage (API zwraca 1,2,3 dla knockoutu - to wewnętrzny numer)
   const m: Record<string, number> = {
-    GROUP_STAGE: 1, LAST_16: 4, QUARTER_FINALS: 5,
-    SEMI_FINALS: 6, THIRD_PLACE: 7, FINAL: 8,
+    GROUP_STAGE: 1,
+    LAST_32: 100, // 1/16 finału
+    LAST_16: 101, // 1/8 finału
+    QUARTER_FINALS: 102,
+    SEMI_FINALS: 103,
+    THIRD_PLACE: 104,
+    FINAL: 105,
   };
   return m[s] ?? 1;
 }

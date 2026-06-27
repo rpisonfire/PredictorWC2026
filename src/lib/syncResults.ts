@@ -153,10 +153,12 @@ export async function syncSchedule(): Promise<{ ok: boolean; touched: number; li
         const stage = m.group
           ? `Grupa ${m.group.replace("GROUP_", "")}`
           : translateStage(m.stage);
+        // Faza grupowa = matchday z API (1-3). Knockout = wymuszone od stage (100+).
+        const matchday = m.stage === "GROUP_STAGE" ? (m.matchday ?? 1) : stageOrderLocal(m.stage);
         await prisma.match.create({
           data: {
             id: `fd-${m.id}`,
-            matchday: m.matchday ?? stageOrderLocal(m.stage),
+            matchday,
             stage,
             kickoff: new Date(m.utcDate),
             homeTeamId: homeId,
@@ -172,13 +174,21 @@ export async function syncSchedule(): Promise<{ ok: boolean; touched: number; li
       const kickoffChanged = existing.kickoff.getTime() !== new Date(m.utcDate).getTime();
       const teamsChanged = existing.homeTeamId !== homeId || existing.awayTeamId !== awayId;
 
-      if (kickoffChanged || teamsChanged) {
+      // Force matchday + stage update jeśli były pucharowe a zapisane jako grupowy matchday
+      const correctStage = m.group
+        ? `Grupa ${m.group.replace("GROUP_", "")}`
+        : translateStage(m.stage);
+      const correctMatchday = m.stage === "GROUP_STAGE" ? (m.matchday ?? 1) : stageOrderLocal(m.stage);
+
+      if (kickoffChanged || teamsChanged || true /* zawsze sprawdź stage/matchday */) {
         await prisma.match.update({
           where: { id: `fd-${m.id}` },
           data: {
             kickoff: new Date(m.utcDate),
             homeTeamId: homeId,
             awayTeamId: awayId,
+            stage: correctStage,
+            matchday: correctMatchday,
           },
         });
         touched++;
@@ -207,19 +217,19 @@ export async function syncSchedule(): Promise<{ ok: boolean; touched: number; li
 function translateStage(stage: string): string {
   switch (stage) {
     case "GROUP_STAGE": return "Faza grupowa";
-    case "LAST_16": return "1/16 finału";
+    case "LAST_32": return "1/16 finału";
+    case "LAST_16": return "1/8 finału";
     case "QUARTER_FINALS": return "Ćwierćfinał";
     case "SEMI_FINALS": return "Półfinał";
     case "THIRD_PLACE": return "Mecz o 3. miejsce";
     case "FINAL": return "Finał";
-    case "ROUND_OF_16": return "1/8 finału";
     default: return stage;
   }
 }
 function stageOrderLocal(stage: string): number {
   switch (stage) {
-    case "LAST_16": return 100;
-    case "ROUND_OF_16": return 101;
+    case "LAST_32": return 100;
+    case "LAST_16": return 101;
     case "QUARTER_FINALS": return 102;
     case "SEMI_FINALS": return 103;
     case "THIRD_PLACE": return 104;
