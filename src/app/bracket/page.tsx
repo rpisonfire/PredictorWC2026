@@ -79,18 +79,24 @@ export default async function BracketPage() {
               const list = byStage.get(s) ?? [];
               const expected = EXPECTED_COUNTS[s] ?? 0;
               const placeholders = Math.max(0, expected - list.length);
+              const isFinal = s === "Finał";
+              const isBronze = s === "Mecz o 3. miejsce";
+              const headerEmoji = isFinal ? "🏆 " : isBronze ? "🥉 " : "";
+              const headerColor = isFinal ? "#FFD700" : isBronze ? "#CD7F32" : "#F1B434";
+              const headerBorder = isFinal ? "rgba(255,215,0,0.6)" : isBronze ? "rgba(205,127,50,0.6)" : "rgba(241,180,52,0.3)";
+              const headerGlow = isFinal ? "0 0 12px rgba(255,215,0,0.5)" : isBronze ? "0 0 10px rgba(205,127,50,0.5)" : "0 0 6px rgba(241,180,52,0.4)";
               return (
                 <div key={s} className="flex flex-col gap-3 min-w-[240px]">
                   <div className="sticky top-0 z-10 py-2 px-3 rounded-lg text-xs uppercase tracking-wider font-black"
                        style={{
                          background: "linear-gradient(180deg, #0a0e1a 0%, #050810 100%)",
-                         color: "#F1B434",
+                         color: headerColor,
                          fontFamily: "'Courier New', monospace",
                          letterSpacing: "2px",
-                         border: "1px solid rgba(241,180,52,0.3)",
-                         textShadow: "0 0 6px rgba(241,180,52,0.4)",
+                         border: `1px solid ${headerBorder}`,
+                         textShadow: headerGlow,
                        }}>
-                    {COLUMN_LABEL[s] ?? s} · {expected}
+                    {headerEmoji}{COLUMN_LABEL[s] ?? s} · {expected}
                   </div>
                   <div className="flex flex-col gap-3 justify-around flex-1">
                     {/* Placeholder TBD sloty - gdy brak meczy w bazie */}
@@ -98,7 +104,19 @@ export default async function BracketPage() {
                       <div
                         key={`tbd-${i}`}
                         className="match-tile block"
-                        style={{ background: "linear-gradient(135deg, rgba(241,180,52,0.15), rgba(255,255,255,0.05), rgba(241,180,52,0.15))", opacity: 0.7 }}
+                        style={{
+                          background: isFinal
+                            ? "linear-gradient(135deg, #FFD700, #FFA500, #FFD700)"
+                            : isBronze
+                            ? "linear-gradient(135deg, #CD7F32, #8B4513, #CD7F32)"
+                            : "linear-gradient(135deg, rgba(241,180,52,0.15), rgba(255,255,255,0.05), rgba(241,180,52,0.15))",
+                          opacity: isFinal || isBronze ? 0.9 : 0.7,
+                          boxShadow: isFinal
+                            ? "0 0 30px rgba(255,215,0,0.4)"
+                            : isBronze
+                            ? "0 0 24px rgba(205,127,50,0.3)"
+                            : undefined,
+                        }}
                       >
                         <div className="match-tile-inner" style={{ padding: "10px 12px" }}>
                           <div className="match-tile-meta" style={{ marginBottom: 4 }}>TBD</div>
@@ -123,13 +141,18 @@ export default async function BracketPage() {
                       const finished = m.homeScore !== null && m.awayScore !== null;
                       const homeWon = finished && m.homeScore! > m.awayScore!;
                       const awayWon = finished && m.awayScore! > m.homeScore!;
+                      const specialStyle = isFinal
+                        ? { background: "linear-gradient(135deg, #FFD700, #FFA500, #FFD700)", boxShadow: "0 0 30px rgba(255,215,0,0.4)" }
+                        : isBronze
+                        ? { background: "linear-gradient(135deg, #CD7F32, #8B4513, #CD7F32)", boxShadow: "0 0 24px rgba(205,127,50,0.3)" }
+                        : matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode);
                       return (
                         <Link
                           key={m.id}
                           href={`/match/${m.id}`}
                           prefetch={false}
                           className="match-tile block"
-                          style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
+                          style={specialStyle}
                         >
                           <div className="match-tile-inner" style={{ padding: "10px 12px" }}>
                             <div className="match-tile-meta" style={{ marginBottom: 4 }}>{fmtDateTime(m.kickoff)}</div>
