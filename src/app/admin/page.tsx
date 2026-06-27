@@ -9,7 +9,7 @@ import { getCurrentUser } from "@/lib/session";
 import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
 import { sendPushToAll, sendPushToUser } from "@/lib/push";
 import { matchGlowStyle } from "@/lib/teamColors";
-import { syncFinishedResults } from "@/lib/syncResults";
+import { syncFinishedResults, syncSchedule } from "@/lib/syncResults";
 import { cookies } from "next/headers";
 import { Emoji } from "@/components/Emoji";
 import { Flag } from "@/components/Flag";
@@ -172,6 +172,7 @@ async function manualSync() {
   const me = await getCurrentUser();
   if (!me?.isAdmin) return;
   const result = await syncFinishedResults({ sendPush: false });
+  await syncSchedule(); // też podlinkuj awanse + zaktualizuj daty meczy
   const c = await cookies();
   c.set("wcp_sync_result",
     `${result.ok ? "ok" : "err"}:${result.updated}:${result.scoredPredictions}`,

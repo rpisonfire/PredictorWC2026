@@ -168,26 +168,42 @@ async function main() {
     const mj = await api<{ matches: ApiMatch[] }>("/competitions/WC/matches?season=2026");
     console.log(`   ${mj.matches.length} meczów`);
 
-    let saved = 0, skipped = 0;
+    // Zapewnij TBD placeholder team - używany gdy football-data jeszcze nie wie kto awansuje
+    const tbdTeam = await prisma.team.upsert({
+      where: { shortCode: "TBD" },
+      update: {},
+      create: { name: "TBD", shortCode: "TBD", flag: "🏳️" },
+    });
+
+    let saved = 0, updatedToReal = 0, skipped = 0;
     for (const m of mj.matches) {
       try {
-        if (!m.homeTeam?.id || !m.awayTeam?.id) { skipped++; continue; }
-        const home = await prisma.team.findUnique({ where: { apiId: m.homeTeam.id } });
-        const away = await prisma.team.findUnique({ where: { apiId: m.awayTeam.id } });
-        if (!home || !away) { skipped++; continue; }
+        const home = m.homeTeam?.id ? await prisma.team.findUnique({ where: { apiId: m.homeTeam.id } }) : null;
+        const away = m.awayTeam?.id ? await prisma.team.findUnique({ where: { apiId: m.awayTeam.id } }) : null;
+        const homeId = home?.id ?? tbdTeam.id;
+        const awayId = away?.id ?? tbdTeam.id;
         const stage = m.group ? `Grupa ${m.group.replace("GROUP_", "")}` : translateStage(m.stage);
         const md = m.matchday ?? stageOrder(m.stage);
         const finished = m.status === "FINISHED";
+
+        // Sprawdź czy mecz już istniał z TBD - jeśli tak i teraz mamy realne drużyny, log it
+        const existing = await prisma.match.findUnique({ where: { id: `fd-${m.id}` }, select: { homeTeamId: true, awayTeamId: true } });
+        const wasReal = existing && existing.homeTeamId !== tbdTeam.id && existing.awayTeamId !== tbdTeam.id;
+        const nowReal = homeId !== tbdTeam.id && awayId !== tbdTeam.id;
+        if (existing && !wasReal && nowReal) updatedToReal++;
+
         await prisma.match.upsert({
           where: { id: `fd-${m.id}` },
           update: {
             kickoff: new Date(m.utcDate),
+            homeTeamId: homeId,
+            awayTeamId: awayId,
             homeScore: finished ? (m.score?.fullTime?.home ?? null) : null,
             awayScore: finished ? (m.score?.fullTime?.away ?? null) : null,
           },
           create: {
             id: `fd-${m.id}`, matchday: md, stage, kickoff: new Date(m.utcDate),
-            homeTeamId: home.id, awayTeamId: away.id,
+            homeTeamId: homeId, awayTeamId: awayId,
             homeScore: finished ? (m.score?.fullTime?.home ?? null) : null,
             awayScore: finished ? (m.score?.fullTime?.away ?? null) : null,
           },
@@ -197,7 +213,7 @@ async function main() {
         skipped++;
       }
     }
-    console.log(`✓ Zapisano ${saved} meczów (pominięto ${skipped} - drużyny TBD)`);
+    console.log(`✓ Zapisano ${saved} meczów${updatedToReal > 0 ? ` (z czego ${updatedToReal} dostało prawdziwe drużyny - awanse podlinkowane!)` : ""}${skipped > 0 ? ` · ${skipped} błędów` : ""}`);
   } catch (e) {
     console.log(`⚠️  Terminarz: ${(e as Error).message.slice(0, 120)}`);
   }

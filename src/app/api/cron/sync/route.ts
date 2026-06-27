@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { syncFinishedResults } from "@/lib/syncResults";
+import { syncFinishedResults, syncSchedule } from "@/lib/syncResults";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -11,6 +11,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const result = await syncFinishedResults({ sendPush: true });
-  return NextResponse.json({ ...result, ts: new Date().toISOString() });
+  // 1) Sync wyników (finished + recalc punktów + opcjonalny push)
+  const results = await syncFinishedResults({ sendPush: true });
+  // 2) Sync terminarza (daty + awansowanie drużyn TBD → realne)
+  const schedule = await syncSchedule();
+
+  return NextResponse.json({
+    results,
+    schedule,
+    ts: new Date().toISOString(),
+  });
 }
