@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { fmtDateTime } from "@/lib/dates";
 import { Flag } from "@/components/Flag";
 import { matchGlowStyle } from "@/lib/teamColors";
+import { prettyStage } from "@/lib/stageLabel";
 
 // Cache 5 min - po fazie grupowej awansowanie + lock typu mistrza ma znaczenie.
 // Cron + admin invaliduje natychmiast po sync.
@@ -50,20 +51,10 @@ export default async function BracketPage() {
     orderBy: { kickoff: "asc" },
   });
 
-  // Re-map surowych stage'ów do polskich (awaryjny defensywny mapping gdy DB ma stare)
-  const STAGE_REMAP: Record<string, string> = {
-    "LAST_32": "1/16 finału",
-    "LAST_16": "1/8 finału",
-    "QUARTER_FINALS": "Ćwierćfinał",
-    "SEMI_FINALS": "Półfinał",
-    "THIRD_PLACE": "Mecz o 3. miejsce",
-    "FINAL": "Finał",
-  };
-
-  // group by stage (z remappingiem)
+  // group by stage (z defensywnym remappingiem gdy DB ma surowe stage'y)
   const byStage = new Map<string, typeof matches>();
   for (const m of matches) {
-    const stage = STAGE_REMAP[m.stage] ?? m.stage;
+    const stage = prettyStage(m.stage);
     const arr = byStage.get(stage) ?? [];
     arr.push(m);
     byStage.set(stage, arr);

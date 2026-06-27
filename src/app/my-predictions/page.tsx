@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { matchGlowStyle } from "@/lib/teamColors";
+import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
 
 // Cache 5 min - typy zmieniają się rzadko, revalidate po zapisie usera + po wpisaniu wyniku.
 export const revalidate = 300;
@@ -143,7 +144,7 @@ function Row({ p, boosted, resolved }: { p: any; boosted: boolean; resolved?: bo
     >
       <div className="match-tile-inner">
         <div className="match-tile-meta">
-          <span>{m.stage} · Kolejka {m.matchday}</span>
+          <span>{isKnockoutStage(m.stage) ? prettyStage(m.stage) : `${m.stage} · Kolejka ${m.matchday}`}</span>
           <span>{fmtDateTime(m.kickoff)}</span>
         </div>
         <div className="flex items-center justify-between mt-2">

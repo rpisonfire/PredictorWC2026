@@ -9,6 +9,7 @@ import { getCurrentUser } from "@/lib/session";
 import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
 import { sendPushToAll, sendPushToUser } from "@/lib/push";
 import { matchGlowStyle } from "@/lib/teamColors";
+import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
 import { syncFinishedResults, syncSchedule } from "@/lib/syncResults";
 import { cookies } from "next/headers";
 import { Emoji } from "@/components/Emoji";
@@ -583,12 +584,16 @@ export default async function Admin({
             {sortedMatchdays.map((md) => {
               const list = byMatchday.get(md)!;
               const isCurrent = md === currentMd;
+              const firstStage = list[0]?.stage;
+              const label = firstStage && isKnockoutStage(firstStage)
+                ? prettyStage(firstStage)
+                : `Kolejka ${md}`;
               return (
                 <details key={md} open={isCurrent} className="mb-4">
                   <summary className="collapse-header">
                     <span className="flex items-center gap-2">
                       <span className="collapse-chev">▶</span>
-                      Kolejka {md}
+                      {label}
                       <span className="collapse-count">· {list.length} {list.length === 1 ? "mecz" : "meczy"}</span>
                     </span>
                     {isCurrent && <span className="chip-no-pick">aktualna</span>}
@@ -642,7 +647,7 @@ function MatchForm({
       <div className="match-tile-inner" style={{ padding: "16px" }}>
         <input type="hidden" name="matchId" value={m.id} />
         <div className="match-tile-meta">
-          <span>{m.stage} · Kolejka {m.matchday}</span>
+          <span>{isKnockoutStage(m.stage) ? prettyStage(m.stage) : `${m.stage} · Kolejka ${m.matchday}`}</span>
           <span>{fmtDateTimeLong(m.kickoff)}</span>
         </div>
         {/* Drużyny */}

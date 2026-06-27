@@ -13,6 +13,16 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 import { matchGlowStyle } from "@/lib/teamColors";
 import { PersonalScoreboard } from "@/components/PersonalScoreboard";
+import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
+
+// Z listy meczy w danej kolejce zwróć etykietę.
+// Knockout → nazwa etapu (1/16 finału, Ćwierćfinał, ...). Grupowa → "Kolejka X".
+function matchdayLabel(list: { stage: string }[], md: number | string): string {
+  if (list.length === 0 || !isKnockoutStage(list[0].stage)) return `Kolejka ${md}`;
+  const first = prettyStage(list[0].stage);
+  const allSame = list.every((m) => prettyStage(m.stage) === first);
+  return allSame ? first : `Kolejka ${md}`;
+}
 
 async function quickBoost(formData: FormData) {
   "use server";
@@ -244,6 +254,7 @@ export default async function Dashboard() {
           </div>
         );
 
+        const label = matchdayLabel(list, md);
         // Cała kolejka rozegrana → schowaj w collapsible (domyślnie zwiniętą)
         if (allFinished) {
           return (
@@ -251,7 +262,7 @@ export default async function Dashboard() {
               <summary className="collapse-header">
                 <span className="flex items-center gap-2">
                   <span className="collapse-chev">▶</span>
-                  Kolejka {md}
+                  {label}
                   <span className="collapse-count">· {finished.length} rozegranych</span>
                 </span>
                 <span className="chip-after-match">zakończona</span>
@@ -264,7 +275,7 @@ export default async function Dashboard() {
         return (
           <div key={md} className="mb-8">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-black">Kolejka {md}</h2>
+              <h2 className="text-lg font-black">{label}</h2>
               {list.some((m) => m.boosts.length > 0) && (
                 <span className="chip bg-wc-gold/20 text-wc-gold">Boost użyty ⚡</span>
               )}
@@ -333,7 +344,7 @@ function MatchCard({
       <Link href={`/match/${m.id}`} className="absolute inset-0 z-0" aria-label={`${m.homeTeam.name} vs ${m.awayTeam.name}`} />
       <div className="match-tile-inner relative z-10 pointer-events-none">
       <div className="match-tile-meta">
-        <span className="truncate">{m.stage}</span>
+        <span className="truncate">{prettyStage(m.stage)}</span>
         <span className="shrink-0 ml-2">{fmtDateTime(m.kickoff)}</span>
       </div>
 

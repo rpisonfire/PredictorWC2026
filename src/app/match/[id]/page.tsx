@@ -32,6 +32,7 @@ import { Emoji } from "@/components/Emoji";
 import { UserPickSearch } from "@/components/UserPickSearch";
 import { matchGlowStyle } from "@/lib/teamColors";
 import { RevealCountdown } from "@/components/RevealCountdown";
+import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
 import { ConfettiCelebration } from "@/components/ConfettiCelebration";
 
 async function savePrediction(formData: FormData) {
@@ -245,7 +246,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       >
         <div className="match-hero-inner">
           <div className="match-hero-meta">
-            <span>{match.stage} · Kolejka {match.matchday}</span>
+            <span>{isKnockoutStage(match.stage) ? prettyStage(match.stage) : `${match.stage} · Kolejka ${match.matchday}`}</span>
             <div className="flex items-center gap-2">
               {live && <LiveChip small />}
               <span>{fmtDateTimeLong(match.kickoff)}</span>
