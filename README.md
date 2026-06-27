@@ -1,358 +1,311 @@
 # ⚽ WC Predictor 2026
 
-Prywatna apka do typowania meczów Mistrzostw Świata 2026 dla Ciebie i znajomych. Działa jako PWA na telefonie, pełnoekranowa, z powiadomieniami push i całkowicie mundialowym wyglądem (LED stadium scoreboardy + karty Panini + boisko w tle).
+[![Next.js](https://img.shields.io/badge/Next.js-15-000000?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![Vercel](https://img.shields.io/badge/Vercel-Hosting-000000?style=for-the-badge&logo=vercel)](https://vercel.com/)
+
+Niekomercyjna aplikacja internetowa służąca do typowania wyników meczów Mistrzostw Świata 2026, zaprojektowana dla zamkniętej grupy użytkowników. Projekt funkcjonuje jako aplikacja PWA (Progressive Web App) na urządzeniach mobilnych, oferując tryb pełnoekranowy, powiadomienia push oraz dedykowany interfejs graficzny nawiązujący do stylistyki turniejowej (tablice wyników LED, kolekcjonerskie karty jako etykiety graczy w rankingu oraz dedykowane tło stadionu).
 
 🔗 **Live demo**: [wc-predictor-one.vercel.app](https://wc-predictor-one.vercel.app)
 
 ---
 
-## 🎨 Wygląd
+## 🎨 Warstwa wizualna
 
-- 🏟️ **Boisko w tle** — widziane z góry (pasy koszenia + linie + reflektory). Noc w dark mode, dzień w light mode.
-- 🇺🇸🇨🇦🇲🇽 **Pasek mundialowy** — gradient host country na samej górze + jako accent na collapsy i kafelkach
-- 📺 **LED stadium scoreboards** — wszystkie sekcje statystyk, leaderboard, collapsy, scoreboard widget na dashboardzie
-- 🃏 **Karty Panini** — profile graczy w stylu kolekcjonerskich naklejek z foil shine, kolor wg pozycji (#1 złoto, #2 srebro, #3 brąz, reszta wg championa)
-- ⚡ **Animacje** — kręcąca się piłka w logo, falujące flagi, pulsujący LIVE chip, mrugające boost-y, dramatic match hero z reflektorami
-- 🍔 **Sidebar tunnel-entry** — kliknięcie hamburgera otwiera panel z animacją "zawodników wychodzących z tunelu"
-- 🎉 **"GOOOOL!"** — fullscreen celebracja po wpisaniu wyniku przez admina
+* 🏟️ **Dedykowane tło stadionu** – widok płyty boiska z lotu ptaka (pasy murawy, linie boczne oraz reflektory). Tło automatycznie adaptuje się do motywu systemowego: wariant nocny dla *dark mode* oraz wariant dzienny dla *light mode*.
+* 🇺🇸🇨🇦🇲🇽 **Motyw gospodarzy turnieju** – gradient reprezentujący kraje organizujące Mistrzostwa Świata, zaimplementowany w górnym pasku nawigacyjnym oraz jako akcent elementów rozwijanych i kafelków informacyjnych.
+* 📺 **Stadionowe tablice LED** – ujednolicona stylistyka tablic wyników zastosowana w sekcjach statystyk, tabelach liderów, komponentach rozwijanych oraz widżecie ekranu głównego.
+* 🃏 **Karty kolekcjonerskie** – profile użytkowników stylizowane na wzór fizycznych naklejek z efektem połysku (*foil shine*). Kolorystyka ramek zależy od zajmowanej pozycji w rankingu (miejsce #1 – złoto, #2 – srebro, #3 – brąz, pozostałe pozycje na podstawie przypisanego stylu).
+* ⚡ **Mikroanimacje** – rotacja piłki w logotypie, animacje powiewających flag, pulsujący wskaźnik transmisji na żywo (LIVE), sygnalizacja aktywnych mnożników punktowych oraz sekcja wyróżnionego meczu z dynamicznym oświetleniem.
+* 🍔 **Sidebar tunnel-entry** – otwarcie bocznego menu uruchamia płynną animację imitującą wyjście zawodników z tunelu stadionowego.
+* 🎉 **Moduł celebracji gola** – pełnoekranowa animacja „GOOOOL!” wywoływana globalnie w momencie zatwierdzenia wyniku przez administratora.
 
-## ✨ Co potrafi
+---
 
-### Dla graczy
-- 🎯 **Typowanie meczów** — dokładny wynik, pierwsza drużyna ze strzałem, pierwszy strzelec (anty-spoiler lock 5 min przed gwizdkiem)
-- ⚡ **Boost x3** — jeden mecz na kolejkę z potrójnymi punktami (możesz zmieniać między meczami do gwizdka)
-- 🏆 **Typ na mistrza** — wybierasz zwycięzcę całego turnieju (+10 pkt bonus, lock przy starcie 1/16 finału)
-- 📺 **Personal scoreboard** na dashboardzie — 3-w-1 widget: najbliższy mecz, awans/spadek w rankingu, ostatni mecz z punktami
-- 📊 **Ranking** — ogólny (top 3 jako Panini cards, reszta mini) i per kolejka z badge'em użycia boosta
-- 📈 **Statystyki turnieju** — lider, najczęstsze typy, najpopularniejsze wyniki, style typowania, "Złoty boost", przebieg
-- ⚔️ **Pojedynek (Compare)** — H2H z każdym kumplem - statystyki, wynik mecz po meczu
-- 🃏 **Profil jako karta Panini** — Twoja kolekcjonerska karta z avatarem, stylem, statystykami, badge'ami
-- 🔮 **Wisdom of the crowd** — przed lockiem widzisz top 3 najczęściej typowane wyniki (anonimowo)
-- 📈 **Forma drużyn** — W/D/L z meczów WC (od 2. kolejki) z mini-flagami przeciwników
-- 💬 **Czat pod każdym meczem** — komentarze i trash talk
-- ⏱️ **Reveal countdown** — po locku stadionowy zegar do odsłonięcia typów innych (kickoff + 45 min)
-- 👀 **Typy innych** — pełny breakdown punktów per kategoria z ✅/❌
-- 🎁 **Tournament Wrapped** (po finale) — Spotify-style podsumowanie sezonu
-- 🌍 **Tabele grupowe + drabinka pucharowa** — auto-liczone z wyników
-- 🏟️ **Multi-liga** — możesz tworzyć osobne ligi dla różnych grup znajomych
-- 🌙 **Dark/Light mode** z dopasowanym stadium background
-- 🔔 **Powiadomienia push** — Web Push z VAPID, działa też na iOS PWA
-- 📱 **PWA** — instalacja jak natywna apka (Add to Home Screen, anty-stale-cache SW v4 z timeoutami)
+## ✨ Funkcjonalności systemu
 
-### 🎖️ Odznaki w rankingu
+### Panel użytkownika
+* 🎯 **Typowanie meczów** – wprowadzanie dokładnego wyniku, wskazanie pierwszej drużyny zdobywającej bramkę oraz pierwszego strzelca meczu. Blokada anty-spoilerowa aktywuje się automatycznie na 5 minut przed oficjalnym rozpoczęciem spotkania.
+* ⚡ **Mnożnik "Boost x3"** – możliwość wyboru jednego meczu w danej kolejce, którego punktacja zostanie potrojona. Wybór może być modyfikowany wielokrotnie aż do momentu zablokowania typów.
+* 🏆 **Typowanie mistrza turnieju** – wskazanie triumfatora całego turnieju (bonus o wartości +10 punktów). Blokada dokonywania wyboru następuje w momencie rozpoczęcia fazy 1/16 finału.
+* 📺 **Personalny widget dashboardu** – zintegrowany moduł 3-w-1 prezentujący najbliższe spotkanie, aktualny awans lub spadek w rankingu oraz zestawienie punktowe z ostatniego rozegranego meczu.
+* 📊 **Rankingi** – tabela ogólna (wyróżniająca top 3 użytkowników w formie kart Panini oraz pozostałych w wersji kompaktowej) oraz tabele dedykowane dla poszczególnych kolejek wraz z oznaczeniem użycia mnożnika.
+* 📈 **Statystyki turniejowe** – zestawienia analityczne obejmujące pozycję lidera, najczęściej typowane wyniki, popularne rozkłady punktów, style typowania, wykorzystanie „Złotego boosta” oraz wykresy przebiegu rywalizacji.
+* ⚔️ **Moduł porównawczy (H2H)** – bezpośrednie zestawienie statystyk z wybranym użytkownikiem, zawierające porównanie wyników mecz po meczu.
+* 🃏 **Profil użytkownika** – indywidualna karta Panini zawierająca awatar, przypisany styl gry, szczegółowe statystyki oraz zdobyte odznaki.
+* 🔮 **Wisdom of the crowd** – agregacja danych prezentująca anonimowo trzy najczęściej typowane wyniki danego spotkania przed momentem jego zablokowania.
+* 📈 **Wskaźnik formy zespołów** – prezentacja wyników (W/D/L) w ramach turnieju (od 2. kolejki) wraz z miniaturami flag przeciwników.
+* 💬 **System komentarzy** – dedykowany moduł dyskusyjny pod każdym wydarzeniem meczowym, umożliwiający interakcję między użytkownikami.
+* ⏱️ **Zegar odliczający (Reveal countdown)** – stadionowy licznik wskazujący czas pozostały do publicznego odsłonięcia typów innych graczy (czas rozpoczęcia meczu + 45 minut).
+* 👀 **Wgląd w typy innych użytkowników** – pełna analityka przyznanych punktów w podziale na kategorie z weryfikacją poprawności (✅/❌).
+* 🎁 **Tournament Wrapped** – generowane po meczu finałowym podsumowanie statystyczne całego turnieju w formacie inspirowanym zestawieniami rocznymi platform streamingowych.
+* 🌍 **Automatyzacja tabel i drabinki** – tabele grupowe oraz faza pucharowa są przeliczane automatycznie na podstawie wprowadzanych wyników końcowych.
+* 🏟️ **Obsługa wielu lig** – możliwość tworzenia niezależnych podgrup i klasyfikacji dla różnych społeczności użytkowników.
+* 🌙 **Zarządzanie motywem** – pełne wsparcie dla trybu ciemnego (Dark) i jasnego (Light) wraz z dostosowaniem grafik tła.
+* 🔔 **Powiadomienia push** – implementacja standardu Web Push przy użyciu kluczy VAPID, zapewniająca poprawne działanie również w środowisku iOS PWA.
+* 📱 **Standard PWA** – możliwość instalacji aplikacji na ekranie głównym urządzenia (Add to Home Screen) z zaawansowaną konfiguracją Service Workera (wersja v4 z mechanizmem timeoutów zapobiegającym serwowaniu nieaktualnych plików cache).
 
-**Kumulacyjne** (raz zdobyte, zostają w profilu):
-- 🎯 **Snajper** — 3+ dokładne wyniki w turnieju
-- 👑 **Król strzelców** — 5+ trafionych strzelców
-- ⚡ **Mistrzowski boost** — trafiony dokładny wynik na mnożniku x3
+### 🎖️ System odznak w rankingu
 
-**Dynamiczne** (znikają gdy stan się zmienia):
-- 🔥 **Gorący** — 3+ ostatnie mecze pod rząd z ≥5 pkt
-- 🧊 **Lodowaty** — 0 pkt w ostatnim rozegranym meczu
+**Odznaki skumulowane** (trwałe przypisanie do profilu użytkownika):
+* 🎯 **Snajper** – zarejestrowanie minimum 3 dokładnych wyników w trakcie turnieju.
+* 👑 **Król strzelców** – poprawne wskazanie minimum 5 strzelców bramek.
+* ⚡ **Mistrzowski boost** – zdobycie punktów za dokładny wynik przy aktywnym mnożniku x3.
 
-### Dla admina (Ciebie)
-- 🛠️ Panel admina: wpisywanie wyników z **collapsible kolejkami** (aktualna otwarta, rozegrane schowane na dole) - karty wyników w stylu **stadionowych boards LED**
-- 👥 **Zarządzanie userami** — lista z badge'ami aktywności (kiedy ostatni typ), przycisk usuń konto (cascade), reset hasła, edycja pojedynczych typów graczy
-- 🔄 Ręczny przycisk sync z [football-data.org](https://www.football-data.org/) (cron domyślnie wyłączony)
-- ✅ **Toast + GOOOL animacja** po zapisaniu wyniku
-- 🔔 Wysyłanie powiadomień do wybranego usera lub wszystkich
-- 🔒 Reset hasła kumpla, dodawanie ludzi do ligi
-- 🛡️ Ochrona przed bruteforce (5 prób → 15 min blokada; admin niblokowalny)
+**Odznaki dynamiczne** (odbierane lub nadawane w zależności od bieżących wyników):
+* 🔥 **Gorący** – utrzymanie serii minimum 3 meczów z rzędu ze zdobyczą punktową ≥5.
+* 🧊 **Lodowaty** – zdobycie 0 punktów w ostatnim rozegranym meczu.
 
-### Punktacja
-| Co trafisz | Punkty |
-|---|---|
-| Dokładny wynik (cała kaskada) | **5** |
+### Panel administracyjny
+* 🛠️ **Zarządzanie wynikami** – wprowadzanie rezultatów z wykorzystaniem dynamicznie zwijanych sekcji kolejek (kolejka aktywna pozostaje otwarta, mecze archiwalne są automatycznie minimalizowane). Kafelki meczowe zaprojektowano w stylistyce tablic LED.
+* 👥 **Zarządzanie bazą użytkowników** – podgląd profili wraz ze wskaźnikami aktywności (data ostatniego typu), opcja usuwania kont (usuwanie kaskadowe w bazie danych), resetowanie haseł oraz możliwość ręcznej edycji typów gracza.
+* 🔄 **Synchronizacja danych** – moduł ręcznego wywoływania zapytania do API [football-data.org](https://www.football-data.org/) (harmonogram zadań cron pozostaje domyślnie wyłączony).
+* ✅ **System powiadomień i celebracji** – wywołanie komunikatów typu Toast oraz pełnoekranowej animacji bramki po pomyślnym zapisie danych.
+* 🔔 **Komunikaty push** – masowe wysyłanie powiadomień do wszystkich zarejestrowanych urządzeń lub do pojedynczego użytkownika.
+* 🔒 **Ochrona przed atakami typu Brute Force** – automatyczna blokada konta na 15 minut po 5 nieudanych próbach logowania (konto administratora jest wyłączone z mechanizmu blokady).
+
+### System punktacji
+
+| Kryterium trafienia | Punkty |
+| :--- | :---: |
+| Dokładny wynik (pełna kaskada) | **5** |
 | Różnica bramek | **3** |
-| Sam zwycięzca / remis | **2** |
-| **Bonusy additive (sumują się z kaskadą)** | |
-| Trafione bramki gospodarzy | **+1** |
-| Trafione bramki gości | **+1** |
-| Pierwsza drużyna ze strzałem | **+2** |
+| Wskazanie zwycięzcy lub remisu | **2** |
+| **Bonusy sumowane (additive do wyniku kaskady)** | |
+| Liczba bramek gospodarzy | **+1** |
+| Liczba bramek gości | **+1** |
+| Pierwsza drużyna zdobywająca bramkę | **+2** |
 | Pierwszy strzelec meczu | **+5** |
-| **Boost x3** | mnoży punkty meczu × 3 |
-| **Trafiony mistrz turnieju** | +10 |
+| **Mnożnik Boost x3** | Mnoży całkowitą liczbę punktów z meczu × 3 |
+| **Poprawny mistrz turnieju** | **+10** |
 
-Przykład: typ 2:1, wynik 2:0 → różnica 1, ale gospodarze 2:2 → kaskada 0 + 1 (gospodarze) = 1 pkt. Typ 2:0, wynik 2:0 → 5 (dokładny) + 1 + 1 = **7 pkt**.
-
----
-
-## 🚀 Stack
-
-- **Next.js 15** (App Router + Server Actions)
-- **Prisma** + **PostgreSQL** ([Neon](https://neon.tech) free tier, Frankfurt region)
-- **Tailwind CSS** + CSS variables dla motywów
-- **Vercel** hosting (Hobby = free, **fra1** Function Region = co-located z Neon)
-- **Web Push** (VAPID) dla powiadomień
-- **football-data.org** API (free tier — WC w plan One)
-- **FlagCDN** + **Twemoji** dla cross-platform flag/emoji
-- **@vercel/analytics** + **@vercel/speed-insights** — RUM i Web Vitals
-- TypeScript wszędzie
+*Przykład kalkulacji:*
+* Typ: `2:1`, Wynik: `2:0` -> Różnica bramek poprawna (+3 pkt), bramki gospodarzy poprawne (+1 pkt) -> Łącznie **4 punkty**.
+* Typ: `2:0`, Wynik: `2:0` -> Wynik dokładny (+5 pkt), bramki gospodarzy (+1 pkt), bramki gości (+1 pkt) -> Łącznie **7 punktów**.
 
 ---
 
-## 🔧 Setup lokalny
+## 🚀 Stos technologiczny
 
-### Wymagania
-- Node.js 20+
-- Baza PostgreSQL (najprościej: darmowy [Neon.tech](https://neon.tech))
-- Konto na [football-data.org](https://www.football-data.org/client/register) (free, do pobierania danych WC)
-- Opcjonalnie: konto Vercel + GitHub do deployu
+* **Next.js 15** (App Router oraz Server Actions jako warstwa komunikacji)
+* **Prisma ORM** wraz z bazą danych **PostgreSQL** (hostowaną na platformie [Neon](https://neon.tech) w planie darmowym, region Frankfurt)
+* **Tailwind CSS** wspomagany zmiennymi CSS do zarządzania motywami graficznymi
+* **Vercel** jako platforma hostingowa (wariant Hobby, region funkcji **fra1** – kolokacja z bazą danych Neon)
+* **Web Push API** z wykorzystaniem identyfikacji VAPID
+* **football-data.org API** (plan darmowy – obsługa Mistrzostw Świata w pakiecie One)
+* **FlagCDN** oraz **Twemoji** jako biblioteki zapewniające spójne renderowanie flag i emotikonów niezależnie od systemu operacyjnego
+* **@vercel/analytics** oraz **@vercel/speed-insights** – monitorowanie wskaźników RUM oraz Web Vitals
+* Pełna statyczna typizacja z wykorzystaniem języka **TypeScript**
 
-### Krok po kroku
+---
 
-```bash
-# 1. Klonuj repo
-git clone https://github.com/rpisonfire/wc-predictor.git
-cd wc-predictor
+## 🔧 Konfiguracja środowiska lokalnego
 
-# 2. Instaluj
-npm install
+### Wymagania systemowe
+* Node.js wersja 20 lub wyższa
+* Instancja bazy danych PostgreSQL (zalecane użycie darmowego konta w usłudze Neon.tech)
+* Klucz API serwisu [football-data.org](https://www.football-data.org/client/register)
 
-# 3. Skonfiguruj .env
-cp .env.example .env
-```
+### Procedura instalacji
 
-Edytuj `.env` i wklej wartości:
+1. **Klonowanie repozytorium**
+   ```bash
+   git clone https://github.com/rpisonfire/wc-predictor.git
+   cd wc-predictor
+   ```
 
-```env
-DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
-FOOTBALL_DATA_TOKEN="twój_token_z_football-data.org"
-CRON_SECRET="losowy_string_32_znaki"          # openssl rand -hex 32
-NEXT_PUBLIC_VAPID_PUBLIC_KEY="public_key"     # npx web-push generate-vapid-keys --json
-VAPID_PRIVATE_KEY="private_key"
-VAPID_SUBJECT="mailto:twój@email.com"
-```
+2. **Instalacja zależności pakietów**
+   ```bash
+   npm install
+   ```
 
-```bash
-# 4. Migracja bazy
-npx prisma db push
+3. **Konfiguracja zmiennych środowiskowych**
+   ```bash
+   cp .env.example .env
+   ```
+   W pliku `.env` należy zdefiniować następujące zmienne:
+   ```env
+   DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+   FOOTBALL_DATA_TOKEN="twój_token_z_football-data.org"
+   CRON_SECRET="losowy_string_32_znaki"         # Generowanie: openssl rand -hex 32
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY="public_key"     # Generowanie: npx web-push generate-vapid-keys --json
+   VAPID_PRIVATE_KEY="private_key"
+   VAPID_SUBJECT="mailto:twój@email.com"
+   ```
 
-# 5. Pobierz drużyny + zawodników + terminarz z football-data.org (~6 min, rate limit)
-npm run db:fd
+4. **Wykonanie migracji struktury bazy danych**
+   ```bash
+   npx prisma db push
+   ```
 
-# 6. Stwórz pierwszą ligę
-npx tsx scripts/seed-league.ts
+5. **Pobranie danych startowych (drużyny, zawodnicy, terminarz) z API** (~6 minut ze względu na rate limit)
+   ```bash
+   npm run db:fd
+   ```
 
-# 7. Odpal
-npm run dev
-```
+6. **Inicjalizacja domyślnej ligi**
+   ```bash
+   npx tsx scripts/seed-league.ts
+   ```
 
-Otwórz [localhost:3000](http://localhost:3000). Zarejestruj się kodem **MUNDIAL2026** (lub własnym z seed-league.ts).
+7. **Uruchomienie serwera deweloperskiego**
+   ```bash
+   npm run dev
+   ```
 
-### Zostań adminem
+Aplikacja będzie dostępna pod adresem `http://localhost:3000`. Rejestracja nowych użytkowników wymaga użycia kodu dostępu `MUNDIAL2026` (lub wartości zdefiniowanej w skrypcie `seed-league.ts`).
 
+#### Nadawanie uprawnień administratora
 ```bash
 npx tsx scripts/make-admin.ts <twój_nick>
 ```
-
-Wyloguj się i zaloguj ponownie — w sidebarze pojawi się złoty link **Admin**.
+Po ponownym uwierzytelnieniu w aplikacji, w menu bocznym pojawi się dedykowany panel administracyjny.
 
 ---
 
-## ☁️ Deploy na Vercel
+## ☁️ Wdrożenie produkcyjne (Vercel)
 
-1. **Pushnij repo na GitHub**
-   ```bash
-   git remote add origin git@github.com:USER/REPO.git
-   git push -u origin main
-   ```
-
-2. **Vercel** → New Project → Import z GitHuba
-
-3. **Environment Variables** (dla `Production` *i* `Preview`):
-   ```
-   DATABASE_URL
-   FOOTBALL_DATA_TOKEN
-   CRON_SECRET
-   NEXT_PUBLIC_VAPID_PUBLIC_KEY
-   VAPID_PRIVATE_KEY
-   VAPID_SUBJECT
-   ```
-
-4. **Deploy** → automatycznie zbuduje + odpali
-
-5. **Function Region: `fra1`** (Frankfurt) — Vercel Project → Settings → Functions. Co-located z Neon (jeśli też w Frankfurt) → latency Vercel↔Neon spada z ~100ms (USA) do ~5ms → realna apka 2-3× szybsza i mniej GB-hrs zżytych.
-
-6. **Cron sync jest domyślnie wyłączony** — wpisuj wyniki ręcznie z panelu admina. Jeśli chcesz włączyć codzienny sync z football-data.org, dodaj sekcję `crons` w `vercel.json`:
+1. **Repozytorium zdalne** – wypchnięcie kodu do platformy GitHub.
+2. **Inicjalizacja projektu** – import repozytorium w panelu kontrolnym Vercel.
+3. **Zmienne środowiskowe** – wprowadzenie konfiguracji z pliku `.env` dla środowisk Production oraz Preview.
+4. **Wybór regionu obliczeniowego** – kluczowy krok optymalizacyjny. Należy ustawić region funkcji na `fra1` (Frankfurt) w sekcji *Settings -> Functions*. Kolokacja z bazą danych Neon eliminuje opóźnienia sieciowe (spadek opóźnień z ~100ms do ~5ms), redukując czas wykonywania funkcji bezserwerowych.
+5. **Harmonogram zadań (Cron)** – domyślnie wyłączony. Automatyczną synchronizację można aktywować poprzez definicję ścieżki w pliku `vercel.json`:
    ```json
-   "crons": [{ "path": "/api/cron/sync", "schedule": "0 5 * * *" }]
+   {
+     "crons": [
+       {
+         "path": "/api/cron/sync",
+         "schedule": "0 5 * * *"
+       }
+     ]
+   }
    ```
 
-### 💰 Optymalizacja zużycia (free tier)
+---
 
-Apka jest tunowana pod **Neon Free Plan** (100 CU-hrs/mc) i **Vercel Hobby** (360 GB-hrs Fluid Memory). Co się dzieje pod maską:
+## 💰 Optymalizacja darmowych limitów (Free Tier)
 
-- **Function Region fra1** ← najważniejszy klucz: co-location z Neon = krótszy Active CPU time = mniej GB-hrs naliczane
-- **Fluid Compute Active CPU billing** — płacisz tylko za realny czas CPU (nie memory × time). Dlatego `memory` w `vercel.json` byłby ignorowany — nie ustawiamy
-- **ISR cache** — leaderboard/groups 15 min, bracket 30 min, stats/my-predictions 5 min. Każda akcja admina (wpisanie wyniku) **natychmiast invaliduje** wszystkie zależne strony
-- **Auto-refresh wyłączony** — match page i dashboard nie pollują w tle (kumple sami F5)
-- **Neon autoscaling** — ustaw `0.25 ↔ 0.5 CU` (nie 2 CU domyślne) + suspend 5 min, w Neon Console
-- **Cold Start Prevention: Disabled** — to płatna funkcja, nie chcemy
-- **Service Worker timeouty** (3.5s navigate, 5s background) — gdy Vercel ma chwilowe lagi, SW poddaje się szybko i serwuje cache zamiast wisieć
-
-### 📊 Observability
-
-- **Web Analytics** w Vercel (~2500 wizyt/mc na Hobby) — top strony, urządzenia, kraje
-- **Speed Insights** w Vercel (~10k pomiarów/mc) — Real Experience Score, LCP/FCP/CLS/INP/TTFB
-- Po przekroczeniu limitu: zbieranie wstrzymane do końca miesiąca, apka działa normalnie, **nic nie płacisz**
+Aplikacja została zoptymalizowana pod kątem rygorystycznych limitów usług Neon Free Plan (100 CU-hrs/miesiąc) oraz Vercel Hobby (360 GB-hrs Fluid Memory):
+* **Kolokacja zasobów** – wykorzystanie regionu `fra1` minimalizuje czas aktywności procesora.
+* **Strategia pamięci podręcznej (ISR)** – zastosowano zróżnicowane okna czasowe rewalidacji: tabele liderów oraz grupy (15 minut), faza pucharowa (30 minut), statystyki i typy użytkownika (5 minut). Każda operacja zapisu wyniku przez administratora natychmiastowo unieważnia (invaliduje) powiązane ścieżki cache.
+* **Ograniczenie zapytań w tle** – wyłączono mechanizm ciągłego odpytywania bazy (polling) na ekranie głównym oraz widoku meczu.
+* **Zarządzanie instancją Neon** – zaleca się ustawienie automatycznego skalowania w zakresie 0.25 ↔ 0.5 CU oraz czasu przejścia w stan uśpienia (suspend timeout) na wartość 5 minut bezpośrednio w konsoli Neon.
+* **Konfiguracja Service Workera** – wprowadzenie restrykcyjnych limitów czasu oczekiwania na żądania sieciowe zapobiega zawieszaniu się aplikacji w przypadku problemów z łącznością.
 
 ---
 
 ## 🛠️ Skrypty pomocnicze
 
-| Komenda | Co robi |
-|---|---|
-| `npm run dev` | Dev server na :3000 (auto-czyści `.next`) |
-| `npm run build` | Production build |
-| `npm run db:fd` | Pobiera drużyny + zawodników + terminarz z football-data.org. **Tryb bezpieczny** — nie kasuje predykcji. Dodaj `-- --wipe` żeby wyczyścić wszystko (DO TESTÓW). |
-| `npm run db:fixtures` | Tworzy mocki meczów (do dev/test). |
-| `npx tsx scripts/seed-league.ts` | Tworzy domyślną ligę `MUNDIAL2026`. |
-| `npx tsx scripts/make-admin.ts <nick>` | Nadaje uprawnienia admina. |
-| `npx tsx scripts/unlock.ts <nick>` | Odblokowuje konto po bruteforce. `--all` = wszyscy. |
-| `npx tsx scripts/fix-flags.ts` | Naprawia flagi w bazie po imporcie. |
-| `npx tsx scripts/wipe.ts` | **Wyciera** wszystkie typy/komentarze/użytkowników/mecze. Drużyny zostają. |
+| Komenda | Opis działania |
+| :--- | :--- |
+| `npm run dev` | Uruchomienie środowiska deweloperskiego wraz z czyszczeniem katalogu `.next`. |
+| `npm run build` | Kompilacja wersji produkcyjnej aplikacji. |
+| `npm run db:fd` | Pobranie struktur danych z API football-data.org. Działa w trybie bezpiecznym (nie usuwa typów użytkowników). Flaga `-- --wipe` czyści całą bazę danych. |
+| `npm run db:fixtures` | Generowanie danych demonstracyjnych (mocków) na potrzeby testów. |
+| `npx tsx scripts/seed-league.ts` | Inicjalizacja domyślnej struktury ligowej MUNDIAL2026. |
+| `npx tsx scripts/make-admin.ts <nick>` | Przypisanie flagi administratora do wskazanego konta. |
+| `npx tsx scripts/unlock.ts <nick>` | Odblokowanie konta zablokowanego przez system brute-force (flaga `--all` odblokowuje wszystkich). |
+| `npx tsx scripts/fix-flags.ts` | Korekta powiązań ikon flag narodowych w bazie danych po imporcie. |
+| `npx tsx scripts/wipe.ts` | Usunięcie danych transakcyjnych (typy, komentarze, użytkownicy). Wydzielona struktura drużyn zostaje zachowana. |
 
 ---
 
-## 🏗️ Architektura
+## 🏗️ Architektura katalogów
 
 ```
 src/
-├── app/                       # Next.js App Router pages + actions
-│   ├── (auth)/login          # Logowanie/rejestracja (useActionState)
-│   ├── dashboard             # Mecze + countdown + dziś + boost button
-│   ├── match/[id]            # Szczegóły meczu, typowanie, czat
+├── app/                      # Struktura routingu Next.js App Router i Server Actions
+│   ├── (auth)/login          # Moduł uwierzytelniania (wykorzystanie useActionState)
+│   ├── dashboard              # Widok główny: terminarz, odliczanie, zarządzanie mnożnikami
+│   ├── match/[id]             # Szczegóły wydarzenia, wprowadzanie typów, czat
 │   ├── champion              # Wybór mistrza turnieju
-│   ├── groups                # Tabele grupowe (auto-liczone)
-│   ├── bracket               # Drabinka pucharowa
-│   ├── leaderboard           # Ranking ogólny + per kolejka
-│   ├── stats                 # Statystyki turnieju (lider, styl typowania, top wyniki) - LED sections
-│   ├── leagues               # Multi-liga: stwórz/dołącz/opuść (nie linkowane w sidebar)
-│   ├── profile               # Hero Panini card + statystyki + ustawienia
-│   ├── admin                 # Panel admina (mecze/userzy/ligi/mistrz/push) - LED scoreboards
-│   ├── admin/user/[userId]   # Edycja typów konkretnego usera (admin)
-│   ├── compare               # Lista przeciwników do Pojedynku
-│   ├── compare/[userId]      # Pojedynek H2H z wybranym graczem
-│   ├── wrapped               # Tournament Wrapped - podsumowanie sezonu (lock do finału)
-│   ├── my-predictions        # Lista typów z wykresem formy + LED match tiles
-│   └── api/
-│       ├── cron/sync         # Ręczny sync z football-data (cron domyślnie wyłączony)
-│       ├── push/subscribe    # Subskrypcje Web Push
-│       └── push/test         # Test notyfikacji
-├── components/               # Reusable UI
-│   ├── Sidebar               # Nawigacja desktop z hamburger trigger + tunnel-entry stagger
-│   ├── MobileNav             # Bottom nav (admin dostaje swój slot)
-│   ├── PaniniCard            # Karta gracza w stylu Panini (Large + Mini variants)
-│   ├── PersonalScoreboard    # 3-w-1 widget na dashboardzie (LED display)
-│   ├── PlayerPicker          # Custom picker zawodników z search
-│   ├── TeamRadioPicker       # Picker drużyny (pierwszy gol) z flagą
-│   ├── PlayerAvatar          # Awatar z kolorem pozycji (inicjały gdy brak photoUrl)
-│   ├── Flag                  # SVG flagi przez FlagCDN
-│   ├── Emoji                 # Cross-platform emoji przez Twemoji
-│   ├── Countdown             # Timer do kickoffu turnieju
-│   ├── RevealCountdown       # Stadium zegar do odsłonięcia typów innych (kickoff+45min)
-│   ├── StadiumBackground     # Boisko w tle (noc/dzień) z reflektorami
-│   ├── Sparkline             # Mini-wykres formy z hover labels per mecz
-│   ├── UserPickSearch        # Search + expandable breakdown punktów typów innych
-│   ├── ConfettiCelebration   # Konfetti po trafieniu dokładnego wyniku
-│   ├── GoalCelebration       # Fullscreen "GOOOOL!" po wpisaniu wyniku przez admina
-│   ├── Toast / AutoToast     # Powiadomienia akcji
-│   ├── ThemeToggle           # Dark/Light
-│   ├── LiveChip              # 🔴 LIVE indicator z dramatic pulse
-│   ├── Skeleton              # Loading placeholdery dla SSR routes
-│   ├── NotificationsButton   # Subskrypcja push
-│   └── RegisterSW            # Service worker registration + auto-update
-├── lib/                      # Logika i utils
-│   ├── db.ts                 # Singleton Prisma client
-│   ├── session.ts            # Auth (requireAuth, requireAdmin)
-│   ├── password.ts           # scrypt hashing
-│   ├── scoring.ts            # Silnik punktacji
-│   ├── stats.ts              # Ranking, leaderboard, styles, badges
-│   ├── teamColors.ts         # Mapa shortCode→kolory flagi do match-tile glow (48 drużyn)
-│   ├── groups.ts             # Klasyfikacja grupowa
-│   ├── championLock.ts       # Lock typu mistrza po fazie grupowej
-│   ├── matchStatus.ts        # isLive() helper
-│   ├── dates.ts              # Formatowanie w Europe/Warsaw
-│   ├── push.ts               # Web Push (sendPushToAll, sendPushToUser)
-│   ├── syncResults.ts        # Pobieranie wyników z football-data + revalidatePath po sync
-│   └── stadiums.ts           # Dane stadionów MŚ 2026
-├── scripts/                  # Skrypty dev/admin (npx tsx)
-└── prisma/schema.prisma      # Schema DB
+│   ├── groups                # Tabele grupowe kalkulowane w czasie rzeczywistym
+│   ├── bracket                # Graficzna prezentacja fazy pucharowej
+│   ├── leaderboard           # Klasyfikacja ogólna oraz zestawienia cząstkowe
+│   ├── stats                  # Zaawansowana analityka i statystyki turniejowe
+│   ├── leagues                # Zarządzanie wieloma ligami (funkcjonalność niezależna)
+│   ├── profile                # Profil użytkownika w formie karty Panini z historią odznak
+│   ├── admin                  # Panel zarządzania systemem dla administratora
+│   ├── admin/user/[userId]    # Narzędzie administracyjnej edycji typów gracza
+│   ├── compare                # Wybór użytkownika do porównania statystyk
+│   ├── compare/[userId]       # Widok zestawienia bezpośredniego H2H
+│   ├── wrapped                # Podsumowanie turnieju (blokada dostępu do meczu finałowego)
+│   ├── my-predictions        # Historia typów użytkownika wraz z wykresem formy
+│   └── api/                  # Punkty końcowe API (odświeżanie danych, subskrypcje Push)
+├── components/                # Komponenty interfejsu użytkownika wielokrotnego użytku
+│   ├── Sidebar                # Menu boczne z animacją staggered tunnel-entry
+│   ├── MobileNav              # Dolny pasek nawigacyjny dedykowany dla urządzeń mobilnych
+│   ├── PaniniCard            # Komponent karty zawodnika w wariantach Large oraz Mini
+│   ├── PersonalScoreboard    # Zintegrowany widżet tablicy wyników LED
+│   ├── PlayerPicker          # Wyszukiwarka i selektor zawodników z autouzupełnianiem
+│   └── ...                    # Pozostałe komponenty interfejsu (Flagi, Liczniki, Efekty)
+├── lib/                      # Warstwa logiczna, narzędziowa i konfiguracyjna
+│   ├── db.ts                  # Implementacja wzorca Singleton dla klienta Prisma
+│   ├── session.ts            # Mechanizmy autoryzacji i zabezpieczeń sesji
+│   ├── scoring.ts            # Silnik obliczeniowy punktacji turniejowej
+│   ├── stats.ts              # Algorytmy obliczania pozycji, stylów gry i przyznawania odznak
+│   └── ...                    # Pomocnicze moduły logiczne
+├── scripts/                  # Skrypty administracyjne i uruchomieniowe
+└── prisma/schema.prisma      # Definicja schematu bazy danych ORM Prisma
 ```
 
 ---
 
-## 🔐 Bezpieczeństwo
+## 🔐 Bezpieczeństwo i ochrona danych
 
-- **Hasła**: scrypt z solą (Node built-in)
-- **Sesje**: cookie `httpOnly` + `sameSite=lax`
-- **CSRF**: wbudowana ochrona Server Actions w Next.js
-- **Rate limit**: 5 prób logowania → blokada na 15 min
-- **Admin protection**: niemożliwy do zablokowania, 1.5s opóźnienia per nieudana próba
-- **Push secrets**: VAPID keys jako env vars
-- **CRON_SECRET**: chroni `/api/cron/sync` przed publicznym wywołaniem
-- **Prisma**: parametryzowane queries (brak SQL injection)
-- **HTTPS**: wymuszone przez Vercel
+* **Przechowywanie haseł** – kryptograficzne haszowanie algorytmem `scrypt` z wykorzystaniem soli (wbudowany moduł kryptograficzny Node.js).
+* **Zarządzanie sesją** – mechanizm ciasteczek z flagami `httpOnly` oraz `sameSite=lax`.
+* **Zabezpieczenie przed CSRF** – natywne mechanizmy ochronne wbudowane w Next.js Server Actions.
+* **Ograniczanie prób autoryzacji** – blokada konta na okres 15 minut po odnotowaniu 5 nieudanych logowań. Poziom administracyjny posiada stałe opóźnienie 1.5 sekundy na odpowiedź przy błędnym uwierzytelnieniu w celu minimalizacji ryzyka ataków słownikowych.
+* **Integracja bazodanowa** – parametryzacja wszystkich zapytań SQL poprzez warstwę Prisma ORM, zapewniająca całkowitą odporność na ataki typu SQL Injection.
 
 ---
 
-## 🎨 Personalizacja
+## 🎨 Moduły personalizacji i modyfikacji
 
-- **Kolory** w `tailwind.config.ts` (paleta `wc.*`) i `globals.css` (CSS vars)
-- **Tematy LED + Panini cards + boisko w tle** — wszystkie style w `src/app/globals.css` (sekcje `===== ... =====`)
-- **Kolory drużyn** (per-match team glow) — `src/lib/teamColors.ts`, mapowanie shortCode → primary/secondary/glow rgba
-- **Skoring** w `src/lib/scoring.ts` — zmień liczbę punktów per akcja
-- **Boost** w `src/app/match/[id]/page.tsx` — zmień mnożnik z 3
-- **Odznaki** w `src/lib/stats.ts` → `badgesFor()` — dodaj/usuń badge, zmień progi
-- **Reveal threshold** typów innych — `src/app/match/[id]/page.tsx`, obecnie `kickoff + 45min`
-- **Ikony PWA** generowane przez `npx tsx scripts/generate-icons.ts` (z SVG źródłowego)
-- **ISR cache windows** — każda strona z `export const revalidate = N` w `src/app/<page>/page.tsx`
-- **Service Worker** (timeouty, precache) — `public/sw.js`. Bump `CACHE = "wcp-vN"` żeby wymusić aktywację nowej wersji.
+Wszystkie kluczowe parametry aplikacji zostały odseparowane i mogą być łatwo modyfikowane:
+* **Paleta kolorów** – definicje kolorów `wc.*` znajdują się w pliku `tailwind.config.ts` oraz jako zmienne CSS w `globals.css`.
+* **Reguły punktacji** – modyfikacji wag punktowych można dokonać bezpośrednio w module `src/lib/scoring.ts`.
+* **Wartość mnożnika** – konfiguracja potęgowania punktów dostępna jest w pliku `src/app/match/[id]/page.tsx`.
+* **Logika przyznawania odznak** – progi punktowe oraz warunki nadawania odznak zdefiniowano w funkcji `badgesFor()` w pliku `src/lib/stats.ts`.
+* **Widoczność typów** – czas publicznego udostępnienia typów innych użytkowników konfigurowany jest w komponencie meczu (wartość domyślna: czas rozpoczęcia + 45 minut).
 
 ---
 
-## 🐛 Troubleshooting
+## 🐛 Rozwiązywanie problemów (Troubleshooting)
 
-**"Cannot find module './541.js'"** po buildzie → wyczyść `.next`:
-```bash
-rm -rf .next && npm run dev
-```
-
-**Push notifications nie działają na iPhone** → musi być dodana do home screen (Share → Add to Home Screen). Inaczej iOS nie wspiera.
-
-**Cron nie odpala się** → cron jest domyślnie wyłączony. Jeśli go włączyłeś, sprawdź `vercel.json` (`"schedule": "0 5 * * *"` = 7:00 PL) i czy `CRON_SECRET` jest w Vercel env.
-
-**Wysokie zużycie Neon CU** → w Neon Console → Branches → Edit: zmniejsz `Max CU` z 2 na 0.5 i `Suspend timeout` na 5 min. Dla 50 użytkowników z ISR cache wystarczy.
-
-**Konto zablokowane (5 nieudanych prób)** → `npx tsx scripts/unlock.ts <nick>` z prod DATABASE_URL.
-
-**Flagi pokazują białe prostokąty na Windows** → sprawdź czy używany jest komponent `<Flag>` (renderuje SVG z FlagCDN). Natywne emoji flagi są zepsute w Windows.
-
-**Po `npm run db:fd` zniknęły typy** → odpaliłeś z flagą `--wipe`. Bez niej (tryb bezpieczny) typy zostają.
-
-**Biały ekran u kumpli po deployu** → stary Service Worker serwuje cache z odniesieniami do nieistniejących chunków JS. Fix: DevTools → Application → Service Workers → Unregister + Clear site data. Nowa wersja SW (od `wcp-v3`) ma timeouty fetch i fallback do cache - nie powinno się powtórzyć.
-
-**`ERR_CONNECTION_TIMED_OUT` na Vercelu, ale "It's just you"** → lokalny ISP ma chwilowy problem z routing do Vercel edge. Spróbuj VPN, mobile data, lub `1.1.1.1` jako DNS. Vercel działa, Ty nie możesz dojść.
-
-**Admin: wpisuję wynik a zapisuje się 0:0** → był to bug z duplikowanymi `name="homeScore"` w mobile + desktop layout (przed `MatchForm` refactorem). Naprawione - jeden uniwersalny layout.
-
-**Zawodnik kontuzjowany** → możesz zmienić nazwę w Prisma Studio (`npx prisma studio`) lub SQL: `UPDATE "Player" SET name = '...', "photoUrl" = NULL WHERE id = 'fd-XXX';`. Predykcje referują przez `id`, więc istniejące typy automatycznie wskażą zastępcę - przekaż info kumplom.
+* **Błąd kompilacji: `Cannot find module './541.js'`**
+  Należy usunąć wygenerowany katalog podręczny i ponownie uruchomić proces:
+  ```bash
+  rm -rf .next && npm run dev
+  ```
+* **Brak powiadomień push na urządzeniach z systemem iOS**
+  System operacyjny iOS wymaga, aby aplikacja PWA została dodana do ekranu głównego (*Udostępnij -> Dodaj do ekranu początkowego*). W przeglądarce Safari powiadomienia Web Push są zablokowane.
+* **Brak automatycznej synchronizacji danych**
+  Harmonogram zadań (cron) jest domyślnie dezaktywowany. W przypadku jego włączenia należy zweryfikować konfigurację pliku `vercel.json` oraz obecność zmiennej `CRON_SECRET` w panelu Vercel.
+* **Przekroczenie limitów jednostek obliczeniowych (CU) w usłudze Neon**
+  W panelu administracyjnym Neon należy zmniejszyć parametr *Max CU* do wartości 0.5 oraz zredukować *Suspend timeout* do 5 minut. Taka konfiguracja jest w pełni wystarczająca do obsługi 50 aktywnych użytkowników przy włączonym buforowaniu ISR.
+* **Przypadkowe uszkodzenie struktury danych po imporcie**
+  W przypadku problemów z wyświetlaniem flag na systemach operacyjnych Windows należy upewnić się, że renderowanie odbywa się za pomocą dedykowanego komponentu `<Flag>`, który przetwarza pliki SVG z FlagCDN. System Windows nie posiada natywnego wsparcia dla flag w formacie emoji.
 
 ---
 
 ## 📝 Licencja
 
-Projekt prywatny, do użytku własnego z kumplami. Nie do komercyjnego użycia bez kontaktu z autorem.
+Projekt o charakterze prywatnym i niekomercyjnym, przeznaczony do użytku własnego. Wykorzystanie komercyjne wymaga uprzedniego kontaktu z autorem projektu.
 
 ---
 
-## 🙏 Podziękowania
+## 🙏 Podziękowania i źródła danych
 
-- [football-data.org](https://www.football-data.org/) — darmowe dane WC 2026
-- [FlagCDN](https://flagcdn.com/) — SVG flagi narodowe
-- [Twemoji](https://twemoji.twitter.com/) — cross-platform emoji
-- [Neon](https://neon.tech/) — darmowy Postgres
-- [Vercel](https://vercel.com/) — darmowy hosting
+* **Data Provider:** [football-data.org](https://www.football-data.org/)
+* **Usługa flag narodowych SVG:** [FlagCDN](https://flagcdn.com/)
+* **Biblioteka emotikonów:** [Twemoji](https://twemoji.twitter.com/)
+* **Infrastruktura bazodanowa:** [Neon](https://neon.tech/)
+* **Środowisko uruchomieniowe i hosting:** [Vercel](https://vercel.com/)
 
-Zrobione z ⚽ przez **rpisonfire** & **Claude Code** na Mistrzostwa Świata 2026 🇺🇸 🇨🇦 🇲🇽
+---
+Projekt zrealizowany przy użyciu platformy *Claude Code* na potrzeby obsługi Mistrzostw Świata 2026 w piłce nożnej mężczyzn.
