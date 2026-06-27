@@ -568,16 +568,31 @@ export default async function Admin({
         const upcoming = matches.filter((m) => m.homeScore === null);
         const finished = matches.filter((m) => m.homeScore !== null);
 
-        // Grupowanie nierozegranych per kolejka
+        // Efektywny matchday: knockout-y dostają 100+ od stage'a (niezależnie od DB).
+        const KO_MD: Record<string, number> = {
+          "1/16 finału": 100, "1/8 finału": 101, "Ćwierćfinał": 102,
+          "Półfinał": 103, "Mecz o 3. miejsce": 104, "Finał": 105,
+        };
+        const effMd = (m: { stage: string; matchday: number }) => {
+          const pretty = prettyStage(m.stage);
+          return KO_MD[pretty] ?? m.matchday;
+        };
+
+        // Grupowanie nierozegranych per kolejka (efektywną)
         const byMatchday = new Map<number, typeof matches>();
         for (const m of upcoming) {
-          const arr = byMatchday.get(m.matchday) ?? [];
+          const md = effMd(m);
+          const arr = byMatchday.get(md) ?? [];
           arr.push(m);
-          byMatchday.set(m.matchday, arr);
+          byMatchday.set(md, arr);
         }
         const sortedMatchdays = Array.from(byMatchday.keys()).sort((a, b) => a - b);
-        // Aktualna kolejka = pierwsza (najbliższa) - tylko ona otwarta domyślnie
-        const currentMd = sortedMatchdays[0];
+        // Aktualna kolejka = najbliższa po dacie (z meczy które jeszcze nie zaczęły się)
+        const now = Date.now();
+        const currentMd = sortedMatchdays
+          .map((md) => ({ md, earliest: Math.min(...byMatchday.get(md)!.map((m) => m.kickoff.getTime())) }))
+          .filter((x) => x.earliest > now)
+          .sort((a, b) => a.earliest - b.earliest)[0]?.md ?? sortedMatchdays[0];
 
         return (
           <>

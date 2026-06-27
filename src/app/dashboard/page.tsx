@@ -17,11 +17,17 @@ import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
 
 // Z listy meczy w danej kolejce zwróć etykietę.
 // Knockout → nazwa etapu (1/16 finału, Ćwierćfinał, ...). Grupowa → "Kolejka X".
+// Jeśli matchday ma WSZYSTKIE mecze pucharowe → użyj nazwy etapu.
+// Jeśli mix (np. uszkodzone dane gdzie knockout wpadł do Kolejki 1) → "Kolejka X".
 function matchdayLabel(list: { stage: string }[], md: number | string): string {
-  if (list.length === 0 || !isKnockoutStage(list[0].stage)) return `Kolejka ${md}`;
-  const first = prettyStage(list[0].stage);
-  const allSame = list.every((m) => prettyStage(m.stage) === first);
-  return allSame ? first : `Kolejka ${md}`;
+  if (list.length === 0) return `Kolejka ${md}`;
+  const stagesInGroup = new Set(list.map((m) => prettyStage(m.stage)));
+  // Jeśli wszystkie mecze należą do tego samego etapu pucharowego - użyj etapu
+  if (stagesInGroup.size === 1) {
+    const single = [...stagesInGroup][0];
+    if (!single.startsWith("Grupa") && single !== "Faza grupowa") return single;
+  }
+  return `Kolejka ${md}`;
 }
 
 async function quickBoost(formData: FormData) {
@@ -81,8 +87,20 @@ export default async function Dashboard() {
   ]);
 
   // Grupowanie po kolejce, a wewnątrz: najpierw nierozegrane (rosnąco po kickoff), potem rozegrane (rosnąco)
+  // Efektywny matchday: dla knockout-ów wymuś 100+ na podstawie stage'a (niezależnie od m.matchday w DB).
+  // Inaczej knockout mecze z football-data wpadają do "Kolejka 1/2/3" obok grupowych.
+  const KO_MD: Record<string, number> = {
+    "1/16 finału": 100, "1/8 finału": 101, "Ćwierćfinał": 102,
+    "Półfinał": 103, "Mecz o 3. miejsce": 104, "Finał": 105,
+  };
+  const effectiveMatchday = (m: { stage: string; matchday: number }) => {
+    const pretty = prettyStage(m.stage);
+    return KO_MD[pretty] ?? m.matchday;
+  };
+
   const byMatchday = matches.reduce<Record<number, typeof matches>>((acc, m) => {
-    (acc[m.matchday] ||= []).push(m);
+    const md = effectiveMatchday(m);
+    (acc[md] ||= []).push(m);
     return acc;
   }, {});
   for (const md of Object.keys(byMatchday)) {
