@@ -156,13 +156,13 @@ export function UserPickSearch({
                   </div>
                   <div className="mt-2 pl-12 flex flex-wrap items-center gap-2 text-xs">
                     {scorerTeam && (
-                      <span className="chip bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                        1. drużyna ze strzałem: <b className="ml-1">{scorerTeam}</b>
+                      <span className="chip-team-pick">
+                        1. ze strzałem: <b>{scorerTeam}</b>
                       </span>
                     )}
                     {p.firstGoalPlayer ? (
-                      <div className="others-player flex items-center gap-1.5 pl-1">
-                        <PlayerAvatar name={p.firstGoalPlayer.name} photoUrl={p.firstGoalPlayer.photoUrl} position={p.firstGoalPlayer.position} size={20} />
+                      <div className="chip-scorer-pick">
+                        <PlayerAvatar name={p.firstGoalPlayer.name} photoUrl={p.firstGoalPlayer.photoUrl} position={p.firstGoalPlayer.position} size={22} />
                         <span>1. strzelec: <b>{p.firstGoalPlayer.name}</b></span>
                       </div>
                     ) : (

@@ -448,27 +448,24 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               </div>
               <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
                 {pred.firstScorerTeam && pred.firstScorerTeam !== "NONE" && (
-                  <span className="chip bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                    1. drużyna ze strzałem:{" "}
-                    <b className="ml-1">
-                      {pred.firstScorerTeam === "HOME" ? match.homeTeam.shortCode : match.awayTeam.shortCode}
-                    </b>
+                  <span className="chip-team-pick">
+                    1. ze strzałem: <b>{pred.firstScorerTeam === "HOME" ? match.homeTeam.shortCode : match.awayTeam.shortCode}</b>
                   </span>
                 )}
                 {pred.firstScorerTeam === "NONE" && (
-                  <span className="chip bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                    1. drużyna ze strzałem: <b className="ml-1">0:0</b>
+                  <span className="chip-team-pick">
+                    1. ze strzałem: <b>0:0</b>
                   </span>
                 )}
                 {pred.player ? (
-                  <div className="chip bg-app-hover flex items-center gap-1.5 pl-1" style={{ borderColor: "rgba(241,180,52,0.3)" }}>
+                  <div className="chip-scorer-pick">
                     <PlayerAvatar
                       name={pred.player.name}
                       photoUrl={pred.player.photoUrl}
                       position={pred.player.position}
-                      size={20}
+                      size={22}
                     />
-                    <span style={{ color: "white" }}>1. strzelec: <b>{pred.player.name}</b></span>
+                    <span>1. strzelec: <b>{pred.player.name}</b></span>
                   </div>
                 ) : (
                   <span className="chip-lock">brak typu na strzelca</span>
