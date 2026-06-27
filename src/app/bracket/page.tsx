@@ -27,6 +27,16 @@ const COLUMN_LABEL: Record<string, string> = {
   "Finał": "Finał",
 };
 
+// Spodziewane ilości meczy per etap (Mundial 2026 = 32 drużyny w 1/16)
+const EXPECTED_COUNTS: Record<string, number> = {
+  "1/16 finału": 16,
+  "1/8 finału": 8,
+  "Ćwierćfinał": 4,
+  "Półfinał": 2,
+  "Mecz o 3. miejsce": 1,
+  "Finał": 1,
+};
+
 export default async function BracketPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -45,24 +55,25 @@ export default async function BracketPage() {
     byStage.set(m.stage, arr);
   }
 
-  const stages = STAGE_ORDER.filter((s) => s !== "Faza grupowa" && byStage.has(s));
+  // Pokaż WSZYSTKIE etapy - nawet bez meczy w bazie (jako placeholders)
+  const stages = STAGE_ORDER.filter((s) => s !== "Faza grupowa");
+  const hasAnyMatches = matches.length > 0;
 
   return (
     <section>
       <h1 className="text-3xl font-black mb-1">Drabinka pucharowa 🏆</h1>
-      <p className="text-app-muted mb-6">Wszystkie mecze fazy pucharowej. Pary awansowe pojawią się po zakończeniu fazy grupowej.</p>
+      <p className="text-app-muted mb-6">
+        {hasAnyMatches
+          ? "Wszystkie mecze fazy pucharowej. Pary awansowe pojawią się po zakończeniu fazy grupowej."
+          : "Struktura drabinki Mundialu 2026. Pary pojawią się po zakończeniu fazy grupowej i synchronizacji z football-data.org."}
+      </p>
 
-      {stages.length === 0 ? (
-        <div className="stat-section text-center" style={{ padding: "40px 20px" }}>
-          <div className="text-5xl mb-3">🌳</div>
-          <div className="font-bold text-white">Drabinka jeszcze pusta</div>
-          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>Mecze pucharowe pojawią się po fazie grupowej.</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto -mx-4 px-4">
+      <div className="overflow-x-auto -mx-4 px-4">
           <div className="flex gap-4 min-w-max">
             {stages.map((s) => {
               const list = byStage.get(s) ?? [];
+              const expected = EXPECTED_COUNTS[s] ?? 0;
+              const placeholders = Math.max(0, expected - list.length);
               return (
                 <div key={s} className="flex flex-col gap-3 min-w-[240px]">
                   <div className="sticky top-0 z-10 py-2 px-3 rounded-lg text-xs uppercase tracking-wider font-black"
@@ -74,9 +85,35 @@ export default async function BracketPage() {
                          border: "1px solid rgba(241,180,52,0.3)",
                          textShadow: "0 0 6px rgba(241,180,52,0.4)",
                        }}>
-                    {COLUMN_LABEL[s] ?? s} · {list.length}
+                    {COLUMN_LABEL[s] ?? s} · {expected}
                   </div>
                   <div className="flex flex-col gap-3 justify-around flex-1">
+                    {/* Placeholder TBD sloty - gdy brak meczy w bazie */}
+                    {Array.from({ length: placeholders }).map((_, i) => (
+                      <div
+                        key={`tbd-${i}`}
+                        className="match-tile block"
+                        style={{ background: "linear-gradient(135deg, rgba(241,180,52,0.15), rgba(255,255,255,0.05), rgba(241,180,52,0.15))", opacity: 0.7 }}
+                      >
+                        <div className="match-tile-inner" style={{ padding: "10px 12px" }}>
+                          <div className="match-tile-meta" style={{ marginBottom: 4 }}>TBD</div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span style={{ fontSize: 16, opacity: 0.5 }}>🏳️</span>
+                              <span className="font-bold truncate" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Courier New', monospace" }}>TBD</span>
+                            </div>
+                            <span className="font-black text-lg" style={{ fontFamily: "'Courier New', monospace", color: "rgba(255,255,255,0.3)" }}>—</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-1">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span style={{ fontSize: 16, opacity: 0.5 }}>🏳️</span>
+                              <span className="font-bold truncate" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Courier New', monospace" }}>TBD</span>
+                            </div>
+                            <span className="font-black text-lg" style={{ fontFamily: "'Courier New', monospace", color: "rgba(255,255,255,0.3)" }}>—</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                     {list.map((m) => {
                       const finished = m.homeScore !== null && m.awayScore !== null;
                       const homeWon = finished && m.homeScore! > m.awayScore!;
@@ -118,7 +155,6 @@ export default async function BracketPage() {
             })}
           </div>
         </div>
-      )}
     </section>
   );
 }
