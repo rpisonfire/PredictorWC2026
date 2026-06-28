@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { leaderboard, leaderboardForMatchday, leagueAggregateStats } from "@/lib/stats";
+import { matchdayLabel } from "@/lib/stageLabel";
 
 // Ranking zmienia się tylko po wpisaniu wyniku - cache na 15 min (admin invaliduje natychmiast po setResult).
 export const revalidate = 900;
@@ -73,7 +74,7 @@ export default async function Leaderboard({
             key={n}
             href={`/leaderboard?league=${activeLeagueId}&md=${n}`}
             active={activeMd === n}
-            label={`Kolejka ${n}`}
+            label={matchdayLabel(n)}
           />
         ))}
       </div>

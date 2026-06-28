@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { matchGlowStyle } from "@/lib/teamColors";
-import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
+import { prettyStage, isKnockoutStage, matchdayLabel } from "@/lib/stageLabel";
 
 // Cache 5 min - typy zmieniają się rzadko, revalidate po zapisie usera + po wpisaniu wyniku.
 export const revalidate = 300;
@@ -106,7 +106,7 @@ export default async function MyPredictions() {
                 <summary className="collapse-header">
                   <span className="flex items-center gap-2">
                     <span className="collapse-chev">▶</span>
-                    Kolejka {md}
+                    {matchdayLabel(md)}
                     <span className="collapse-count">· {list.length} {list.length === 1 ? "mecz" : "meczy"}</span>
                   </span>
                   <span className={`chip-pts ${sumPts > 0 ? "" : "zero"}`}>

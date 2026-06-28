@@ -19,3 +19,17 @@ export function isKnockoutStage(raw: string): boolean {
   const pretty = prettyStage(raw);
   return !pretty.startsWith("Grupa") && pretty !== "Faza grupowa";
 }
+
+// Etykieta kolejki - dla 100+ zwraca nazwę fazy pucharowej zamiast "Kolejka N".
+const KNOCKOUT_MD_LABEL: Record<number, string> = {
+  100: "1/16 finału",
+  101: "1/8 finału",
+  102: "Ćwierćfinały",
+  103: "Półfinały",
+  104: "Mecz o 3. miejsce",
+  105: "Finał",
+};
+
+export function matchdayLabel(n: number): string {
+  return KNOCKOUT_MD_LABEL[n] ?? `Kolejka ${n}`;
+}
