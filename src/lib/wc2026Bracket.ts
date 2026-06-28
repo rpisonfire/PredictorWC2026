@@ -95,6 +95,25 @@ export function slotByMatchNumber(num: number): BracketSlot | null {
 
 // Mapuje stage (z naszej DB, prettyStage) na BracketStage.
 // "Mecz o 3. miejsce" rozpoznajemy osobno bo Match.stage często to "Półfinał" + flagą.
+// Kolejność TOP-to-BOTTOM dla pojedynczego drzewa lewo->prawo.
+// Sąsiednie pary w kolumnie wpadają w jeden mecz kolejnej kolumny.
+// Pochodzi z drzewa awansowego FIFA: M74,M77 -> M89; M73,M75 -> M90; ...
+export const TREE_ROW_ORDER: Record<"r16" | "r8" | "qf" | "sf", number[]> = {
+  r16: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
+  r8: [89, 90, 93, 94, 91, 92, 95, 96],
+  qf: [97, 98, 99, 100],
+  sf: [101, 102],
+};
+
+// FIFA match number -> row index w drzewie lewo->prawo (top-to-bottom).
+export function treeRowFor(matchNumber: number): number | null {
+  for (const order of Object.values(TREE_ROW_ORDER)) {
+    const idx = order.indexOf(matchNumber);
+    if (idx !== -1) return idx;
+  }
+  return null;
+}
+
 export function bracketStageFromLabel(label: string): BracketStage | null {
   switch (label) {
     case "1/16 finału": return "r16";
