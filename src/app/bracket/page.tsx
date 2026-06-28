@@ -6,6 +6,8 @@ import { fmtDateTime } from "@/lib/dates";
 import { Flag } from "@/components/Flag";
 import { matchGlowStyle } from "@/lib/teamColors";
 import { prettyStage } from "@/lib/stageLabel";
+import { BracketTree, type BracketMatch, type BracketSlots } from "@/components/BracketTree";
+import { BRACKET_SLOTS, STAGE_FIRST_MATCH, bracketStageFromLabel, type BracketStage } from "@/lib/wc2026Bracket";
 
 // Cache 5 min - po fazie grupowej awansowanie + lock typu mistrza ma znaczenie.
 // Cron + admin invaliduje natychmiast po sync.
@@ -73,7 +75,43 @@ export default async function BracketPage() {
           : "Struktura drabinki Mundialu 2026. Pary pojawią się po zakończeniu fazy grupowej i synchronizacji z football-data.org."}
       </p>
 
-      <div className="overflow-x-auto -mx-4 px-4">
+      {/* Desktop: konwergująca drabinka FIFA z prawdziwym pairingiem (M73-M104) */}
+      {(() => {
+        // Inicjalizacja pustych slotów
+        const empty = (n: number) => Array.from({ length: n }, () => null as BracketMatch | null);
+        const slots: BracketSlots = {
+          r16L: empty(8), r16R: empty(8),
+          r8L: empty(4), r8R: empty(4),
+          qfL: empty(2), qfR: empty(2),
+          sfL: empty(1), sfR: empty(1),
+          final: null, bronze: null,
+        };
+        // Dla każdej fazy mapuj posortowane po kickoff mecze na numery M73.. wg offsetu
+        const fillStage = (stage: BracketStage, list: typeof matches) => {
+          const first = STAGE_FIRST_MATCH[stage];
+          list.forEach((m, idx) => {
+            const num = first + idx;
+            const slot = BRACKET_SLOTS.find((s) => s.matchNumber === num);
+            if (!slot) return;
+            const cast = m as unknown as BracketMatch;
+            if (slot.stage === "final") slots.final = cast;
+            else if (slot.stage === "bronze") slots.bronze = cast;
+            else {
+              const key = `${slot.stage}${slot.side}` as keyof BracketSlots;
+              (slots[key] as (BracketMatch | null)[])[slot.row] = cast;
+            }
+          });
+        };
+        // Każdą fazę z DB wrzuć osobno (sortowanie kickoff już z query)
+        for (const [label, list] of byStage.entries()) {
+          const stage = bracketStageFromLabel(label);
+          if (stage) fillStage(stage, list);
+        }
+        return <BracketTree {...slots} />;
+      })()}
+
+      {/* Mobile: horizontal scroll po kolumnach */}
+      <div className="md:hidden overflow-x-auto -mx-4 px-4">
           <div className="flex gap-4 min-w-max">
             {stages.map((s) => {
               const list = byStage.get(s) ?? [];
