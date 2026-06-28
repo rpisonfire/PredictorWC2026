@@ -223,42 +223,56 @@ export function BracketTree(slots: BracketSlots) {
         {slots.r8R.map((m, i) => <Slot key={`r8-${i}`} m={m} side="R" stage="r8" row={i} col={8} connectIn connectOut />)}
         {slots.r16R.map((m, i) => <Slot key={`r16-${i}`} m={m} side="R" stage="r16" row={i} col={9} connectOut />)}
 
-        {/* CENTRUM: Finał spans pełną wysokość (rows 2-9), karta wycentrowana = ta sama Y co SF */}
+        {/* CENTRUM: Finał (górna połowa) + Brąz pod nim (dolna połowa) - bez linii wchodzących */}
         <div
           style={{
-            gridRow: "2 / span 8",
+            gridRow: "2 / span 4",
             gridColumnStart: 5,
-            position: "relative",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
+            gap: 4,
           }}
         >
+          <div style={{
+            color: "#FFD700",
+            fontFamily: "'Courier New', monospace",
+            letterSpacing: 3,
+            textShadow: "0 0 12px rgba(255,215,0,0.6)",
+            fontSize: 11,
+            fontWeight: 900,
+          }}>
+            🏆 FINAŁ
+          </div>
           <div style={{ width: CENTER_W }}>
             <MatchCard m={slots.final} special="final" />
           </div>
-          {/* Linie wchodzące z PF L i PF R - absolute względem grid cell, top:50% = środek finału */}
-          <div style={{ position: "absolute", pointerEvents: "none", left: 0, marginLeft: -CONN_W, width: CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER }} />
-          <div style={{ position: "absolute", pointerEvents: "none", right: 0, marginRight: -CONN_W, width: CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER }} />
         </div>
-      </div>
-
-      {/* Brąz - osobno pod całą drabinką, wycentrowany */}
-      <div className="mt-6 flex justify-center">
-        <div style={{ width: CENTER_W }}>
+        <div
+          style={{
+            gridRow: "6 / span 4",
+            gridColumnStart: 5,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
           <div style={{
-            textAlign: "center",
             color: "#CD7F32",
             fontFamily: "'Courier New', monospace",
             letterSpacing: 2,
             textShadow: "0 0 8px rgba(205,127,50,0.5)",
             fontSize: 10,
             fontWeight: 900,
-            marginBottom: 6,
           }}>
-            🥉 O 3. MIEJSCE
+            🥉 MECZ O 3. MIEJSCE
           </div>
-          <MatchCard m={slots.bronze} special="bronze" />
+          <div style={{ width: CENTER_W }}>
+            <MatchCard m={slots.bronze} special="bronze" />
+          </div>
         </div>
       </div>
     </div>

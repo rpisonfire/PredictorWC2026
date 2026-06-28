@@ -116,6 +116,31 @@ export const SIDE_ROW_ORDER = {
 } as const;
 
 // FIFA match number -> { side: 'L'|'R', row: number } w drabince konwergującej.
+// Mapowanie pary kodów drużyn (sortowane alfabetycznie) -> FIFA match number dla 1/16.
+// Bo chronologia kickoff != kolejność M73-M88. Lookup po team codes jest jedyną pewną metodą.
+const R16_PAIR_TO_FIFA: Record<string, number> = {
+  "CAN-RSA": 73,
+  "GER-PAR": 74,
+  "MAR-NED": 75,
+  "BRA-JPN": 76,
+  "FRA-SWE": 77,
+  "CIV-NOR": 78,
+  "ECU-MEX": 79,
+  "COD-ENG": 80,
+  "BIH-USA": 81,
+  "BEL-SEN": 82,
+  "AUT-ESP": 83,
+  "CRO-POR": 84,
+  "ALG-SUI": 85,
+  "ARG-CPV": 86,
+  "COL-GHA": 87,
+  "AUS-EGY": 88,
+};
+export function r16FifaNumber(homeCode: string, awayCode: string): number | null {
+  const key = [homeCode, awayCode].sort().join("-");
+  return R16_PAIR_TO_FIFA[key] ?? null;
+}
+
 export function sideRowFor(matchNumber: number): { side: "L" | "R"; row: number } | null {
   for (const side of ["L", "R"] as const) {
     const sideOrders = SIDE_ROW_ORDER[side];

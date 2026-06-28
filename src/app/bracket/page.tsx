@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { prettyStage } from "@/lib/stageLabel";
 import { BracketTree, type BracketMatch, type BracketSlots } from "@/components/BracketTree";
-import { STAGE_FIRST_MATCH, bracketStageFromLabel, sideRowFor, type BracketStage } from "@/lib/wc2026Bracket";
+import { STAGE_FIRST_MATCH, bracketStageFromLabel, sideRowFor, r16FifaNumber, type BracketStage } from "@/lib/wc2026Bracket";
 
 export const revalidate = 300;
 
@@ -37,12 +37,21 @@ export default async function BracketPage() {
   };
 
   const fillStage = (stage: BracketStage, list: typeof matches) => {
-    const first = STAGE_FIRST_MATCH[stage];
     list.forEach((m, idx) => {
-      const num = first + idx;
       const cast = m as unknown as BracketMatch;
       if (stage === "final") { slots.final = cast; return; }
       if (stage === "bronze") { slots.bronze = cast; return; }
+      let num: number | null = null;
+      // r16: identyfikacja po parze drużyn (chronologia kickoff != kolejność M73-M88)
+      if (stage === "r16") {
+        num = r16FifaNumber(m.homeTeam.shortCode, m.awayTeam.shortCode);
+      } else {
+        // r8/qf/sf: drużyny TBD, więc nie ma identyfikacji po teamach.
+        // Sortowanie po kickoff w późniejszych fazach prawdopodobnie pokrywa się
+        // z FIFA M89-M102 - można dopracować jak pojawią się prawdziwe dane.
+        num = STAGE_FIRST_MATCH[stage] + idx;
+      }
+      if (num === null) return;
       const pos = sideRowFor(num);
       if (!pos) return;
       const key = `${stage}${pos.side}` as keyof BracketSlots;
