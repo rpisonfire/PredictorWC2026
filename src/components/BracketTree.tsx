@@ -102,24 +102,24 @@ function Slot({
   const gridRowStart = row * span + 2; // +2 bo wiersz 1 = nagłówki
   const gridRow = `${gridRowStart} / span ${span}`;
   const isTopOfPair = row % 2 === 0;
-  // connectOut: L-shape w kierunku centrum
+  // Łączniki pozycjonowane WZGLĘDEM GRID CELL (nie karty), żeby top:50% = środek komórki = środek karty.
+  // Dzięki temu pionowa linia rzeczywiście schodzi do dna/szczytu komórki = midpointu pary.
   const outStyle: React.CSSProperties = side === "L"
     ? {
-        right: -CONN_W, width: CONN_W,
+        right: 0, width: CONN_W, marginRight: -CONN_W,
         ...(isTopOfPair
-          ? { top: "50%", height: "calc(50% + 4px)", borderTop: LINE_BORDER, borderRight: LINE_BORDER, borderTopRightRadius: 8 }
-          : { top: -4, height: "calc(50% + 4px)", borderBottom: LINE_BORDER, borderRight: LINE_BORDER, borderBottomRightRadius: 8 }),
+          ? { top: "50%", height: "50%", borderTop: LINE_BORDER, borderRight: LINE_BORDER, borderTopRightRadius: 8 }
+          : { top: 0, height: "50%", borderBottom: LINE_BORDER, borderRight: LINE_BORDER, borderBottomRightRadius: 8 }),
       }
     : {
-        left: -CONN_W, width: CONN_W,
+        left: 0, width: CONN_W, marginLeft: -CONN_W,
         ...(isTopOfPair
-          ? { top: "50%", height: "calc(50% + 4px)", borderTop: LINE_BORDER, borderLeft: LINE_BORDER, borderTopLeftRadius: 8 }
-          : { top: -4, height: "calc(50% + 4px)", borderBottom: LINE_BORDER, borderLeft: LINE_BORDER, borderBottomLeftRadius: 8 }),
+          ? { top: "50%", height: "50%", borderTop: LINE_BORDER, borderLeft: LINE_BORDER, borderTopLeftRadius: 8 }
+          : { top: 0, height: "50%", borderBottom: LINE_BORDER, borderLeft: LINE_BORDER, borderBottomLeftRadius: 8 }),
       };
-  // connectIn: pozioma linia wchodząca z poprzedniej kolumny (od strony przeciwnej do centrum)
   const inStyle: React.CSSProperties = side === "L"
-    ? { left: -CONN_W, width: CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER }
-    : { right: -CONN_W, width: CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER };
+    ? { left: 0, width: CONN_W, marginLeft: -CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER }
+    : { right: 0, width: CONN_W, marginRight: -CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER };
   return (
     <div
       style={{
@@ -129,14 +129,15 @@ function Slot({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "3px 0",
+        padding: 0,
       }}
     >
-      <div style={{ width: CARD_W, position: "relative" }}>
+      <div style={{ width: CARD_W }}>
         <MatchCard m={m} special={special ?? null} />
-        {connectIn && <div style={{ position: "absolute", pointerEvents: "none", ...inStyle }} />}
-        {connectOut && <div style={{ position: "absolute", pointerEvents: "none", ...outStyle }} />}
       </div>
+      {/* Łączniki jako siblingi karty, absolute wzg. komórki gridu */}
+      {connectIn && <div style={{ position: "absolute", pointerEvents: "none", ...inStyle }} />}
+      {connectOut && <div style={{ position: "absolute", pointerEvents: "none", ...outStyle }} />}
     </div>
   );
 }
@@ -222,37 +223,29 @@ export function BracketTree(slots: BracketSlots) {
         {slots.r8R.map((m, i) => <Slot key={`r8-${i}`} m={m} side="R" stage="r8" row={i} col={8} connectIn connectOut />)}
         {slots.r16R.map((m, i) => <Slot key={`r16-${i}`} m={m} side="R" stage="r16" row={i} col={9} connectOut />)}
 
-        {/* CENTRUM: Finał (rows 2-5) + Brąz (rows 6-9) */}
+        {/* CENTRUM: Finał spans pełną wysokość (rows 2-9), karta wycentrowana = ta sama Y co SF */}
         <div
           style={{
-            gridRow: "2 / span 4",
+            gridRow: "2 / span 8",
             gridColumnStart: 5,
+            position: "relative",
             display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
             alignItems: "center",
-            gap: 6,
-            padding: "4px 0",
+            justifyContent: "center",
           }}
         >
-          <div style={{ width: CENTER_W, position: "relative" }}>
+          <div style={{ width: CENTER_W }}>
             <MatchCard m={slots.final} special="final" />
-            <div style={{ position: "absolute", pointerEvents: "none", left: -CONN_W, width: CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER }} />
-            <div style={{ position: "absolute", pointerEvents: "none", right: -CONN_W, width: CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER }} />
           </div>
+          {/* Linie wchodzące z PF L i PF R - absolute względem grid cell, top:50% = środek finału */}
+          <div style={{ position: "absolute", pointerEvents: "none", left: 0, marginLeft: -CONN_W, width: CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER }} />
+          <div style={{ position: "absolute", pointerEvents: "none", right: 0, marginRight: -CONN_W, width: CONN_W, top: "50%", height: 0, borderTop: LINE_BORDER }} />
         </div>
-        <div
-          style={{
-            gridRow: "6 / span 4",
-            gridColumnStart: 5,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 6,
-            padding: "4px 0",
-          }}
-        >
+      </div>
+
+      {/* Brąz - osobno pod całą drabinką, wycentrowany */}
+      <div className="mt-6 flex justify-center">
+        <div style={{ width: CENTER_W }}>
           <div style={{
             textAlign: "center",
             color: "#CD7F32",
@@ -261,12 +254,11 @@ export function BracketTree(slots: BracketSlots) {
             textShadow: "0 0 8px rgba(205,127,50,0.5)",
             fontSize: 10,
             fontWeight: 900,
+            marginBottom: 6,
           }}>
             🥉 O 3. MIEJSCE
           </div>
-          <div style={{ width: CENTER_W }}>
-            <MatchCard m={slots.bronze} special="bronze" />
-          </div>
+          <MatchCard m={slots.bronze} special="bronze" />
         </div>
       </div>
     </div>
