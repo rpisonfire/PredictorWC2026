@@ -98,18 +98,32 @@ export function slotByMatchNumber(num: number): BracketSlot | null {
 // Kolejność TOP-to-BOTTOM dla pojedynczego drzewa lewo->prawo.
 // Sąsiednie pary w kolumnie wpadają w jeden mecz kolejnej kolumny.
 // Pochodzi z drzewa awansowego FIFA: M74,M77 -> M89; M73,M75 -> M90; ...
-export const TREE_ROW_ORDER: Record<"r16" | "r8" | "qf" | "sf", number[]> = {
-  r16: [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
-  r8: [89, 90, 93, 94, 91, 92, 95, 96],
-  qf: [97, 98, 99, 100],
-  sf: [101, 102],
-};
+// Kolejność top-to-bottom na lewej i prawej stronie drabinki konwergującej (FIFA).
+// Lewa strona feeds SF M101 (lewa), prawa feeds SF M102 (prawa).
+export const SIDE_ROW_ORDER = {
+  L: {
+    r16: [74, 77, 73, 75, 84, 83, 81, 82], // 8
+    r8: [89, 90, 93, 94],                  // 4
+    qf: [97, 98],                          // 2
+    sf: [101],                             // 1
+  },
+  R: {
+    r16: [76, 78, 79, 80, 86, 88, 85, 87], // 8
+    r8: [91, 92, 95, 96],                  // 4
+    qf: [99, 100],                         // 2
+    sf: [102],                             // 1
+  },
+} as const;
 
-// FIFA match number -> row index w drzewie lewo->prawo (top-to-bottom).
-export function treeRowFor(matchNumber: number): number | null {
-  for (const order of Object.values(TREE_ROW_ORDER)) {
-    const idx = order.indexOf(matchNumber);
-    if (idx !== -1) return idx;
+// FIFA match number -> { side: 'L'|'R', row: number } w drabince konwergującej.
+export function sideRowFor(matchNumber: number): { side: "L" | "R"; row: number } | null {
+  for (const side of ["L", "R"] as const) {
+    const sideOrders = SIDE_ROW_ORDER[side];
+    const orders: readonly (readonly number[])[] = [sideOrders.r16, sideOrders.r8, sideOrders.qf, sideOrders.sf];
+    for (const order of orders) {
+      const idx = order.indexOf(matchNumber);
+      if (idx !== -1) return { side, row: idx };
+    }
   }
   return null;
 }
