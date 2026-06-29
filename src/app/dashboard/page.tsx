@@ -125,7 +125,7 @@ export default async function Dashboard() {
 
   const todayKey = dayKey(now);
   const todayMatches = matches.filter((m) => dayKey(m.kickoff) === todayKey);
-  const hasLiveToday = todayMatches.some((m) => isLive(m.kickoff, m.homeScore !== null));
+  const hasLiveToday = todayMatches.some((m) => isLive(m.kickoff, m.homeScore !== null, m.stage));
 
   // Find next match (kickoff in future)
   const nextMatch = matches.find((m) => m.kickoff.getTime() > now.getTime());
@@ -351,7 +351,7 @@ function MatchCard({
   quickBoostAction: (formData: FormData) => Promise<void>;
 }) {
   const finished = m.homeScore !== null;
-  const live = isLive(m.kickoff, finished);
+  const live = isLive(m.kickoff, finished, m.stage);
   // Boost dostępny tylko gdy do gwizdka > 5 min (identycznie jak typowanie)
   const canBoost = !finished && !live && m.kickoff.getTime() - Date.now() > 5 * 60 * 1000;
   return (

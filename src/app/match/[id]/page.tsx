@@ -232,7 +232,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const boostedUserIds = new Set(allBoostsForMatch.map((b) => b.userId));
   const allPlayers = [...match.homeTeam.players, ...match.awayTeam.players];
 
-  const live = isLive(match.kickoff, finished);
+  const live = isLive(match.kickoff, finished, match.stage);
 
   return (
     <section className="max-w-2xl mx-auto">
