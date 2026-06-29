@@ -699,12 +699,19 @@ export default async function Admin({
           byMatchday.set(md, arr);
         }
         const sortedMatchdays = Array.from(byMatchday.keys()).sort((a, b) => a - b);
-        // Aktualna kolejka = najbliższa po dacie (z meczy które jeszcze nie zaczęły się)
+        // Aktualna kolejka:
+        // 1) priorytet: najwcześniejsza kolejka z meczem przeterminowanym (kickoff < now, brak wyniku)
+        //    - to są mecze które admin powinien jak najszybciej uzupełnić
+        // 2) fallback: najbliższa nadchodząca (earliest > now)
         const now = Date.now();
-        const currentMd = sortedMatchdays
+        const overdueMd = sortedMatchdays.find((md) =>
+          byMatchday.get(md)!.some((m) => m.kickoff.getTime() < now),
+        );
+        const nextUpcomingMd = sortedMatchdays
           .map((md) => ({ md, earliest: Math.min(...byMatchday.get(md)!.map((m) => m.kickoff.getTime())) }))
           .filter((x) => x.earliest > now)
-          .sort((a, b) => a.earliest - b.earliest)[0]?.md ?? sortedMatchdays[0];
+          .sort((a, b) => a.earliest - b.earliest)[0]?.md;
+        const currentMd = overdueMd ?? nextUpcomingMd ?? sortedMatchdays[0];
 
         return (
           <>
