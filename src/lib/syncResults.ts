@@ -172,9 +172,14 @@ export async function syncSchedule(): Promise<{ ok: boolean; touched: number; li
       const wasReal = existing.homeTeamId !== tbd.id && existing.awayTeamId !== tbd.id;
       const nowReal = homeId !== tbd.id && awayId !== tbd.id;
       const kickoffChanged = existing.kickoff.getTime() !== new Date(m.utcDate).getTime();
-      const teamsChanged = existing.homeTeamId !== homeId || existing.awayTeamId !== awayId;
 
-      // Force matchday + stage update jeśli były pucharowe a zapisane jako grupowy matchday
+      // NIGDY nie nadpisuj real team na TBD - tylko upgrade TBD->real.
+      // Dzięki temu nasza manualna propagacja awansu z admina przeżywa cron sync.
+      // Gdy FD ma już prawdziwą drużynę - nadpisze (FD jest source of truth dla par).
+      const finalHomeId = homeId !== tbd.id ? homeId : existing.homeTeamId;
+      const finalAwayId = awayId !== tbd.id ? awayId : existing.awayTeamId;
+      const teamsChanged = existing.homeTeamId !== finalHomeId || existing.awayTeamId !== finalAwayId;
+
       const correctStage = m.group
         ? `Grupa ${m.group.replace("GROUP_", "")}`
         : translateStage(m.stage);
@@ -185,8 +190,8 @@ export async function syncSchedule(): Promise<{ ok: boolean; touched: number; li
           where: { id: `fd-${m.id}` },
           data: {
             kickoff: new Date(m.utcDate),
-            homeTeamId: homeId,
-            awayTeamId: awayId,
+            homeTeamId: finalHomeId,
+            awayTeamId: finalAwayId,
             stage: correctStage,
             matchday: correctMatchday,
           },
