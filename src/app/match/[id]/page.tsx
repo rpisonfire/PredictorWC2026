@@ -437,8 +437,15 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             </label>
           )}
 
-          <div className="rounded-xl bg-app-hover border border-app p-3 text-xs text-app-muted">
-            💡 <b>Wskazówka:</b> wybierz <b>pierwszą drużynę</b> która strzeli (+2 pkt) i <b>strzelca</b> pierwszego gola (+5 pkt) żeby zmaksymalizować punkty z meczu.
+          <div className="rounded-xl bg-app-hover border border-app p-3 text-xs text-app-muted space-y-2">
+            <div>
+              💡 <b>Wskazówka:</b> wybierz <b>pierwszą drużynę</b> która strzeli (+2 pkt) i <b>strzelca</b> pierwszego gola (+5 pkt) żeby zmaksymalizować punkty z meczu.
+            </div>
+            {isKnockoutStage(match.stage) && (
+              <div>
+                ⚽ <b>Faza pucharowa:</b> wynik rozliczany jest <b>do 90. minuty</b> (lub <b>120.</b> jeśli była dogrywka). Obstawienie wyniku wygrywającego dla drużyny <b>nie daje punktów</b> za jej wygraną, jeśli awansowała dopiero w <b>rzutach karnych</b>.
+              </div>
+            )}
           </div>
 
           <button className="btn-primary w-full">Zapisz typ</button>
