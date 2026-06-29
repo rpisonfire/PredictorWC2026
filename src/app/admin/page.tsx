@@ -10,6 +10,7 @@ import { fmtDate, fmtDateTimeLong } from "@/lib/dates";
 import { sendPushToAll, sendPushToUser } from "@/lib/push";
 import { matchGlowStyle } from "@/lib/teamColors";
 import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
+import { ADVANCEMENT, STAGE_FIRST_MATCH, bracketStageFromLabel, r16FifaNumber, stageOfFifaM, type BracketStage } from "@/lib/wc2026Bracket";
 import { syncFinishedResults, syncSchedule } from "@/lib/syncResults";
 import { cookies } from "next/headers";
 import { Emoji } from "@/components/Emoji";
@@ -63,6 +64,10 @@ async function setResult(formData: FormData) {
     data: { homeScore, awayScore, homeShootoutScore, awayShootoutScore, firstScorerTeamId, firstGoalPlayerId },
   });
 
+  // Propagacja awansu - jeżeli to mecz knockout, wpisz zwycięzcę do kolejnej rundy.
+  // football-data nadpisze później to samo, ale dzięki temu drabinka ma teamy natychmiast po wpisaniu wyniku.
+  await propagateAdvancement(matchId, homeScore, awayScore, homeShootoutScore, awayShootoutScore);
+
   // Recalculate points for all predictions on this match
   const preds = await prisma.prediction.findMany({ where: { matchId } });
   for (const p of preds) {
@@ -90,6 +95,108 @@ async function setResult(formData: FormData) {
   revalidatePath("/my-predictions");
   revalidatePath("/admin");
   redirect("/admin?toast=resultSaved");
+}
+
+// Identyfikuje mecz po FIFA M number (M73-M104) wykorzystując:
+// - r16: para drużyn (lookup w R16_PAIR_TO_FIFA)
+// - r8/qf/sf: pozycja po kickoff (idx + STAGE_FIRST_MATCH)
+async function fifaMNumberOfMatch(matchId: string): Promise<number | null> {
+  const m = await prisma.match.findUnique({
+    where: { id: matchId },
+    include: { homeTeam: { select: { shortCode: true } }, awayTeam: { select: { shortCode: true } } },
+  });
+  if (!m) return null;
+  const stage = bracketStageFromLabel(prettyStage(m.stage));
+  if (!stage) return null;
+  if (stage === "r16") {
+    return r16FifaNumber(m.homeTeam.shortCode, m.awayTeam.shortCode);
+  }
+  if (stage === "final") return 104;
+  if (stage === "bronze") return 103;
+  // Dla r8/qf/sf: posortuj mecze tej fazy po kickoff i zwróć idx + STAGE_FIRST_MATCH
+  const all = await prisma.match.findMany({
+    where: { NOT: { stage: { startsWith: "Grupa" } } },
+    orderBy: { kickoff: "asc" },
+    select: { id: true, stage: true },
+  });
+  const inStage = all.filter((x) => bracketStageFromLabel(prettyStage(x.stage)) === stage);
+  const idx = inStage.findIndex((x) => x.id === matchId);
+  if (idx < 0) return null;
+  return STAGE_FIRST_MATCH[stage] + idx;
+}
+
+// Znajduje DB id meczu odpowiadającego FIFA M number.
+async function findMatchByFifaM(num: number): Promise<string | null> {
+  const stage = stageOfFifaM(num);
+  if (!stage) return null;
+  const all = await prisma.match.findMany({
+    where: { NOT: { stage: { startsWith: "Grupa" } } },
+    orderBy: { kickoff: "asc" },
+    select: { id: true, stage: true },
+  });
+  const inStage = all.filter((x) => bracketStageFromLabel(prettyStage(x.stage)) === stage);
+  const idx = num - STAGE_FIRST_MATCH[stage];
+  return inStage[idx]?.id ?? null;
+}
+
+async function propagateAdvancement(
+  matchId: string,
+  homeScore: number,
+  awayScore: number,
+  homeShootoutScore: number | null,
+  awayShootoutScore: number | null,
+) {
+  const source = await prisma.match.findUnique({ where: { id: matchId } });
+  if (!source) return;
+  if (!isKnockoutStage(source.stage)) return;
+
+  // Wyłonienie zwycięzcy: regulamin/dogrywka, przy remisie -> karne.
+  let winnerTeamId: string | null = null;
+  let loserTeamId: string | null = null;
+  if (homeScore > awayScore) {
+    winnerTeamId = source.homeTeamId;
+    loserTeamId = source.awayTeamId;
+  } else if (awayScore > homeScore) {
+    winnerTeamId = source.awayTeamId;
+    loserTeamId = source.homeTeamId;
+  } else if (homeShootoutScore !== null && awayShootoutScore !== null) {
+    if (homeShootoutScore > awayShootoutScore) {
+      winnerTeamId = source.homeTeamId;
+      loserTeamId = source.awayTeamId;
+    } else if (awayShootoutScore > homeShootoutScore) {
+      winnerTeamId = source.awayTeamId;
+      loserTeamId = source.homeTeamId;
+    }
+  }
+  if (!winnerTeamId) return; // remis bez karnych - nic nie robimy
+
+  const sourceFifaM = await fifaMNumberOfMatch(matchId);
+  if (sourceFifaM === null) return;
+  const adv = ADVANCEMENT[sourceFifaM];
+  if (!adv) return;
+
+  // Wpisz zwycięzcę w kolejnej rundzie
+  const winnerTargetId = await findMatchByFifaM(adv.winnerTo.m);
+  if (winnerTargetId) {
+    await prisma.match.update({
+      where: { id: winnerTargetId },
+      data: adv.winnerTo.slot === "home"
+        ? { homeTeamId: winnerTeamId }
+        : { awayTeamId: winnerTeamId },
+    });
+  }
+  // Wpisz przegranego w meczu o 3. miejsce (dotyczy tylko SF M101/M102)
+  if (adv.loserTo && loserTeamId) {
+    const loserTargetId = await findMatchByFifaM(adv.loserTo.m);
+    if (loserTargetId) {
+      await prisma.match.update({
+        where: { id: loserTargetId },
+        data: adv.loserTo.slot === "home"
+          ? { homeTeamId: loserTeamId }
+          : { awayTeamId: loserTeamId },
+      });
+    }
+  }
 }
 
 // Liczy pozycje wszystkich graczy i zapisuje currentRank/previousRank

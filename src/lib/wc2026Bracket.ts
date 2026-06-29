@@ -153,6 +153,56 @@ export function sideRowFor(matchNumber: number): { side: "L" | "R"; row: number 
   return null;
 }
 
+// Drzewo awansu: dla FIFA M number -> dokąd idzie zwycięzca (i przegrany dla SF -> brąz).
+// slot: "home" = home team kolejnego meczu, "away" = away team.
+export type AdvancementTarget = { m: number; slot: "home" | "away" };
+export const ADVANCEMENT: Record<number, { winnerTo: AdvancementTarget; loserTo?: AdvancementTarget }> = {
+  // r16 -> r8
+  73: { winnerTo: { m: 90, slot: "home" } },
+  74: { winnerTo: { m: 89, slot: "home" } },
+  75: { winnerTo: { m: 90, slot: "away" } },
+  76: { winnerTo: { m: 91, slot: "home" } },
+  77: { winnerTo: { m: 89, slot: "away" } },
+  78: { winnerTo: { m: 91, slot: "away" } },
+  79: { winnerTo: { m: 92, slot: "home" } },
+  80: { winnerTo: { m: 92, slot: "away" } },
+  81: { winnerTo: { m: 94, slot: "home" } },
+  82: { winnerTo: { m: 94, slot: "away" } },
+  83: { winnerTo: { m: 93, slot: "home" } },
+  84: { winnerTo: { m: 93, slot: "away" } },
+  85: { winnerTo: { m: 96, slot: "home" } },
+  86: { winnerTo: { m: 95, slot: "home" } },
+  87: { winnerTo: { m: 96, slot: "away" } },
+  88: { winnerTo: { m: 95, slot: "away" } },
+  // r8 -> qf
+  89: { winnerTo: { m: 97, slot: "home" } },
+  90: { winnerTo: { m: 97, slot: "away" } },
+  91: { winnerTo: { m: 99, slot: "home" } },
+  92: { winnerTo: { m: 99, slot: "away" } },
+  93: { winnerTo: { m: 98, slot: "home" } },
+  94: { winnerTo: { m: 98, slot: "away" } },
+  95: { winnerTo: { m: 100, slot: "home" } },
+  96: { winnerTo: { m: 100, slot: "away" } },
+  // qf -> sf
+  97: { winnerTo: { m: 101, slot: "home" } },
+  98: { winnerTo: { m: 101, slot: "away" } },
+  99: { winnerTo: { m: 102, slot: "home" } },
+  100: { winnerTo: { m: 102, slot: "away" } },
+  // sf -> final (winner) + bronze (loser)
+  101: { winnerTo: { m: 104, slot: "home" }, loserTo: { m: 103, slot: "home" } },
+  102: { winnerTo: { m: 104, slot: "away" }, loserTo: { m: 103, slot: "away" } },
+};
+
+export function stageOfFifaM(num: number): BracketStage | null {
+  if (num >= 73 && num <= 88) return "r16";
+  if (num >= 89 && num <= 96) return "r8";
+  if (num >= 97 && num <= 100) return "qf";
+  if (num >= 101 && num <= 102) return "sf";
+  if (num === 103) return "bronze";
+  if (num === 104) return "final";
+  return null;
+}
+
 export function bracketStageFromLabel(label: string): BracketStage | null {
   switch (label) {
     case "1/16 finału": return "r16";
