@@ -262,9 +262,19 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <div className="match-hero-score">
               {finished ? (
                 <>
-                  <span className="match-hero-score-num">{match.homeScore}</span>
+                  <span className="match-hero-score-num">
+                    {match.homeScore}
+                    {match.homeShootoutScore !== null && (
+                      <span style={{ fontSize: "0.55em", opacity: 0.85, marginLeft: 2 }}>({match.homeShootoutScore})</span>
+                    )}
+                  </span>
                   <span className="match-hero-colon">:</span>
-                  <span className="match-hero-score-num">{match.awayScore}</span>
+                  <span className="match-hero-score-num">
+                    {match.awayScore}
+                    {match.awayShootoutScore !== null && (
+                      <span style={{ fontSize: "0.55em", opacity: 0.85, marginLeft: 2 }}>({match.awayShootoutScore})</span>
+                    )}
+                  </span>
                 </>
               ) : (
                 <span className="match-hero-vs">VS</span>

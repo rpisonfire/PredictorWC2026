@@ -90,6 +90,9 @@ model Match {
   // Results (null until match played)
   homeScore       Int?
   awayScore       Int?
+  // Karne (knockout phase) - null gdy nie było. Tylko gdy homeScore == awayScore w regulaminie + dogrywce.
+  homeShootoutScore Int?
+  awayShootoutScore Int?
   firstScorerTeamId String?
   firstScorerTeam   Team?    @relation("FirstScorerTeam", fields: [firstScorerTeamId], references: [id])
   firstGoalPlayerId String?

@@ -8,6 +8,8 @@ export type BracketMatch = {
   kickoff: Date;
   homeScore: number | null;
   awayScore: number | null;
+  homeShootoutScore: number | null;
+  awayShootoutScore: number | null;
   homeTeam: { shortCode: string; flag: string };
   awayTeam: { shortCode: string; flag: string };
 };
@@ -55,8 +57,18 @@ function MatchCard({ m, special = null }: { m: BracketMatch | null; special?: Sp
     );
   }
   const finished = m.homeScore !== null && m.awayScore !== null;
-  const homeWon = finished && m.homeScore! > m.awayScore!;
-  const awayWon = finished && m.awayScore! > m.homeScore!;
+  const hasShootout = m.homeShootoutScore !== null && m.awayShootoutScore !== null;
+  // Zwycięzca: po regulaminie, a jeśli remis → po karnych
+  const homeWon = finished && (
+    m.homeScore! > m.awayScore! ||
+    (m.homeScore === m.awayScore && hasShootout && m.homeShootoutScore! > m.awayShootoutScore!)
+  );
+  const awayWon = finished && (
+    m.awayScore! > m.homeScore! ||
+    (m.homeScore === m.awayScore && hasShootout && m.awayShootoutScore! > m.homeShootoutScore!)
+  );
+  const fmtScore = (regular: number, so: number | null) =>
+    so !== null ? `${regular}(${so})` : `${regular}`;
   const style = sStyle ?? matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode);
   return (
     <Link href={`/match/${m.id}`} prefetch={false} className="match-tile block w-full" style={style}>
@@ -67,14 +79,14 @@ function MatchCard({ m, special = null }: { m: BracketMatch | null; special?: Sp
             <Flag emoji={m.homeTeam.flag} size="sm" />
             <span className="font-bold truncate text-xs" style={{ color: homeWon ? "#F1B434" : "white" }}>{m.homeTeam.shortCode}</span>
           </div>
-          <span className="font-black text-sm" style={{ fontFamily: "'Courier New', monospace", color: homeWon ? "#F1B434" : "white" }}>{m.homeScore ?? "-"}</span>
+          <span className="font-black text-sm" style={{ fontFamily: "'Courier New', monospace", color: homeWon ? "#F1B434" : "white" }}>{fmtScore(m.homeScore!, m.homeShootoutScore)}</span>
         </div>
         <div className={`flex items-center justify-between mt-1 ${homeWon ? "opacity-50" : ""}`}>
           <div className="flex items-center gap-2 min-w-0">
             <Flag emoji={m.awayTeam.flag} size="sm" />
             <span className="font-bold truncate text-xs" style={{ color: awayWon ? "#F1B434" : "white" }}>{m.awayTeam.shortCode}</span>
           </div>
-          <span className="font-black text-sm" style={{ fontFamily: "'Courier New', monospace", color: awayWon ? "#F1B434" : "white" }}>{m.awayScore ?? "-"}</span>
+          <span className="font-black text-sm" style={{ fontFamily: "'Courier New', monospace", color: awayWon ? "#F1B434" : "white" }}>{fmtScore(m.awayScore!, m.awayShootoutScore)}</span>
         </div>
       </div>
     </Link>

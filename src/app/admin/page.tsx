@@ -44,6 +44,11 @@ async function setResult(formData: FormData) {
   const awayScore = Number(formData.get("awayScore"));
   const firstScorerTeam = String(formData.get("firstScorerTeam") || "NONE") as "HOME" | "AWAY" | "NONE";
   const firstGoalPlayerId = String(formData.get("firstGoalPlayerId") || "") || null;
+  // Karne - zapisujemy tylko gdy podane oba pola (puste = brak karnych)
+  const rawHomeSO = String(formData.get("homeShootoutScore") || "");
+  const rawAwaySO = String(formData.get("awayShootoutScore") || "");
+  const homeShootoutScore = rawHomeSO === "" ? null : Number(rawHomeSO);
+  const awayShootoutScore = rawAwaySO === "" ? null : Number(rawAwaySO);
 
   // Pobierz mecz żeby zmapować HOME/AWAY na konkretne ID drużyn
   const matchRec = await prisma.match.findUnique({ where: { id: matchId } });
@@ -55,7 +60,7 @@ async function setResult(formData: FormData) {
 
   await prisma.match.update({
     where: { id: matchId },
-    data: { homeScore, awayScore, firstScorerTeamId, firstGoalPlayerId },
+    data: { homeScore, awayScore, homeShootoutScore, awayShootoutScore, firstScorerTeamId, firstGoalPlayerId },
   });
 
   // Recalculate points for all predictions on this match
@@ -698,6 +703,31 @@ function MatchForm({
             style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.3)", color: "#F1B434", textShadow: "0 0 8px rgba(241,180,52,0.4)" }}
           />
         </div>
+        {/* Karne - tylko dla fazy pucharowej. Puste = brak karnych. */}
+        {isKnockoutStage(m.stage) && (
+          <div className="mt-3">
+            <div className="text-[10px] uppercase tracking-widest text-center mb-1.5" style={{ color: "rgba(241,180,52,0.6)", fontFamily: "'Courier New', monospace" }}>
+              Karne (puste = brak)
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <input
+                type="number" name="homeShootoutScore" min={0} max={30}
+                defaultValue={m.homeShootoutScore ?? ""}
+                placeholder="-"
+                className="input w-16 sm:w-20 text-center px-1 text-lg font-black"
+                style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.25)", color: "#F1B434" }}
+              />
+              <span className="font-black text-lg" style={{ color: "rgba(241,180,52,0.4)", fontFamily: "'Courier New', monospace" }}>:</span>
+              <input
+                type="number" name="awayShootoutScore" min={0} max={30}
+                defaultValue={m.awayShootoutScore ?? ""}
+                placeholder="-"
+                className="input w-16 sm:w-20 text-center px-1 text-lg font-black"
+                style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.25)", color: "#F1B434" }}
+              />
+            </div>
+          </div>
+        )}
         <div className="grid sm:grid-cols-2 gap-3 mt-4">
           <div>
             <label className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(241,180,52,0.75)", fontFamily: "'Courier New', monospace" }}>
