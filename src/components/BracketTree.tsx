@@ -67,8 +67,8 @@ function MatchCard({ m, special = null }: { m: BracketMatch | null; special?: Sp
     m.awayScore! > m.homeScore! ||
     (m.homeScore === m.awayScore && hasShootout && m.awayShootoutScore! > m.homeShootoutScore!)
   );
-  const fmtScore = (regular: number, so: number | null) =>
-    so !== null ? `${regular}(${so})` : `${regular}`;
+  const fmtScore = (regular: number | null, so: number | null) =>
+    regular === null ? "-" : so !== null ? `${regular}(${so})` : `${regular}`;
   const style = sStyle ?? matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode);
   return (
     <Link href={`/match/${m.id}`} prefetch={false} className="match-tile block w-full" style={style}>
@@ -79,14 +79,14 @@ function MatchCard({ m, special = null }: { m: BracketMatch | null; special?: Sp
             <Flag emoji={m.homeTeam.flag} size="sm" />
             <span className="font-bold truncate text-xs" style={{ color: homeWon ? "#F1B434" : "white" }}>{m.homeTeam.shortCode}</span>
           </div>
-          <span className="font-black text-sm" style={{ fontFamily: "'Courier New', monospace", color: homeWon ? "#F1B434" : "white" }}>{fmtScore(m.homeScore!, m.homeShootoutScore)}</span>
+          <span className="font-black text-sm" style={{ fontFamily: "'Courier New', monospace", color: homeWon ? "#F1B434" : "white" }}>{fmtScore(m.homeScore, m.homeShootoutScore)}</span>
         </div>
         <div className={`flex items-center justify-between mt-1 ${homeWon ? "opacity-50" : ""}`}>
           <div className="flex items-center gap-2 min-w-0">
             <Flag emoji={m.awayTeam.flag} size="sm" />
             <span className="font-bold truncate text-xs" style={{ color: awayWon ? "#F1B434" : "white" }}>{m.awayTeam.shortCode}</span>
           </div>
-          <span className="font-black text-sm" style={{ fontFamily: "'Courier New', monospace", color: awayWon ? "#F1B434" : "white" }}>{fmtScore(m.awayScore!, m.awayShootoutScore)}</span>
+          <span className="font-black text-sm" style={{ fontFamily: "'Courier New', monospace", color: awayWon ? "#F1B434" : "white" }}>{fmtScore(m.awayScore, m.awayShootoutScore)}</span>
         </div>
       </div>
     </Link>
