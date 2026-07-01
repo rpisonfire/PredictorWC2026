@@ -15,7 +15,11 @@ type FdMatch = {
   group?: string;
   homeTeam: { id: number };
   awayTeam: { id: number };
-  score?: { fullTime?: { home: number | null; away: number | null } };
+  score?: {
+    fullTime?: { home: number | null; away: number | null };    // 90 min
+    extraTime?: { home: number | null; away: number | null };   // po dogrywce
+    penalties?: { home: number | null; away: number | null };   // karne
+  };
 };
 
 async function fdFetch<T>(path: string): Promise<T | null> {
@@ -47,17 +51,29 @@ export async function syncFinishedResults(opts: { sendPush?: boolean } = {}): Pr
   let scoredPredictions = 0;
 
   for (const m of data.matches) {
-    const home = m.score?.fullTime?.home;
-    const away = m.score?.fullTime?.away;
+    // Wynik "z gry" = po dogrywce jeśli była, inaczej po regulaminie.
+    // Karne są ZAWSZE osobno w score.penalties (nie doliczamy do homeScore/awayScore).
+    const et = m.score?.extraTime;
+    const ft = m.score?.fullTime;
+    const pens = m.score?.penalties;
+    const home = et?.home ?? ft?.home;
+    const away = et?.away ?? ft?.away;
     if (home == null || away == null) continue;
+    const homeSO = pens?.home ?? null;
+    const awaySO = pens?.away ?? null;
 
     const existing = await prisma.match.findUnique({ where: { id: `fd-${m.id}` } });
     if (!existing) continue;
-    if (existing.homeScore === home && existing.awayScore === away) continue;
+    if (
+      existing.homeScore === home &&
+      existing.awayScore === away &&
+      existing.homeShootoutScore === homeSO &&
+      existing.awayShootoutScore === awaySO
+    ) continue;
 
     await prisma.match.update({
       where: { id: existing.id },
-      data: { homeScore: home, awayScore: away },
+      data: { homeScore: home, awayScore: away, homeShootoutScore: homeSO, awayShootoutScore: awaySO },
     });
     updated++;
 
