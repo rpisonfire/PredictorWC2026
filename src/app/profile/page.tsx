@@ -9,6 +9,7 @@ import { hashPassword, verifyPassword } from "@/lib/password";
 import { ChangePasswordForm } from "./change-password";
 import { NotificationsButton } from "@/components/NotificationsButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SoundToggle } from "@/components/SoundToggle";
 import { Emoji } from "@/components/Emoji";
 import { Flag } from "@/components/Flag";
 import { PaniniCardLarge } from "@/components/PaniniCard";
@@ -149,6 +150,7 @@ export default async function Profile() {
         </div>
         <NotificationsButton />
         <ThemeToggle />
+        <SoundToggle />
         <ChangePasswordForm action={changePassword} />
 
         <form action={logout}>

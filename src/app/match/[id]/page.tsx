@@ -224,6 +224,22 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const homeForm = formFor(match.homeTeamId);
   const awayForm = formFor(match.awayTeamId);
   const showForm = homeForm.length > 0 || awayForm.length > 0;
+
+  // Summary statystyk: łączny bilans W-D-L + gole strzelone/stracone
+  type TeamSummary = { w: number; d: number; l: number; gf: number; ga: number };
+  const summarize = (form: typeof homeForm): TeamSummary => {
+    const s: TeamSummary = { w: 0, d: 0, l: 0, gf: 0, ga: 0 };
+    for (const f of form) {
+      if (f.result === "W") s.w++;
+      else if (f.result === "D") s.d++;
+      else s.l++;
+      const [my, opp] = f.score.split(":").map(Number);
+      s.gf += my; s.ga += opp;
+    }
+    return s;
+  };
+  const homeSummary = summarize(homeForm);
+  const awaySummary = summarize(awayForm);
   const boostOnThisMatch = matchdayBoost?.matchId === match.id;
   // Mecz zaczął się (lub jest po) - nie można edytować boosta na tym meczu
   // "Started" = 5 min lub mniej do gwizdka, blokada zgodna z typowaniem
@@ -294,8 +310,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         <div className="stat-section mt-4">
           <h2>📈 Forma na mundialu</h2>
           <div className="space-y-3">
-            <TeamFormRow flag={match.homeTeam.flag} code={match.homeTeam.shortCode} form={homeForm} />
-            <TeamFormRow flag={match.awayTeam.flag} code={match.awayTeam.shortCode} form={awayForm} />
+            <TeamFormRow flag={match.homeTeam.flag} code={match.homeTeam.shortCode} form={homeForm} summary={homeSummary} />
+            <TeamFormRow flag={match.awayTeam.flag} code={match.awayTeam.shortCode} form={awayForm} summary={awaySummary} />
           </div>
         </div>
       )}
@@ -598,38 +614,50 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 }
 
 function TeamFormRow({
-  flag, code, form,
+  flag, code, form, summary,
 }: {
   flag: string; code: string;
   form: { result: "W" | "D" | "L"; opponent: string; opponentFlag: string; score: string }[];
+  summary?: { w: number; d: number; l: number; gf: number; ga: number };
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2 w-24 shrink-0">
-        <Flag emoji={flag} size="sm" />
-        <span className="font-bold text-sm">{code}</span>
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 w-24 shrink-0">
+          <Flag emoji={flag} size="sm" />
+          <span className="font-bold text-sm">{code}</span>
+        </div>
+        {form.length === 0 ? (
+          <div className="text-xs text-app-subtle">Pierwszy mecz na turnieju</div>
+        ) : (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {form.map((f, i) => {
+              const color =
+                f.result === "W" ? "bg-wc-green/20 text-wc-green border-wc-green/30"
+                : f.result === "L" ? "bg-wc-red/15 text-wc-red border-wc-red/30"
+                : "bg-app-hover text-app-subtle border-app";
+              return (
+                <span
+                  key={i}
+                  title={`vs ${f.opponent} ${f.score}`}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-black tabular-nums ${color}`}
+                >
+                  {f.result}
+                  <span className="text-[10px] font-normal opacity-70">{f.score}</span>
+                  <Flag emoji={f.opponentFlag} size="xs" />
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
-      {form.length === 0 ? (
-        <div className="text-xs text-app-subtle">Pierwszy mecz na turnieju</div>
-      ) : (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {form.map((f, i) => {
-            const color =
-              f.result === "W" ? "bg-wc-green/20 text-wc-green border-wc-green/30"
-              : f.result === "L" ? "bg-wc-red/15 text-wc-red border-wc-red/30"
-              : "bg-app-hover text-app-subtle border-app";
-            return (
-              <span
-                key={i}
-                title={`vs ${f.opponent} ${f.score}`}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-black tabular-nums ${color}`}
-              >
-                {f.result}
-                <span className="text-[10px] font-normal opacity-70">{f.score}</span>
-                <Flag emoji={f.opponentFlag} size="xs" />
-              </span>
-            );
-          })}
+      {summary && form.length > 0 && (
+        <div className="flex items-center gap-3 pl-[6.5rem] text-[11px] text-app-subtle tabular-nums" style={{ fontFamily: "'Courier New', monospace" }}>
+          <span><span className="text-wc-green font-black">{summary.w}W</span> · <span className="opacity-70 font-black">{summary.d}D</span> · <span className="text-wc-red font-black">{summary.l}L</span></span>
+          <span>Bramki: <span className="text-app font-black">{summary.gf}:{summary.ga}</span></span>
+          <span>Bilans: <span className={`font-black ${summary.gf - summary.ga > 0 ? "text-wc-green" : summary.gf - summary.ga < 0 ? "text-wc-red" : ""}`}>
+            {summary.gf - summary.ga > 0 ? "+" : ""}{summary.gf - summary.ga}
+          </span></span>
         </div>
       )}
     </div>

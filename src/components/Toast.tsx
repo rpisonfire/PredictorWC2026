@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { playSwoosh } from "@/lib/sound";
 
 const MESSAGES: Record<string, { text: string; tone: "success" | "info" | "warn" }> = {
   saved:           { text: "Typ zapisany",           tone: "success" },
@@ -52,6 +53,8 @@ export function AutoToast() {
 
   useEffect(() => {
     if (!cfg) return;
+    // Zagraj swoosh dla akcji zapisu (jeśli włączony w profilu)
+    if (cfg.tone === "success") playSwoosh();
     // Usuń parametr toast z URL bez przeładowania
     const t = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());

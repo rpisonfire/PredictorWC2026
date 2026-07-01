@@ -28,6 +28,20 @@ export default async function MyPredictions() {
   const boosts = await prisma.boost.findMany({ where: { userId: user.id } });
   const boostMatchIds = new Set(boosts.map((b) => b.matchId));
 
+  // Nadchodzące mecze BEZ typu - motywator dla leniwych
+  const predictedMatchIds = new Set(predictions.map((p) => p.matchId));
+  const now = new Date();
+  const upcomingUnpicked = await prisma.match.findMany({
+    where: {
+      kickoff: { gt: now },
+      homeScore: null,
+      id: { notIn: Array.from(predictedMatchIds) },
+    },
+    include: { homeTeam: true, awayTeam: true },
+    orderBy: { kickoff: "asc" },
+    take: 20,
+  });
+
   let total = 0;
   for (const p of predictions) {
     total += boostMatchIds.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
@@ -82,9 +96,45 @@ export default async function MyPredictions() {
         </div>
       )}
 
+      {upcomingUnpicked.length > 0 && (
+        <>
+          <h2 className="text-sm uppercase tracking-wider mb-2 mt-2 flex items-center gap-2">
+            <span className="text-wc-red">⚠</span>
+            <span className="text-wc-red">Bez typu ({upcomingUnpicked.length})</span>
+          </h2>
+          <div className="space-y-2 mb-6">
+            {upcomingUnpicked.map((m) => (
+              <Link
+                key={m.id}
+                href={`/match/${m.id}`}
+                className="match-tile block"
+                style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
+              >
+                <div className="match-tile-inner" style={{ padding: "12px 14px" }}>
+                  <div className="match-tile-meta" style={{ marginBottom: 6 }}>
+                    <span>{isKnockoutStage(m.stage) ? prettyStage(m.stage) : `${m.stage}`}</span>
+                    <span>{fmtDateTime(m.kickoff)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Flag emoji={m.homeTeam.flag} size="sm" />
+                      <span className="font-bold truncate text-white">{m.homeTeam.shortCode}</span>
+                      <span className="text-app-subtle mx-1">vs</span>
+                      <Flag emoji={m.awayTeam.flag} size="sm" />
+                      <span className="font-bold truncate text-white">{m.awayTeam.shortCode}</span>
+                    </div>
+                    <span className="chip-no-pick shrink-0">Postaw typ →</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+
       {upcoming.length > 0 && (
         <>
-          <h2 className="text-sm uppercase tracking-wider text-app-subtle mb-2 mt-2">Nadchodzące</h2>
+          <h2 className="text-sm uppercase tracking-wider text-app-subtle mb-2 mt-2">Nadchodzące (z typem)</h2>
           <div className="space-y-2 mb-6">
             {upcoming.map((p) => <Row key={p.id} p={p} boosted={boostMatchIds.has(p.matchId)} />)}
           </div>
