@@ -306,6 +306,27 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
+      {live && (
+        <a
+          href="https://sport.tvp.pl/live"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block mt-4 rounded-2xl p-4 text-center font-black relative overflow-hidden transition-transform active:scale-[0.98]"
+          style={{
+            background: "linear-gradient(135deg, #DC2626, #991B1B)",
+            boxShadow: "0 0 24px rgba(220,38,38,0.5), inset 0 1px 0 rgba(255,255,255,0.2)",
+            border: "1px solid rgba(255,255,255,0.15)",
+          }}
+        >
+          <span className="absolute top-2 left-3 flex items-center gap-1 text-[10px] uppercase tracking-widest text-white/80" style={{ fontFamily: "'Courier New', monospace" }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            LIVE
+          </span>
+          <div className="text-white text-lg mt-1">🔴 Oglądaj na TVP Sport</div>
+          <div className="text-xs text-white/75 mt-0.5 font-normal">Transmisja meczu · otwiera nową kartę</div>
+        </a>
+      )}
+
       {showForm && (
         <div className="stat-section mt-4">
           <h2>📈 Forma na mundialu</h2>
