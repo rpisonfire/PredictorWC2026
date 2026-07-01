@@ -678,7 +678,11 @@ export default async function Admin({
 
       {(() => {
         const upcoming = matches.filter((m) => m.homeScore === null);
-        const finished = matches.filter((m) => m.homeScore !== null);
+        // Rozegrane sortujemy DESC po kickoff - żeby najświeższe (najczęściej edytowane) były u góry
+        const finished = matches
+          .filter((m) => m.homeScore !== null)
+          .slice()
+          .sort((a, b) => b.kickoff.getTime() - a.kickoff.getTime());
 
         // Efektywny matchday: knockout-y dostają 100+ od stage'a (niezależnie od DB).
         const KO_MD: Record<string, number> = {
