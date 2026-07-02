@@ -367,16 +367,18 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <span className="text-sm font-semibold">{match.homeTeam.shortCode}</span>
               <input
                 type="number" name="homeScore" min={0} max={20} required
+                inputMode="numeric" placeholder="0"
                 defaultValue={pred?.homeScore ?? ""}
-                className="input mt-1 text-center text-2xl font-black"
+                className="led-score-input mt-1"
               />
             </label>
             <label className="block">
               <span className="text-sm font-semibold">{match.awayTeam.shortCode}</span>
               <input
                 type="number" name="awayScore" min={0} max={20} required
+                inputMode="numeric" placeholder="0"
                 defaultValue={pred?.awayScore ?? ""}
-                className="input mt-1 text-center text-2xl font-black"
+                className="led-score-input mt-1"
               />
             </label>
           </div>

@@ -805,20 +805,20 @@ function MatchForm({
             <Flag emoji={m.awayTeam.flag} size="md" />
           </div>
         </div>
-        {/* Score inputs */}
+        {/* Score inputs - ustandaryzowana tablica LED */}
         <div className="flex items-center justify-center gap-3">
           <input
             type="number" name="homeScore" min={0} max={20}
+            inputMode="numeric" placeholder="0"
             defaultValue={m.homeScore ?? ""}
-            className="input w-20 sm:w-24 text-center px-1 text-2xl font-black"
-            style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.3)", color: "#F1B434", textShadow: "0 0 8px rgba(241,180,52,0.4)" }}
+            className="led-score-input w-20 sm:w-24"
           />
           <span className="font-black text-2xl" style={{ color: "rgba(241,180,52,0.5)", fontFamily: "'Courier New', monospace" }}>:</span>
           <input
             type="number" name="awayScore" min={0} max={20}
+            inputMode="numeric" placeholder="0"
             defaultValue={m.awayScore ?? ""}
-            className="input w-20 sm:w-24 text-center px-1 text-2xl font-black"
-            style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.3)", color: "#F1B434", textShadow: "0 0 8px rgba(241,180,52,0.4)" }}
+            className="led-score-input w-20 sm:w-24"
           />
         </div>
         {/* Karne - tylko dla fazy pucharowej. Puste = brak karnych. */}
@@ -830,18 +830,16 @@ function MatchForm({
             <div className="flex items-center justify-center gap-3">
               <input
                 type="number" name="homeShootoutScore" min={0} max={30}
+                inputMode="numeric" placeholder="-"
                 defaultValue={m.homeShootoutScore ?? ""}
-                placeholder="-"
-                className="input w-16 sm:w-20 text-center px-1 text-lg font-black"
-                style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.25)", color: "#F1B434" }}
+                className="led-score-input led-score-input--sm w-16 sm:w-20"
               />
               <span className="font-black text-lg" style={{ color: "rgba(241,180,52,0.4)", fontFamily: "'Courier New', monospace" }}>:</span>
               <input
                 type="number" name="awayShootoutScore" min={0} max={30}
+                inputMode="numeric" placeholder="-"
                 defaultValue={m.awayShootoutScore ?? ""}
-                placeholder="-"
-                className="input w-16 sm:w-20 text-center px-1 text-lg font-black"
-                style={{ fontFamily: "'Courier New', monospace", background: "rgba(0,0,0,0.4)", borderColor: "rgba(241,180,52,0.25)", color: "#F1B434" }}
+                className="led-score-input led-score-input--sm w-16 sm:w-20"
               />
             </div>
           </div>

@@ -26,15 +26,26 @@ export function Toast({ message, tone = "success" }: { message: string; tone?: "
   }, []);
   if (!show) return null;
 
-  const colors = {
-    success: "bg-wc-green/90 shadow-wc-green/30",
-    info:    "bg-wc-blue/90 shadow-wc-blue/30",
-    warn:    "bg-wc-gold/90 shadow-wc-gold/30",
+  // LED stadium panel - kolor diod zależny od tonu
+  const ledColor = {
+    success: "#A6E22E",
+    info:    "#4FC3F7",
+    warn:    "#F1B434",
   }[tone];
-  const icon = { success: "✅", info: "ℹ️", warn: "⚠️" }[tone];
+  const icon = { success: "✔", info: "ℹ", warn: "⚠" }[tone];
 
   return (
-    <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 chip text-white shadow-lg ${colors} px-4 py-2 text-sm animate-in fade-in slide-in-from-top-2`}>
+    <div
+      className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-xl px-4 py-2.5 text-sm font-black uppercase tracking-wider ${tone === "success" ? "led-flash" : ""}`}
+      style={{
+        background: "linear-gradient(180deg, #0a0e1a 0%, #050810 100%)",
+        border: `1px solid ${ledColor}66`,
+        color: ledColor,
+        fontFamily: "'Courier New', monospace",
+        textShadow: `0 0 8px ${ledColor}80`,
+        boxShadow: `0 4px 20px rgba(0,0,0,0.5), 0 0 16px ${ledColor}33`,
+      }}
+    >
       {icon} {message}
     </div>
   );

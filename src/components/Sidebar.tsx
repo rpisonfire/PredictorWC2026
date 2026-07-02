@@ -54,8 +54,9 @@ export function Sidebar({
         className={`hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col bg-[var(--card-bg)] border-r border-[var(--border)] backdrop-blur z-30 sidebar-panel ${open ? "is-open" : "is-closed"}`}
         aria-hidden={!open}
       >
-        <Link href="/" className="flex items-center gap-2 font-black text-lg pl-16 pr-5 py-5 border-b border-[var(--border)]">
-          <span className="text-2xl leading-none ball-spin">⚽</span>
+        <Link href="/" className="flex items-center gap-2.5 font-black text-lg pl-16 pr-5 py-5 border-b border-[var(--border)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icons/icon.svg" alt="" className="w-8 h-8 rounded-lg shrink-0" />
           <span className="jersey-logo">WC PREDICTOR <span className="text-wc-lime">2026</span></span>
         </Link>
 

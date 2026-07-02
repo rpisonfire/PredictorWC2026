@@ -1165,6 +1165,90 @@ details[open] > .collapse-header .collapse-chev {
   text-transform: uppercase;
 }
 
+/* ===== LED SCORE INPUT - ustandaryzowany input wyniku (tablica stadionowa) =====
+   Jedna klasa dla: typowania na stronie meczu + panelu admina.
+   Cyfrowa typografia, ciemny panel diodowy, złoty glow, focus = mocniejszy neon. */
+.led-score-input {
+  @apply w-full rounded-xl text-center outline-none;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-weight: 900;
+  font-size: 1.75rem;
+  letter-spacing: 2px;
+  background: linear-gradient(180deg, #0a0e1a 0%, #050810 100%);
+  border: 1px solid rgba(241, 180, 52, 0.3);
+  color: #F1B434;
+  text-shadow: 0 0 8px rgba(241, 180, 52, 0.4);
+  caret-color: #F1B434;
+  min-height: 56px; /* touch target 44px+ */
+  padding: 8px 4px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -moz-appearance: textfield;
+}
+.led-score-input::-webkit-outer-spin-button,
+.led-score-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.led-score-input::placeholder {
+  color: rgba(241, 180, 52, 0.25);
+  text-shadow: none;
+}
+.led-score-input:focus {
+  border-color: rgba(241, 180, 52, 0.8);
+  box-shadow: 0 0 0 3px rgba(241, 180, 52, 0.15), 0 0 18px rgba(241, 180, 52, 0.35);
+}
+/* Wariant secondary - mniejszy (np. karne w adminie) */
+.led-score-input--sm {
+  font-size: 1.125rem;
+  min-height: 44px;
+  padding: 6px 4px;
+}
+
+/* ===== ENTRY ANIMATION - karty meczowe wjeżdżają z dołu z fade ===== */
+.match-tile {
+  animation: tileEnter 0.35s ease-out backwards;
+}
+/* Stagger dla pierwszych 8 kart w kontenerze */
+.match-tile:nth-child(1) { animation-delay: 0ms; }
+.match-tile:nth-child(2) { animation-delay: 40ms; }
+.match-tile:nth-child(3) { animation-delay: 80ms; }
+.match-tile:nth-child(4) { animation-delay: 120ms; }
+.match-tile:nth-child(5) { animation-delay: 160ms; }
+.match-tile:nth-child(6) { animation-delay: 200ms; }
+.match-tile:nth-child(7) { animation-delay: 240ms; }
+.match-tile:nth-child(8) { animation-delay: 280ms; }
+
+@keyframes tileEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== LED FLASH - rozświetlenie po pomyślnym zapisie (toast success) ===== */
+@keyframes ledFlash {
+  0% { box-shadow: 0 0 0 rgba(166, 226, 46, 0); filter: brightness(1); }
+  15% { box-shadow: 0 0 24px rgba(166, 226, 46, 0.8); filter: brightness(1.35); }
+  40% { box-shadow: 0 0 12px rgba(166, 226, 46, 0.4); filter: brightness(1.1); }
+  100% { box-shadow: 0 0 0 rgba(166, 226, 46, 0); filter: brightness(1); }
+}
+.led-flash {
+  animation: ledFlash 0.9s ease-out;
+}
+
+/* ===== FOCUS-VISIBLE - dostępność klawiaturowa, spójny neon ===== */
+.btn:focus-visible,
+.input:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(241, 180, 52, 0.7);
+  outline-offset: 2px;
+}
+
+/* Reduced motion - wyłącz animacje wejścia i flash */
+@media (prefers-reduced-motion: reduce) {
+  .match-tile { animation: none; }
+  .led-flash { animation: none; }
+  .ball-spin { animation: none; }
+}
+
 /* ===== KEYFRAMES ===== */
 @keyframes ballSpin {
   to { transform: rotate(360deg); }
