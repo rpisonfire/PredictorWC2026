@@ -33,8 +33,11 @@ function specialStyle(special: Special) {
   return null;
 }
 
-function MatchCard({ m, special = null }: { m: BracketMatch | null; special?: Special }) {
+function MatchCard({ m: mRaw, special = null }: { m: BracketMatch | null; special?: Special }) {
   const sStyle = specialStyle(special);
+  // Mecz z niepotwierdzonymi drużynami traktujemy jak placeholder - bez linka (nie ma czego typować)
+  const hasTbd = mRaw && (mRaw.homeTeam.shortCode === "TBD" || mRaw.awayTeam.shortCode === "TBD");
+  const m = hasTbd ? null : mRaw;
   if (!m) {
     return (
       <div
@@ -42,7 +45,7 @@ function MatchCard({ m, special = null }: { m: BracketMatch | null; special?: Sp
         style={sStyle ?? { background: "linear-gradient(135deg, rgba(241,180,52,0.15), rgba(255,255,255,0.05), rgba(241,180,52,0.15))", opacity: 0.7 }}
       >
         <div className="match-tile-inner" style={{ padding: "7px 9px" }}>
-          <div className="match-tile-meta" style={{ marginBottom: 3 }}>TBD</div>
+          <div className="match-tile-meta" style={{ marginBottom: 3 }}>{mRaw ? fmtDateTime(mRaw.kickoff) : "TBD"}</div>
           {[0, 1].map((i) => (
             <div key={i} className="flex items-center justify-between" style={{ marginTop: i ? 3 : 0 }}>
               <div className="flex items-center gap-2 min-w-0">

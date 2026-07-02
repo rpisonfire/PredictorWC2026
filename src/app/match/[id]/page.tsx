@@ -42,8 +42,14 @@ async function savePrediction(formData: FormData) {
   if (!user) redirect("/login");
 
   const matchId = String(formData.get("matchId"));
-  const match = await prisma.match.findUnique({ where: { id: matchId } });
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    include: { homeTeam: { select: { shortCode: true } }, awayTeam: { select: { shortCode: true } } },
+  });
   if (!match) return;
+
+  // Nie można typować meczu bez potwierdzonych drużyn (TBD)
+  if (match.homeTeam.shortCode === "TBD" || match.awayTeam.shortCode === "TBD") return;
 
   // Lock 5 min before kickoff
   if (match.kickoff.getTime() - Date.now() < 5 * 60 * 1000) return;
@@ -126,6 +132,11 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     },
   });
   if (!match) notFound();
+
+  // Mecz bez potwierdzonych drużyn (TBD vs TBD) - nie ma czego typować, wracamy
+  if (match.homeTeam.shortCode === "TBD" || match.awayTeam.shortCode === "TBD") {
+    redirect("/bracket");
+  }
 
   const pred = match.predictions[0];
   const boosted = match.boosts.length > 0;

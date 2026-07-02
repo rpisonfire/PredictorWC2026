@@ -416,12 +416,19 @@ function MatchCard({
   const live = isLive(m.kickoff, finished, m.stage);
   // Boost dostępny tylko gdy do gwizdka > 5 min (identycznie jak typowanie)
   const canBoost = !finished && !live && m.kickoff.getTime() - Date.now() > 5 * 60 * 1000;
+  // Mecz bez potwierdzonych drużyn - nieklikalny, nie da się typować
+  const isTbd = m.homeTeam.shortCode === "TBD" || m.awayTeam.shortCode === "TBD";
   return (
     <div
       className="match-tile relative"
-      style={matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode)}
+      style={{
+        ...matchGlowStyle(m.homeTeam.shortCode, m.awayTeam.shortCode),
+        ...(isTbd ? { opacity: 0.6 } : {}),
+      }}
     >
-      <Link href={`/match/${m.id}`} className="absolute inset-0 z-0" aria-label={`${m.homeTeam.name} vs ${m.awayTeam.name}`} />
+      {!isTbd && (
+        <Link href={`/match/${m.id}`} className="absolute inset-0 z-0" aria-label={`${m.homeTeam.name} vs ${m.awayTeam.name}`} />
+      )}
       <div className="match-tile-inner relative z-10 pointer-events-none">
       <div className="match-tile-meta">
         <span className="truncate">{prettyStage(m.stage)}</span>

@@ -36,6 +36,11 @@ export default async function MyPredictions() {
       kickoff: { gt: now },
       homeScore: null,
       id: { notIn: Array.from(predictedMatchIds) },
+      // Mecze z niepotwierdzonymi drużynami (TBD) nie da się typować - nie strasz nimi
+      NOT: [
+        { homeTeam: { shortCode: "TBD" } },
+        { awayTeam: { shortCode: "TBD" } },
+      ],
     },
     include: { homeTeam: true, awayTeam: true },
     orderBy: { kickoff: "asc" },
