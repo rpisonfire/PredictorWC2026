@@ -2,10 +2,13 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "./db";
 import { scorePrediction } from "./scoring";
 import { sendPushToAll } from "./push";
+import { propagateAdvancement } from "./advancement";
+import { isKnockoutStage } from "./stageLabel";
 
 const TOKEN = process.env.FOOTBALL_DATA_TOKEN;
 const BASE = "https://api.football-data.org/v4";
 
+type FdScorePair = { home: number | null; away: number | null };
 type FdMatch = {
   id: number;
   utcDate: string;
@@ -16,11 +19,57 @@ type FdMatch = {
   homeTeam: { id: number };
   awayTeam: { id: number };
   score?: {
-    fullTime?: { home: number | null; away: number | null };    // 90 min
-    extraTime?: { home: number | null; away: number | null };   // po dogrywce
-    penalties?: { home: number | null; away: number | null };   // karne
+    winner?: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
+    duration?: "REGULAR" | "EXTRA_TIME" | "PENALTY_SHOOTOUT";
+    fullTime?: FdScorePair;    // UWAGA: przy karnych ZAWIERA bramki z karnych!
+    regularTime?: FdScorePair; // wynik po 90 min (tylko knockout z dogrywką)
+    extraTime?: FdScorePair;   // bramki TYLKO z okresu dogrywki (nie kumulatywne)
+    penalties?: FdScorePair;   // wynik konkursu rzutów karnych
   };
 };
+
+/**
+ * Parsuje score z football-data.org v4 na naszą strukturę.
+ *
+ * BŁĄD który to naprawia: FD przy meczach rozstrzygniętych karnymi zwraca
+ * w `fullTime` wynik ŁĄCZNIE z bramkami z karnych (np. 1:1 + karne 3:4 -> fullTime 4:5).
+ * `extraTime` to z kolei bramki wyłącznie z okresu 91-120 min (zwykle 0:0),
+ * NIE stan meczu po dogrywce. Poprawny wynik "z gry" = regularTime + extraTime.
+ *
+ * Zwraca: wynik z gry (regulamin+dogrywka) i karne osobno.
+ */
+export function parseFdScore(score: FdMatch["score"]):
+  | { home: number; away: number; homeSO: number | null; awaySO: number | null }
+  | null {
+  const ft = score?.fullTime;
+  if (ft?.home == null || ft?.away == null) return null;
+
+  const pens = score?.penalties;
+  const hasPens = pens?.home != null && pens?.away != null;
+  if (!hasPens) {
+    // Bez karnych fullTime jest wiarygodny (zawiera dogrywkę jeśli była)
+    return { home: ft.home, away: ft.away, homeSO: null, awaySO: null };
+  }
+
+  // Karne: odtwórz wynik z gry z okresów
+  const rt = score?.regularTime;
+  const et = score?.extraTime;
+  if (rt?.home != null && rt?.away != null) {
+    return {
+      home: rt.home + (et?.home ?? 0),
+      away: rt.away + (et?.away ?? 0),
+      homeSO: pens.home,
+      awaySO: pens.away,
+    };
+  }
+  // Fallback gdy brak regularTime: odejmij karne od fullTime
+  return {
+    home: ft.home - pens.home!,
+    away: ft.away - pens.away!,
+    homeSO: pens.home,
+    awaySO: pens.away,
+  };
+}
 
 async function fdFetch<T>(path: string): Promise<T | null> {
   if (!TOKEN) return null;
@@ -51,16 +100,13 @@ export async function syncFinishedResults(opts: { sendPush?: boolean } = {}): Pr
   let scoredPredictions = 0;
 
   for (const m of data.matches) {
-    // Wynik "z gry" = po dogrywce jeśli była, inaczej po regulaminie.
-    // Karne są ZAWSZE osobno w score.penalties (nie doliczamy do homeScore/awayScore).
-    const et = m.score?.extraTime;
-    const ft = m.score?.fullTime;
-    const pens = m.score?.penalties;
-    const home = et?.home ?? ft?.home;
-    const away = et?.away ?? ft?.away;
-    if (home == null || away == null) continue;
-    const homeSO = pens?.home ?? null;
-    const awaySO = pens?.away ?? null;
+    // Poprawny parse: wynik z gry (regulamin+dogrywka) + karne osobno.
+    // Poprzednio `extraTime ?? fullTime` dawało 0:0 dla meczy z karnymi
+    // (extraTime = bramki tylko z okresu dogrywki), a jeszcze wcześniej
+    // surowy fullTime dawał wynik z wliczonymi karnymi (4:5).
+    const parsed = parseFdScore(m.score);
+    if (!parsed) continue;
+    const { home, away, homeSO, awaySO } = parsed;
 
     const existing = await prisma.match.findUnique({ where: { id: `fd-${m.id}` } });
     if (!existing) continue;
@@ -76,6 +122,16 @@ export async function syncFinishedResults(opts: { sendPush?: boolean } = {}): Pr
       data: { homeScore: home, awayScore: away, homeShootoutScore: homeSO, awayShootoutScore: awaySO },
     });
     updated++;
+
+    // Propagacja awansu dla knockout - ta sama logika co ręczny zapis w adminie
+    // (exclusive placement, więc naprawia też ewentualne wcześniejsze duplikaty)
+    if (isKnockoutStage(existing.stage)) {
+      try {
+        await propagateAdvancement(existing.id, home, away, homeSO, awaySO);
+      } catch {
+        // propagacja nie może wywalić syncu wyników
+      }
+    }
 
     const preds = await prisma.prediction.findMany({ where: { matchId: existing.id } });
     for (const p of preds) {
