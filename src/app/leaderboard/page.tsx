@@ -83,7 +83,55 @@ export default async function Leaderboard({
         ? <Overall leagueId={activeLeagueId} meId={me.id} />
         : <PerMatchday md={activeMd} leagueId={activeLeagueId} meId={me.id} />
       }
+
+      <BadgeLegend />
     </section>
+  );
+}
+
+function BadgeLegend() {
+  const badges = [
+    { emoji: "🎯", label: "Snajper", desc: "3+ dokładne wyniki w turnieju" },
+    { emoji: "👑", label: "Król strzelców", desc: "5+ trafionych strzelców pierwszego gola" },
+    { emoji: "⚡", label: "Mistrzowski boost", desc: "dokładny wynik trafiony na mnożniku x3" },
+    { emoji: "🔥", label: "Gorący", desc: "3+ ostatnie mecze z rzędu po min. 5 pkt - znika po słabszym meczu" },
+    { emoji: "🧊", label: "Lodowaty", desc: "0 pkt w ostatnim rozegranym meczu - znika po punktowanym typie" },
+    { emoji: "🔥N", label: "Seria", desc: "liczba kolejnych punktowanych typów z rzędu (od 3 w górę)" },
+  ];
+  const perMd = [
+    { emoji: "⚡", label: "Boost trafiony", desc: "użył mnożnika x3 w tej kolejce i zdobył punkty" },
+    { emoji: "💤", label: "Boost spalony", desc: "użył mnożnika x3, ale mecz dał 0 pkt" },
+    { emoji: "❌", label: "Boost przepadł", desc: "nie użył boosta w tej kolejce" },
+  ];
+  return (
+    <details className="mt-8">
+      <summary className="collapse-header">
+        <span className="flex items-center gap-2">
+          <span className="collapse-chev">▶</span>
+          Co oznaczają odznaki?
+        </span>
+      </summary>
+      <div className="stat-section mt-3">
+        <h2>🏅 Odznaki (ranking ogólny)</h2>
+        <ul className="space-y-2 mb-5">
+          {badges.map((b) => (
+            <li key={b.label} className="flex items-start gap-3 text-sm">
+              <span className="text-xl w-8 text-center shrink-0">{b.emoji}</span>
+              <span><b className="text-white">{b.label}</b> <span className="text-app-muted">- {b.desc}</span></span>
+            </li>
+          ))}
+        </ul>
+        <h2>⚡ Boost (widok kolejki)</h2>
+        <ul className="space-y-2">
+          {perMd.map((b) => (
+            <li key={b.label} className="flex items-start gap-3 text-sm">
+              <span className="text-xl w-8 text-center shrink-0">{b.emoji}</span>
+              <span><b className="text-white">{b.label}</b> <span className="text-app-muted">- {b.desc}</span></span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </details>
   );
 }
 
