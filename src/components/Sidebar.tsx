@@ -19,6 +19,7 @@ export function Sidebar({
     { href: "/stats",           label: "Statystyki",       emoji: "🌍" },
     { href: "/groups",          label: "Grupy",            emoji: "📊" },
     { href: "/champion",        label: "Typ na mistrza",   emoji: "🏆" },
+    { href: "/wrapped",         label: "Wrapped",          emoji: "🎁" },
   ];
   if (isAdmin) items.push({ href: "/admin", label: "Admin", emoji: "🛠️", gold: true });
 
