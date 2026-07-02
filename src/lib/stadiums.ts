@@ -28,3 +28,34 @@ export const STADIUMS: Stadium[] = [
   { name: "Hard Rock Stadium",      city: "Miami Gardens",    country: "USA", flag: "🇺🇸", capacity: 65326 },
   { name: "Gillette Stadium",       city: "Foxborough",       country: "USA", flag: "🇺🇸", capacity: 65878 },
 ];
+
+// Aliasy nazw z football-data -> nasze STADIUMS (FD używa czasem starych/innych nazw)
+const VENUE_ALIASES: Record<string, string> = {
+  "estadio azteca": "Estadio Banorte",
+  "azteca": "Estadio Banorte",
+  "estadio guadalajara": "Estadio Akron",
+  "new york new jersey": "MetLife Stadium",
+  "dallas": "AT&T Stadium",
+  "kansas city": "Arrowhead Stadium",
+  "san francisco bay area": "Levi's Stadium",
+  "los angeles": "SoFi Stadium",
+};
+
+/** Mapuje nazwę venue z football-data na wpis STADIUMS (dopasowanie luźne). */
+export function stadiumForVenue(venue: string | null | undefined): Stadium | null {
+  if (!venue) return null;
+  const v = venue.toLowerCase().trim();
+  // 1. Dokładne / zawierające dopasowanie po nazwie
+  const direct = STADIUMS.find(
+    (s) => v.includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(v),
+  );
+  if (direct) return direct;
+  // 2. Aliasy FD
+  for (const [alias, name] of Object.entries(VENUE_ALIASES)) {
+    if (v.includes(alias)) {
+      return STADIUMS.find((s) => s.name === name) ?? null;
+    }
+  }
+  // 3. Po mieście
+  return STADIUMS.find((s) => v.includes(s.city.toLowerCase())) ?? null;
+}

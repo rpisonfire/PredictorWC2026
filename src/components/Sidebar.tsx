@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Emoji } from "./Emoji";
+import { playVuvuzela } from "@/lib/sound";
 
 type Item = { href: string; label: string; emoji: string; gold?: boolean };
 
@@ -26,6 +27,21 @@ export function Sidebar({
   // Stan otwarty zapamiętany w localStorage (default: otwarty na desktopie żeby kumple od razu widzieli)
   const [open, setOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
+
+  // 🎺 Easter egg: 5 szybkich klików w logo = vuvuzela
+  const vuvuClicks = useRef(0);
+  const vuvuTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // nie nawiguj - zbieramy kliki
+    vuvuClicks.current++;
+    if (vuvuTimer.current) clearTimeout(vuvuTimer.current);
+    if (vuvuClicks.current >= 5) {
+      vuvuClicks.current = 0;
+      playVuvuzela();
+    } else {
+      vuvuTimer.current = setTimeout(() => { vuvuClicks.current = 0; }, 1500);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -57,7 +73,7 @@ export function Sidebar({
       >
         <Link href="/" className="flex items-center gap-2.5 font-black text-lg pl-16 pr-5 py-5 border-b border-[var(--border)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/icon.svg" alt="" className="w-8 h-8 rounded-lg shrink-0" />
+          <img src="/icons/icon.svg" alt="" className="w-8 h-8 rounded-lg shrink-0 select-none" onClick={onLogoClick} />
           <span className="jersey-logo">WC PREDICTOR <span className="text-wc-lime">2026</span></span>
         </Link>
 

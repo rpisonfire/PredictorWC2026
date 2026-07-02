@@ -196,7 +196,17 @@ export async function leaderboard(leagueId?: string) {
     }
     const spark = mds.map((n) => ptsPerMd.get(n) ?? 0);
 
-    return { userId: u.id, nickname: u.nickname, avatar: u.avatar, stats, badges: badgesFor(stats), spark };
+    // Perfect Pick Streak - kolejne punktowane typy od najnowszego meczu wstecz
+    const byKickoffDesc = [...finished].sort(
+      (a, b) => b.match.kickoff.getTime() - a.match.kickoff.getTime(),
+    );
+    let streak = 0;
+    for (const p of byKickoffDesc) {
+      if (p.pointsAwarded > 0) streak++;
+      else break;
+    }
+
+    return { userId: u.id, nickname: u.nickname, avatar: u.avatar, stats, badges: badgesFor(stats), spark, streak };
   });
 
   return rows.sort((a, b) => b.stats.totalPoints - a.stats.totalPoints);

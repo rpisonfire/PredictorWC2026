@@ -33,6 +33,7 @@ import { UserPickSearch } from "@/components/UserPickSearch";
 import { matchGlowStyle } from "@/lib/teamColors";
 import { RevealCountdown } from "@/components/RevealCountdown";
 import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
+import { stadiumForVenue } from "@/lib/stadiums";
 import { ConfettiCelebration } from "@/components/ConfettiCelebration";
 
 async function savePrediction(formData: FormData) {
@@ -250,6 +251,25 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
   const live = isLive(match.kickoff, finished, match.stage);
 
+  // 🔥 Upset alert - tłum typował mocno jednostronnie (>=70%, min 5 typów), a wynik był inny
+  let isUpset = false;
+  if (finished) {
+    const allMatchPreds = [
+      ...othersPredictions.map((p: { homeScore: number; awayScore: number }) => p),
+      ...(pred ? [pred] : []),
+    ];
+    if (allMatchPreds.length >= 5) {
+      const outcomeOf = (h: number, a: number) => (h > a ? "H" : h < a ? "A" : "D");
+      const tally = { H: 0, A: 0, D: 0 };
+      for (const p of allMatchPreds) tally[outcomeOf(p.homeScore, p.awayScore)]++;
+      const [topOutcome, topCount] = (Object.entries(tally) as ["H" | "A" | "D", number][])
+        .sort((a, b) => b[1] - a[1])[0];
+      const consensus = topCount / allMatchPreds.length;
+      const actualOutcome = outcomeOf(match.homeScore!, match.awayScore!);
+      isUpset = consensus >= 0.7 && actualOutcome !== topOutcome;
+    }
+  }
+
   return (
     <section className="max-w-2xl mx-auto">
       {/* AutoRefresh wyłączony - user sam F5 jak chce sprawdzić wynik live */}
@@ -264,10 +284,35 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <div className="match-hero-meta">
             <span>{isKnockoutStage(match.stage) ? prettyStage(match.stage) : `${match.stage} · Kolejka ${match.matchday}`}</span>
             <div className="flex items-center gap-2">
+              {isUpset && (
+                <span
+                  className="chip text-[10px] font-black uppercase tracking-wider"
+                  title="Zdecydowana większość typowała inaczej!"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,122,0,0.25), rgba(228,0,43,0.25))",
+                    border: "1px solid rgba(255,122,0,0.6)",
+                    color: "#FF7A00",
+                    textShadow: "0 0 8px rgba(255,122,0,0.6)",
+                  }}
+                >
+                  🔥 SENSACJA
+                </span>
+              )}
               {live && <LiveChip small />}
               <span>{fmtDateTimeLong(match.kickoff)}</span>
             </div>
           </div>
+          {(() => {
+            const stadium = stadiumForVenue(match.venue);
+            if (!stadium && !match.venue) return null;
+            return (
+              <div className="text-center mt-1 text-xs" style={{ color: "rgba(241,180,52,0.7)", fontFamily: "'Courier New', monospace", letterSpacing: "1px" }}>
+                🏟️ {stadium
+                  ? `${stadium.name} · ${stadium.city} ${stadium.flag} · ${stadium.capacity.toLocaleString("pl-PL")} miejsc`
+                  : match.venue}
+              </div>
+            );
+          })()}
           <div className="match-hero-teams">
             <div className="match-hero-team">
               <span className="flag-wave inline-block">

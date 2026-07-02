@@ -81,6 +81,7 @@ model Match {
   id              String   @id @default(cuid())
   matchday        Int      // 1, 2, 3... groups, R16=10, QF=11, etc.
   stage           String   // "Group A", "Round of 16", etc.
+  venue           String?  // nazwa stadionu z football-data (mapowana na STADIUMS)
   kickoff         DateTime
   homeTeamId      String
   awayTeamId      String

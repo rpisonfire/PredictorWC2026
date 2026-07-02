@@ -99,10 +99,29 @@ function Tab({ href, active, label }: { href: string; active: boolean; label: st
 }
 
 async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
-  const [rows, agg] = await Promise.all([leaderboard(leagueId), leagueAggregateStats(leagueId)]);
+  const [rows, agg, rankUsers] = await Promise.all([
+    leaderboard(leagueId),
+    leagueAggregateStats(leagueId),
+    // Wzloty i upadki - snapshot rankingu globalnego (currentRank vs previousRank)
+    prisma.user.findMany({
+      where: {
+        memberships: { some: { leagueId } },
+        currentRank: { not: null },
+        previousRank: { not: null },
+      },
+      select: { nickname: true, avatar: true, currentRank: true, previousRank: true },
+    }),
+  ]);
   if (rows.length === 0) return <Empty />;
   const top3 = rows.slice(0, 3);
   const rest = rows.slice(3);
+
+  // Największy skok w górę i największy spadek od ostatniego wpisanego wyniku
+  const movers = rankUsers
+    .map((u) => ({ ...u, delta: u.previousRank! - u.currentRank! }))
+    .filter((u) => u.delta !== 0);
+  const climber = movers.filter((u) => u.delta > 0).sort((a, b) => b.delta - a.delta)[0];
+  const faller = movers.filter((u) => u.delta < 0).sort((a, b) => a.delta - b.delta)[0];
 
   return (
     <>
@@ -111,6 +130,27 @@ async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
         <Mini label="Średnia pkt" value={agg.avgPoints.toFixed(1)} />
         <Mini label="Najlepsza kolejka" value={agg.bestMatchday ? `${agg.bestMatchday.points} (${agg.bestMatchday.nickname})` : "-"} small />
       </div>
+
+      {(climber || faller) && (
+        <div className="grid grid-cols-2 gap-2 mb-6">
+          {climber && (
+            <div className="led-tile" style={{ borderColor: "rgba(166,226,46,0.35)" }}>
+              <div className="led-tile-value led-tile-value-small" style={{ color: "#A6E22E" }}>
+                📈 {climber.nickname} +{climber.delta}
+              </div>
+              <div className="led-tile-label">Wzlot dnia</div>
+            </div>
+          )}
+          {faller && (
+            <div className="led-tile" style={{ borderColor: "rgba(228,0,43,0.35)" }}>
+              <div className="led-tile-value led-tile-value-small" style={{ color: "#FF5964" }}>
+                📉 {faller.nickname} {faller.delta}
+              </div>
+              <div className="led-tile-label">Upadek dnia</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Podium - top 3 jako duże karty Panini */}
       {top3.length > 0 && (
@@ -154,6 +194,7 @@ async function Overall({ leagueId, meId }: { leagueId: string; meId: string }) {
                   totalPoints: r.stats.totalPoints,
                   exactScoreHits: r.stats.exactScoreHits,
                   badges: r.badges,
+                  streak: r.streak,
                 }}
               />
             );

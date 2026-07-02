@@ -235,6 +235,7 @@ export async function syncSchedule(): Promise<{ ok: boolean; touched: number; li
             kickoff: new Date(m.utcDate),
             homeTeamId: homeId,
             awayTeamId: awayId,
+            venue: m.venue ?? null,
           },
         });
         touched++;
@@ -266,6 +267,7 @@ export async function syncSchedule(): Promise<{ ok: boolean; touched: number; li
             awayTeamId: finalAwayId,
             stage: correctStage,
             matchday: correctMatchday,
+            venue: m.venue ?? undefined, // nie kasuj istniejącego gdy FD nie poda
           },
         });
         touched++;

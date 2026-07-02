@@ -9,6 +9,7 @@ export type PaniniData = {
   totalPoints: number;
   exactScoreHits?: number;
   scorerHits?: number;
+  streak?: number;
   avgPointsPerMatch?: number;
   badges?: { emoji: string; label: string; description: string }[];
   styleLabel?: string;
@@ -149,6 +150,9 @@ export function PaniniCardMini({ data, isMe, href }: { data: PaniniData; isMe?: 
           <div className="panini-mini-meta">
             {data.styleLabel && <span>{data.styleEmoji} {data.styleLabel}</span>}
             {data.exactScoreHits != null && data.exactScoreHits > 0 && <span>· 🎯 {data.exactScoreHits}</span>}
+            {data.streak != null && data.streak >= 3 && (
+              <span title={`Seria ${data.streak} punktowanych typów z rzędu`} style={{ color: "#FF7A00", fontWeight: 900 }}>· 🔥{data.streak}</span>
+            )}
           </div>
         </div>
         <div className="panini-mini-pts">

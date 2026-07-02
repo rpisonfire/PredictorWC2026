@@ -25,6 +25,55 @@ export function setSoundEnabled(on: boolean) {
   localStorage.setItem("wcp_sound_enabled", on ? "1" : "0");
 }
 
+/**
+ * Vuvuzela 🎺 - easter egg. Sawtooth ~233Hz (Bb3) z lekkim wibratem i harmoniczną,
+ * jak prawdziwa plastikowa trąba z RPA 2010. ~1.4s chwały.
+ * Ignoruje ustawienie wyciszenia - jak ktoś znalazł easter egg, zasłużył na hałas.
+ */
+export function playVuvuzela() {
+  const audio = getCtx();
+  if (!audio) return;
+  try {
+    if (audio.state === "suspended") audio.resume();
+    const now = audio.currentTime;
+    const dur = 1.4;
+
+    const master = audio.createGain();
+    master.gain.setValueAtTime(0, now);
+    master.gain.linearRampToValueAtTime(0.22, now + 0.08);
+    master.gain.setValueAtTime(0.22, now + dur - 0.25);
+    master.gain.exponentialRampToValueAtTime(0.001, now + dur);
+    master.connect(audio.destination);
+
+    // Podstawa + harmoniczne (brzęczący, "plastikowy" ton)
+    const freqs = [233, 466, 699];
+    const gains = [1, 0.5, 0.22];
+    // Wibrato wspólne
+    const lfo = audio.createOscillator();
+    lfo.frequency.value = 6;
+    const lfoGain = audio.createGain();
+    lfoGain.gain.value = 4;
+    lfo.connect(lfoGain);
+
+    for (let i = 0; i < freqs.length; i++) {
+      const osc = audio.createOscillator();
+      osc.type = "sawtooth";
+      osc.frequency.value = freqs[i];
+      lfoGain.connect(osc.frequency);
+      const g = audio.createGain();
+      g.gain.value = gains[i];
+      osc.connect(g);
+      g.connect(master);
+      osc.start(now);
+      osc.stop(now + dur);
+    }
+    lfo.start(now);
+    lfo.stop(now + dur);
+  } catch {
+    // fail silently
+  }
+}
+
 export function playSwoosh() {
   if (!isSoundEnabled()) return;
   const audio = getCtx();

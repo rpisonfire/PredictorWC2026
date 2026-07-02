@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { playVuvuzela } from "@/lib/sound";
 
 type NavItem = { href: string; label: string; emoji: string };
 
@@ -25,6 +26,20 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
   const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => { setMoreOpen(false); }, [pathname]);
+
+  // 🎺 Easter egg: 5 szybkich tapnięć w nagłówek "Więcej" = vuvuzela
+  const vuvuClicks = useRef(0);
+  const vuvuTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onMoreHeaderTap = () => {
+    vuvuClicks.current++;
+    if (vuvuTimer.current) clearTimeout(vuvuTimer.current);
+    if (vuvuClicks.current >= 5) {
+      vuvuClicks.current = 0;
+      playVuvuzela();
+    } else {
+      vuvuTimer.current = setTimeout(() => { vuvuClicks.current = 0; }, 1500);
+    }
+  };
 
   // Admin: zamiast Typów (które są dostępne z menu Więcej) - bezpośredni dostęp
   const primary = isAdmin
@@ -60,7 +75,7 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
         style={{ bottom: "80px" }}
       >
         <div className="mx-3 rounded-2xl border border-app shadow-2xl overflow-hidden" style={{ background: "var(--bg)" }}>
-          <div className="px-5 py-3 border-b border-app text-xs uppercase tracking-wider text-app-subtle">
+          <div className="px-5 py-3 border-b border-app text-xs uppercase tracking-wider text-app-subtle select-none" onClick={onMoreHeaderTap}>
             Więcej
           </div>
           <ul>

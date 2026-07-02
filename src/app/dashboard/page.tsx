@@ -14,6 +14,8 @@ import { Flag } from "@/components/Flag";
 import { matchGlowStyle } from "@/lib/teamColors";
 import { PersonalScoreboard } from "@/components/PersonalScoreboard";
 import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
+import { FinalDayConfetti } from "@/components/FinalDayConfetti";
+import { statsForUser } from "@/lib/stats";
 
 // Z listy meczy w danej kolejce zwróć etykietę.
 // Knockout → nazwa etapu (1/16 finału, Ćwierćfinał, ...). Grupowa → "Kolejka X".
@@ -127,6 +129,29 @@ export default async function Dashboard() {
   const todayMatches = matches.filter((m) => dayKey(m.kickoff) === todayKey);
   const hasLiveToday = todayMatches.some((m) => isLive(m.kickoff, m.homeScore !== null, m.stage));
 
+  // 🏆 Dzień finału - złoty banner + konfetti
+  const finalToday = todayMatches.some((m) => prettyStage(m.stage) === "Finał");
+
+  // ⚔️ Rywal - osoba bezpośrednio przede mną w globalnym rankingu
+  let rival: { nickname: string; avatar: string; ptsDiff: number } | null = null;
+  if (user.currentRank != null && user.currentRank > 1) {
+    const rivalUser = await prisma.user.findFirst({
+      where: { currentRank: user.currentRank - 1 },
+      select: { id: true, nickname: true, avatar: true },
+    });
+    if (rivalUser) {
+      const [myStats, rivalStats] = await Promise.all([
+        statsForUser(user.id),
+        statsForUser(rivalUser.id),
+      ]);
+      rival = {
+        nickname: rivalUser.nickname,
+        avatar: rivalUser.avatar,
+        ptsDiff: Math.max(0, rivalStats.totalPoints - myStats.totalPoints),
+      };
+    }
+  }
+
   // Find next match (kickoff in future)
   const nextMatch = matches.find((m) => m.kickoff.getTime() > now.getTime());
   const hoursToNext = nextMatch ? (nextMatch.kickoff.getTime() - now.getTime()) / 3600_000 : null;
@@ -152,6 +177,27 @@ export default async function Dashboard() {
   return (
     <section>
       {/* Auto-refresh wyłączony na dashboardzie - kumple sami odświeżą jak chcą zobaczyć wynik */}
+
+      {finalToday && (
+        <>
+          <FinalDayConfetti />
+          <div
+            className="mb-6 rounded-2xl p-4 text-center"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.08), rgba(255,215,0,0.15))",
+              border: "1px solid rgba(255,215,0,0.5)",
+              boxShadow: "0 0 30px rgba(255,215,0,0.2)",
+            }}
+          >
+            <div className="text-2xl font-black" style={{ color: "#FFD700", textShadow: "0 0 14px rgba(255,215,0,0.6)", fontFamily: "'Courier New', monospace", letterSpacing: "3px" }}>
+              🏆 DZIEŃ FINAŁU 🏆
+            </div>
+            <div className="text-sm mt-1" style={{ color: "rgba(255,215,0,0.8)" }}>
+              Godzina prawdy. Dziś poznamy mistrza świata 2026.
+            </div>
+          </div>
+        </>
+      )}
 
       {preWorldCup && (
         <div className="mb-8">
@@ -188,6 +234,22 @@ export default async function Dashboard() {
           exact: !!lastExact,
         } : null}
       />
+
+      {rival && (
+        <Link href="/leaderboard" className="card p-3 mb-4 flex items-center gap-3 hover:bg-app-hover" style={{ borderColor: "rgba(228,0,43,0.3)" }}>
+          <div className="text-2xl">⚔️</div>
+          <div className="flex-1 min-w-0 text-sm">
+            <span className="font-black">Rywal:</span>{" "}
+            <span className="font-bold">{rival.avatar} {rival.nickname}</span>
+            {rival.ptsDiff > 0 ? (
+              <span className="text-app-muted"> - tylko <b className="text-wc-red">{rival.ptsDiff} pkt</b> przewagi. Trafisz wynik, wyprzedzasz.</span>
+            ) : (
+              <span className="text-app-muted"> - punktowy remis! Następny trafiony typ decyduje.</span>
+            )}
+          </div>
+          <span className="text-app-subtle text-xs shrink-0">Ranking →</span>
+        </Link>
+      )}
 
       {needsChampionPick && (
         <Link href="/champion" className="card p-4 mb-6 border-wc-gold/40 flex items-center gap-4 hover:bg-app-hover">
