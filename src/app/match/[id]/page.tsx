@@ -365,7 +365,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
       {live && (
         <a
-          href="https://stream.tvp.pl"
+          href="https://sport.tvp.pl/transmisje"
           target="_blank"
           rel="noopener noreferrer"
           className="block mt-4 rounded-2xl p-4 text-center font-black relative overflow-hidden transition-transform active:scale-[0.98]"
