@@ -18,6 +18,7 @@ export function Sidebar({
     { href: "/my-predictions",  label: "Moje typy",        emoji: "📋" },
     { href: "/leaderboard",     label: "Ranking",          emoji: "🥇" },
     { href: "/stats",           label: "Statystyki",       emoji: "🌍" },
+    { href: "/compare",         label: "Pojedynek",        emoji: "⚔️" },
     { href: "/groups",          label: "Grupy",            emoji: "📊" },
     { href: "/champion",        label: "Typ na mistrza",   emoji: "🏆" },
     { href: "/wrapped",         label: "Wrapped",          emoji: "🎁" },

@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import { Emoji } from "./Emoji";
 import { PlayerAvatar } from "./PlayerAvatar";
+import { computeBreakdown, BreakdownTable } from "./PickBreakdown";
 
 type Pick = {
   userId: string;
@@ -24,51 +25,6 @@ type MatchResult = {
 
 function normalize(s: string) {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-}
-
-const sign = (a: number, b: number) => (a > b ? 1 : a < b ? -1 : 0);
-
-function breakdown(p: Pick, r: MatchResult): { label: string; pts: number; hit: boolean }[] {
-  const rows: { label: string; pts: number; hit: boolean }[] = [];
-
-  // Score-related cascade (taken: best)
-  if (p.homeScore === r.homeScore && p.awayScore === r.awayScore) {
-    rows.push({ label: "Dokładny wynik", pts: 5, hit: true });
-  } else if (p.homeScore - p.awayScore === r.homeScore - r.awayScore) {
-    rows.push({ label: "Różnica bramek", pts: 3, hit: true });
-  } else if (sign(p.homeScore, p.awayScore) === sign(r.homeScore, r.awayScore)) {
-    rows.push({ label: "Zwycięzca / remis", pts: 2, hit: true });
-  } else {
-    rows.push({ label: "Wynik / zwycięzca", pts: 0, hit: false });
-  }
-
-  // Per-team goals
-  rows.push({
-    label: "Bramki gospodarza",
-    pts: p.homeScore === r.homeScore ? 1 : 0,
-    hit: p.homeScore === r.homeScore,
-  });
-  rows.push({
-    label: "Bramki gości",
-    pts: p.awayScore === r.awayScore ? 1 : 0,
-    hit: p.awayScore === r.awayScore,
-  });
-
-  // First scoring team
-  rows.push({
-    label: "1. drużyna ze strzałem",
-    pts: p.firstScorerTeam && p.firstScorerTeam === r.firstScorerTeam ? 2 : 0,
-    hit: !!(p.firstScorerTeam && p.firstScorerTeam === r.firstScorerTeam),
-  });
-
-  // First scorer
-  rows.push({
-    label: "Pierwszy strzelec",
-    pts: p.firstGoalPlayer?.id && r.firstGoalPlayerId && p.firstGoalPlayer.id === r.firstGoalPlayerId ? 5 : 0,
-    hit: !!(p.firstGoalPlayer?.id && r.firstGoalPlayerId && p.firstGoalPlayer.id === r.firstGoalPlayerId),
-  });
-
-  return rows;
 }
 
 export function UserPickSearch({
@@ -133,7 +89,7 @@ export function UserPickSearch({
               : p.firstScorerTeam === "NONE" ? "0:0" : null;
             const finalPts = p.boosted ? p.pointsAwarded * 3 : p.pointsAwarded;
             const isExpanded = expanded.has(p.userId);
-            const rows = result ? breakdown(p, result) : null;
+            const rows = result ? computeBreakdown({ ...p, firstGoalPlayerId: p.firstGoalPlayer?.id ?? null }, result) : null;
 
             return (
               <li key={p.userId} className="others-row overflow-hidden flex-col items-stretch !p-0">
@@ -173,40 +129,7 @@ export function UserPickSearch({
 
                 {isExpanded && rows && (
                   <div className="px-3 pb-3 pt-1">
-                    <div className="rounded-lg overflow-hidden" style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(241,180,52,0.25)" }}>
-                      {rows.map((r, i) => (
-                        <div key={i} className="flex items-center justify-between px-3 py-2 text-sm" style={{ borderBottom: "1px dashed rgba(241,180,52,0.15)" }}>
-                          <div className="flex items-center gap-2">
-                            <span style={{ color: r.hit ? "#4ADE80" : "rgba(255,255,255,0.4)" }}>
-                              {r.hit ? "✅" : "❌"}
-                            </span>
-                            <span style={{ color: "rgba(255,255,255,0.85)" }}>{r.label}</span>
-                          </div>
-                          <span className="font-black tabular-nums" style={{ fontFamily: "'Courier New', monospace", color: r.hit ? "#4ADE80" : "rgba(255,255,255,0.4)" }}>
-                            +{r.pts}
-                          </span>
-                        </div>
-                      ))}
-                      <div className="flex items-center justify-between px-3 py-2 text-sm font-bold" style={{ color: "rgba(255,255,255,0.75)" }}>
-                        <span>Razem za mecz</span>
-                        <span className="tabular-nums" style={{ fontFamily: "'Courier New', monospace" }}>{p.pointsAwarded} pkt</span>
-                      </div>
-                      {p.boosted && (
-                        <div className="flex items-center justify-between px-3 py-2 text-sm" style={{ background: "rgba(241,180,52,0.08)" }}>
-                          <span className="flex items-center gap-2" style={{ color: "#F1B434" }}>
-                            <span>⚡</span>
-                            Boost x3
-                          </span>
-                          <span className="font-black tabular-nums" style={{ color: "#F1B434", fontFamily: "'Courier New', monospace" }}>×3</span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between px-3 py-2 text-base font-black" style={{ background: "rgba(0,0,0,0.3)" }}>
-                        <span style={{ color: "white" }}>SUMA</span>
-                        <span className="tabular-nums" style={{ fontFamily: "'Courier New', monospace", color: finalPts > 0 ? "#4ADE80" : "rgba(255,255,255,0.5)", textShadow: finalPts > 0 ? "0 0 8px rgba(74,222,128,0.4)" : "none" }}>
-                          {finalPts} pkt
-                        </span>
-                      </div>
-                    </div>
+                    <BreakdownTable rows={rows} basePts={p.pointsAwarded} boosted={p.boosted} />
                   </div>
                 )}
               </li>

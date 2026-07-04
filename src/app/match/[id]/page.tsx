@@ -34,6 +34,7 @@ import { matchGlowStyle } from "@/lib/teamColors";
 import { RevealCountdown } from "@/components/RevealCountdown";
 import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
 import { stadiumForVenue } from "@/lib/stadiums";
+import { computeBreakdown, BreakdownTable } from "@/components/PickBreakdown";
 import { ConfettiCelebration } from "@/components/ConfettiCelebration";
 
 async function savePrediction(formData: FormData) {
@@ -584,6 +585,32 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   <span className="chip-lock">brak typu na strzelca</span>
                 )}
               </div>
+              {/* Dokładna punktacja własnego typu - po zakończeniu meczu */}
+              {finished && (
+                <div className="max-w-md mx-auto">
+                  <BreakdownTable
+                    rows={computeBreakdown(
+                      {
+                        homeScore: pred.homeScore,
+                        awayScore: pred.awayScore,
+                        firstScorerTeam: (pred.firstScorerTeam as "HOME" | "AWAY" | "NONE" | null) ?? null,
+                        firstGoalPlayerId: pred.firstGoalPlayerId,
+                      },
+                      {
+                        homeScore: match.homeScore!,
+                        awayScore: match.awayScore!,
+                        firstScorerTeam:
+                          match.firstScorerTeamId === match.homeTeamId ? "HOME"
+                          : match.firstScorerTeamId === match.awayTeamId ? "AWAY"
+                          : "NONE",
+                        firstGoalPlayerId: match.firstGoalPlayerId,
+                      },
+                    )}
+                    basePts={pred.pointsAwarded}
+                    boosted={boosted}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div className="mt-2 text-sm text-center" style={{ color: "rgba(255,255,255,0.6)" }}>Nie wytypowałeś tego meczu.</div>
