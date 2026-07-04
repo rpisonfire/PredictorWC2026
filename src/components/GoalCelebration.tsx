@@ -1,23 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 
 /**
- * Fullscreen "GOOOOL!" overlay - pojawia się gdy admin zapisze wynik
- * (toast=resultSaved) lub user trafi dokładny wynik (toast=saved? no - tylko admin).
- * Auto-zniknięcie po 1.8s przez CSS animation.
+ * Fullscreen "GOOOOL!" overlay - odpalany imperatywnie (prop trigger),
+ * przez AsyncResultForm po udanym zapisie wyniku w adminie.
+ * Każda zmiana trigger > 0 pokazuje overlay; auto-zniknięcie po 1.8s.
  */
-export function GoalCelebration() {
-  const params = useSearchParams();
+export function GoalCelebration({ trigger }: { trigger: number }) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (params.get("toast") === "resultSaved") {
-      setShow(true);
-      const t = setTimeout(() => setShow(false), 1800);
-      return () => clearTimeout(t);
-    }
-  }, [params]);
+    if (trigger === 0) return;
+    setShow(true);
+    const t = setTimeout(() => setShow(false), 1800);
+    return () => clearTimeout(t);
+  }, [trigger]);
 
   if (!show) return null;
   return (

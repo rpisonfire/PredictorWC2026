@@ -261,39 +261,6 @@ export async function leagueAggregateStats(leagueId: string) {
 
 
 /** Statystyki interesujących meczów */
-export async function matchInsights(memberUserIds?: string[] | null) {
-  const matches = await prisma.match.findMany({
-    where: { homeScore: { not: null } },
-    include: {
-      homeTeam: true,
-      awayTeam: true,
-      predictions: memberUserIds ? { where: { userId: { in: memberUserIds } } } : true,
-    },
-  });
-
-  let easiest: { match: any; hitRate: number } | null = null;
-  let killing: { match: any; total: number } | null = null;
-  let divisive: { match: any; uniqueScores: number; total: number } | null = null;
-
-  for (const m of matches) {
-    if (m.predictions.length === 0) continue;
-    const withPts = m.predictions.filter((p) => p.pointsAwarded > 0).length;
-    const hitRate = withPts / m.predictions.length;
-    if (!easiest || hitRate > easiest.hitRate) easiest = { match: m, hitRate };
-    if (withPts === 0 && m.predictions.length >= 2) {
-      if (!killing || m.predictions.length > killing.total) killing = { match: m, total: m.predictions.length };
-    }
-    const uniqueScores = new Set(m.predictions.map((p) => `${p.homeScore}:${p.awayScore}`)).size;
-    if (!divisive || uniqueScores > divisive.uniqueScores) divisive = { match: m, uniqueScores, total: m.predictions.length };
-  }
-
-  return { easiest, killing, divisive };
-}
-
-/**
- * Styl typowania - wyliczany przez "score" dla każdego stylu, wybierany ten o najwyższym dopasowaniu.
- * Dzięki temu nie ma sztywnej kaskady która pomija przypadki.
- */
 export const STYLE_RULES = [
   { key: "beton",       emoji: "🧱", label: "Beton",       desc: "Typuje dużo remisów (≥30%)" },
   { key: "pesymista",   emoji: "🧊", label: "Pesymista",   desc: "Średnio ≤1.5 br/mecz" },

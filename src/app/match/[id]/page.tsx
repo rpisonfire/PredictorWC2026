@@ -26,7 +26,6 @@ function sortByPosition<T extends { position?: string | null; name: string }>(pl
 }
 import { isLive } from "@/lib/matchStatus";
 import { LiveChip } from "@/components/LiveChip";
-import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 import { Emoji } from "@/components/Emoji";
 import { UserPickSearch } from "@/components/UserPickSearch";

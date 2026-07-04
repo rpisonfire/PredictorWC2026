@@ -9,7 +9,6 @@ import { championPickIsLocked } from "@/lib/championLock";
 import { fmtDateTime, dayKey } from "@/lib/dates";
 import { isLive } from "@/lib/matchStatus";
 import { LiveChip } from "@/components/LiveChip";
-import { AutoRefresh } from "@/components/AutoRefresh";
 import { Flag } from "@/components/Flag";
 import { matchGlowStyle } from "@/lib/teamColors";
 import { PersonalScoreboard } from "@/components/PersonalScoreboard";

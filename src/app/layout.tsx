@@ -5,7 +5,6 @@ import { getCurrentUser } from "@/lib/session";
 import { MobileNav } from "@/components/MobileNav";
 import { RegisterSW } from "@/components/RegisterSW";
 import { AutoToast } from "@/components/Toast";
-import { GoalCelebration } from "@/components/GoalCelebration";
 import { StadiumBackground } from "@/components/StadiumBackground";
 import { Suspense } from "react";
 import { Sidebar } from "@/components/Sidebar";
@@ -98,7 +97,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {user && <MobileNav isAdmin={user.isAdmin} />}
         <RegisterSW />
         <Suspense fallback={null}><AutoToast /></Suspense>
-        <Suspense fallback={null}><GoalCelebration /></Suspense>
         <Analytics />
         <SpeedInsights />
       </body>

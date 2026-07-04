@@ -12,7 +12,6 @@ const MESSAGES: Record<string, { text: string; tone: "success" | "info" | "warn"
   leagueLeft:      { text: "Opuściłeś ligę",          tone: "info" },
   passwordChanged: { text: "Hasło zmienione",         tone: "success" },
   avatarSaved:     { text: "Awatar zaktualizowany",   tone: "success" },
-  resultSaved:     { text: "Wynik dla meczu zapisany - punkty zostały rozdane", tone: "success" },
   pushSent:        { text: "Powiadomienie wysłane",   tone: "success" },
   resetDone:       { text: "Hasło zresetowane",       tone: "success" },
   userDeleted:     { text: "Konto usunięte",           tone: "info" },

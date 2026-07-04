@@ -1,6 +1,7 @@
 "use client";
 import { useState, useTransition, type CSSProperties, type ReactNode } from "react";
 import { playSwoosh } from "@/lib/sound";
+import { GoalCelebration } from "./GoalCelebration";
 
 type ActionResult = { ok: boolean } | void;
 
@@ -24,6 +25,7 @@ export function AsyncResultForm({
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
   const [flash, setFlash] = useState(false);
+  const [goalTrigger, setGoalTrigger] = useState(0);
 
   const handleAction = (formData: FormData) => {
     startTransition(async () => {
@@ -32,6 +34,7 @@ export function AsyncResultForm({
         if (res && res.ok === false) throw new Error("save_failed");
         setStatus("saved");
         setFlash(true);
+        setGoalTrigger((n) => n + 1); // GOOOOL! overlay
         playSwoosh();
         setTimeout(() => setFlash(false), 950);
         setTimeout(() => setStatus("idle"), 3000);
@@ -48,6 +51,7 @@ export function AsyncResultForm({
       <fieldset disabled={pending} className="contents" style={{ opacity: pending ? 0.6 : 1, transition: "opacity 0.15s" }}>
         {children}
       </fieldset>
+      <GoalCelebration trigger={goalTrigger} />
       {status !== "idle" && (
         <div
           className="fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-xl px-4 py-2.5 text-sm font-black uppercase tracking-wider"
