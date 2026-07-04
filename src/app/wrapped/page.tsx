@@ -12,14 +12,15 @@ export default async function WrappedPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  // Lock: tylko po finale (ostatni mecz mundialu rozegrany)
+  // Lock: tylko po finale (ostatni mecz mundialu rozegrany).
+  // Admin ma podgląd wcześniej - do weryfikacji jak wygląda przed odblokowaniem.
   const lastMatch = await prisma.match.findFirst({
     where: { stage: "Finał" },
     select: { homeScore: true, kickoff: true },
   });
   const finalPlayed = lastMatch && lastMatch.homeScore !== null;
 
-  if (!finalPlayed) {
+  if (!finalPlayed && !user.isAdmin) {
     const daysToFinal = lastMatch
       ? Math.max(0, Math.ceil((lastMatch.kickoff.getTime() - Date.now()) / (24 * 3600 * 1000)))
       : null;
@@ -105,6 +106,20 @@ export default async function WrappedPage() {
 
   return (
     <section className="max-w-2xl mx-auto space-y-4">
+      {!finalPlayed && (
+        <div
+          className="rounded-xl px-4 py-2.5 text-center text-xs font-black uppercase tracking-widest"
+          style={{
+            background: "linear-gradient(180deg, #0a0e1a 0%, #050810 100%)",
+            border: "1px solid rgba(241,180,52,0.5)",
+            color: "#F1B434",
+            fontFamily: "'Courier New', monospace",
+            textShadow: "0 0 8px rgba(241,180,52,0.4)",
+          }}
+        >
+          🛠️ Podgląd admina · dla graczy odblokuje się po finale
+        </div>
+      )}
       <div className="text-center mb-2">
         <div className="text-5xl mb-2">🎁</div>
         <h1 className="text-4xl font-black bg-gradient-to-r from-wc-red via-wc-gold to-wc-green bg-clip-text text-transparent">
