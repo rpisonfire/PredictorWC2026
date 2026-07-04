@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { prettyStage } from "@/lib/stageLabel";
 import { BracketTree, type BracketMatch, type BracketSlots } from "@/components/BracketTree";
-import { STAGE_FIRST_MATCH, bracketStageFromLabel, sideRowFor, r16FifaNumber, type BracketStage } from "@/lib/wc2026Bracket";
+import { sideRowFor } from "@/lib/wc2026Bracket";
+import { buildFifaMapping } from "@/lib/advancement";
 
 export const revalidate = 300;
 
@@ -14,16 +14,8 @@ export default async function BracketPage() {
   const matches = await prisma.match.findMany({
     where: { NOT: { stage: { startsWith: "Grupa" } } },
     include: { homeTeam: true, awayTeam: true },
-    orderBy: { kickoff: "asc" },
+    orderBy: [{ kickoff: "asc" }, { id: "asc" }],
   });
-
-  const byStage = new Map<string, typeof matches>();
-  for (const m of matches) {
-    const stage = prettyStage(m.stage);
-    const arr = byStage.get(stage) ?? [];
-    arr.push(m);
-    byStage.set(stage, arr);
-  }
 
   const hasAnyMatches = matches.length > 0;
 
@@ -36,31 +28,22 @@ export default async function BracketPage() {
     final: null, bronze: null,
   };
 
-  const fillStage = (stage: BracketStage, list: typeof matches) => {
-    list.forEach((m, idx) => {
-      const cast = m as unknown as BracketMatch;
-      if (stage === "final") { slots.final = cast; return; }
-      if (stage === "bronze") { slots.bronze = cast; return; }
-      let num: number | null = null;
-      // r16: identyfikacja po parze drużyn (chronologia kickoff != kolejność M73-M88)
-      if (stage === "r16") {
-        num = r16FifaNumber(m.homeTeam.shortCode, m.awayTeam.shortCode);
-      } else {
-        // r8/qf/sf: drużyny TBD, więc nie ma identyfikacji po teamach.
-        // Sortowanie po kickoff w późniejszych fazach prawdopodobnie pokrywa się
-        // z FIFA M89-M102 - można dopracować jak pojawią się prawdziwe dane.
-        num = STAGE_FIRST_MATCH[stage] + idx;
-      }
-      if (num === null) return;
-      const pos = sideRowFor(num);
-      if (!pos) return;
-      const key = `${stage}${pos.side}` as keyof BracketSlots;
-      (slots[key] as (BracketMatch | null)[])[pos.row] = cast;
-    });
-  };
-  for (const [label, list] of byStage.entries()) {
-    const stage = bracketStageFromLabel(label);
-    if (stage) fillStage(stage, list);
+  // Jedno źródło prawdy: ten sam mapping FIFA M co propagacja awansu w adminie/cronie.
+  // Identyfikuje mecze po drużynach (łańcuch awansów), nie po chronologii kickoff -
+  // numeracja FIFA w rundzie nie jest chronologiczna i pary potrafiły się zamieniać.
+  const mapping = await buildFifaMapping();
+
+  for (const m of matches) {
+    const num = mapping.byId.get(m.id);
+    if (num === undefined) continue;
+    const cast = m as unknown as BracketMatch;
+    if (num === 104) { slots.final = cast; continue; }
+    if (num === 103) { slots.bronze = cast; continue; }
+    const pos = sideRowFor(num);
+    if (!pos) continue;
+    const stage = num >= 73 && num <= 88 ? "r16" : num >= 89 && num <= 96 ? "r8" : num >= 97 && num <= 100 ? "qf" : "sf";
+    const key = `${stage}${pos.side}` as keyof BracketSlots;
+    (slots[key] as (BracketMatch | null)[])[pos.row] = cast;
   }
 
   return (

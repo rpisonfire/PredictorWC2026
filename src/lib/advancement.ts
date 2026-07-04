@@ -3,83 +3,183 @@ import { prettyStage, isKnockoutStage } from "./stageLabel";
 import {
   ADVANCEMENT,
   STAGE_FIRST_MATCH,
+  STAGE_COUNT,
   bracketStageFromLabel,
   r16FifaNumber,
   stageOfFifaM,
   type AdvancementTarget,
+  type BracketStage,
 } from "./wc2026Bracket";
 
 /**
- * Logika propagacji awansu w drabince. Współdzielona przez panel admina
- * (ręczny zapis wyniku) i cron sync (wyniki z football-data.org).
+ * Identyfikacja meczów fazy pucharowej po numerach FIFA (M73-M104).
  *
- * Kluczowe gwarancje:
- * - DETERMINIZM: mecze sortowane po (kickoff, id) - stabilny mapping FIFA M nawet
- *   gdy FD przesunie godziny albo dwa mecze mają identyczny kickoff.
- * - EXCLUSIVE PLACEMENT: przed wpisaniem drużyny w slot czyścimy ją ze WSZYSTKICH
- *   innych slotów fazy docelowej. Drużyna nigdy nie występuje w dwóch meczach naraz.
- * - OCHRONA ROZEGRANYCH: nie nadpisujemy slotu meczu, który ma już wynik.
+ * PROBLEM który to rozwiązuje: numeracja FIFA w rundzie NIE jest chronologiczna
+ * (np. M90 może grać się przed M89). Mapowanie "i-ty mecz po kickoff = M(first+i)"
+ * potrafiło zamieniać pary miejscami - a football-data przy sync wpisywał je
+ * z powrotem poprawnie, co dawało "skaczące" pary w drabince.
+ *
+ * ROZWIĄZANIE: mecze identyfikujemy po DRUŻYNACH przez łańcuch awansów:
+ * - r16: para drużyn -> numer (R16_PAIR_TO_FIFA, drużyny znane od startu)
+ * - r8/qf/sf: jeśli drużyna X wygrała mecz M(src), to mecz z X w składzie
+ *   MUSI być meczem ADVANCEMENT[src].winnerTo.m - twarde dopasowanie
+ * - finał = M104, brąz = M103 (jedyne w swoich fazach)
+ * - fallback (tylko dla meczy w pełni TBD): wolne numery wg kolejności kickoff
  */
 
-// Wszystkie mecze knockout w deterministycznej kolejności (kickoff, potem id jako tiebreak)
-async function knockoutMatchesOrdered() {
-  return prisma.match.findMany({
+type KnockRow = {
+  id: string;
+  bracketStage: BracketStage;
+  kickoff: Date;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeCode: string;
+  awayCode: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  homeShootoutScore: number | null;
+  awayShootoutScore: number | null;
+};
+
+async function loadKnockout(): Promise<KnockRow[]> {
+  const rows = await prisma.match.findMany({
     where: { NOT: { stage: { startsWith: "Grupa" } } },
     orderBy: [{ kickoff: "asc" }, { id: "asc" }],
-    select: { id: true, stage: true, homeTeamId: true, awayTeamId: true, homeScore: true },
+    include: {
+      homeTeam: { select: { shortCode: true } },
+      awayTeam: { select: { shortCode: true } },
+    },
   });
+  return rows
+    .map((m) => ({
+      id: m.id,
+      bracketStage: bracketStageFromLabel(prettyStage(m.stage)) as BracketStage,
+      kickoff: m.kickoff,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+      homeCode: m.homeTeam.shortCode,
+      awayCode: m.awayTeam.shortCode,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      homeShootoutScore: m.homeShootoutScore,
+      awayShootoutScore: m.awayShootoutScore,
+    }))
+    .filter((m) => m.bracketStage != null);
 }
 
-// Identyfikuje mecz po FIFA M number (M73-M104):
-// - r16: po parze drużyn (jedyna pewna metoda - kolejność kickoff != numeracja FIFA)
-// - r8/qf/sf: pozycja w posortowanej liście fazy (FD tworzy je w kolejności FIFA)
-export async function fifaMNumberOfMatch(matchId: string): Promise<number | null> {
-  const m = await prisma.match.findUnique({
-    where: { id: matchId },
-    include: { homeTeam: { select: { shortCode: true } }, awayTeam: { select: { shortCode: true } } },
-  });
-  if (!m) return null;
-  const stage = bracketStageFromLabel(prettyStage(m.stage));
-  if (!stage) return null;
-  if (stage === "r16") return r16FifaNumber(m.homeTeam.shortCode, m.awayTeam.shortCode);
-  if (stage === "final") return 104;
-  if (stage === "bronze") return 103;
-  const all = await knockoutMatchesOrdered();
-  const inStage = all.filter((x) => bracketStageFromLabel(prettyStage(x.stage)) === stage);
-  const idx = inStage.findIndex((x) => x.id === matchId);
-  if (idx < 0) return null;
-  return STAGE_FIRST_MATCH[stage] + idx;
+// Zwycięzca meczu: wynik z gry, przy remisie karne. null = nierozstrzygnięty.
+function winnerCodeOf(m: KnockRow): string | null {
+  if (m.homeScore === null || m.awayScore === null) return null;
+  if (m.homeScore > m.awayScore) return m.homeCode;
+  if (m.awayScore > m.homeScore) return m.awayCode;
+  if (m.homeShootoutScore !== null && m.awayShootoutScore !== null) {
+    if (m.homeShootoutScore > m.awayShootoutScore) return m.homeCode;
+    if (m.awayShootoutScore > m.homeShootoutScore) return m.awayCode;
+  }
+  return null;
 }
 
-// DB id meczu dla danego FIFA M number
-export async function findMatchByFifaM(num: number): Promise<string | null> {
-  const stage = stageOfFifaM(num);
-  if (!stage) return null;
-  const all = await knockoutMatchesOrdered();
-  const inStage = all.filter((x) => bracketStageFromLabel(prettyStage(x.stage)) === stage);
-  const idx = num - STAGE_FIRST_MATCH[stage];
-  return inStage[idx]?.id ?? null;
+export type FifaMapping = {
+  byNum: Map<number, string>; // FIFA M -> match DB id
+  byId: Map<string, number>;  // match DB id -> FIFA M
+};
+
+export async function buildFifaMapping(preloaded?: KnockRow[]): Promise<FifaMapping> {
+  const all = preloaded ?? (await loadKnockout());
+  const byNum = new Map<number, string>();
+  const byId = new Map<string, number>();
+  const assign = (num: number, id: string) => {
+    if (byNum.has(num) || byId.has(id)) return;
+    byNum.set(num, id);
+    byId.set(id, num);
+  };
+
+  const byStage = new Map<BracketStage, KnockRow[]>();
+  for (const m of all) {
+    const arr = byStage.get(m.bracketStage) ?? [];
+    arr.push(m);
+    byStage.set(m.bracketStage, arr);
+  }
+
+  // r16: po parach drużyn (zawsze znane)
+  for (const m of byStage.get("r16") ?? []) {
+    const num = r16FifaNumber(m.homeCode, m.awayCode);
+    if (num !== null) assign(num, m.id);
+  }
+  // finał i brąz - jedyne mecze w swoich fazach
+  for (const m of byStage.get("final") ?? []) assign(104, m.id);
+  for (const m of byStage.get("bronze") ?? []) assign(103, m.id);
+
+  const rowById = new Map(all.map((m) => [m.id, m]));
+
+  // r8 -> qf -> sf: dopasowanie po drużynach przez łańcuch awansów
+  for (const stage of ["r8", "qf", "sf"] as const) {
+    // Zwycięzcy już przypisanych numerów (poprzednie fazy)
+    const winnerByNum = new Map<number, string>();
+    for (const [num, id] of byNum) {
+      const row = rowById.get(id);
+      if (!row) continue;
+      const w = winnerCodeOf(row);
+      if (w && w !== "TBD") winnerByNum.set(num, w);
+    }
+
+    const list = byStage.get(stage) ?? [];
+
+    // 1. Twarde dopasowanie: drużyna w meczu == zwycięzca meczu źródłowego
+    for (const m of list) {
+      if (byId.has(m.id)) continue;
+      for (const code of [m.homeCode, m.awayCode]) {
+        if (code === "TBD") continue;
+        for (const [srcNum, w] of winnerByNum) {
+          if (w !== code) continue;
+          const adv = ADVANCEMENT[srcNum];
+          if (!adv) continue;
+          const target = adv.winnerTo.m;
+          if (stageOfFifaM(target) !== stage) continue;
+          assign(target, m.id);
+          break;
+        }
+        if (byId.has(m.id)) break;
+      }
+    }
+
+    // 2. Fallback: nieprzypisane mecze (pełne TBD) na wolne numery wg kickoff
+    const first = STAGE_FIRST_MATCH[stage];
+    const count = STAGE_COUNT[stage];
+    const freeNums: number[] = [];
+    for (let n = first; n < first + count; n++) {
+      if (!byNum.has(n)) freeNums.push(n);
+    }
+    const unassigned = list.filter((m) => !byId.has(m.id)); // list już po kickoff asc
+    unassigned.forEach((m, i) => {
+      if (freeNums[i] !== undefined) assign(freeNums[i], m.id);
+    });
+  }
+
+  return { byNum, byId };
 }
 
 /**
  * Wpisuje drużynę w docelowy slot GWARANTUJĄC że nie występuje w żadnym
  * innym meczu tej samej fazy (naprawa i prewencja dublowania).
  */
-async function placeTeamExclusively(teamId: string, target: AdvancementTarget) {
-  const targetId = await findMatchByFifaM(target.m);
+async function placeTeamExclusively(
+  teamId: string,
+  target: AdvancementTarget,
+  all: KnockRow[],
+  mapping: FifaMapping,
+) {
+  const targetId = mapping.byNum.get(target.m);
   if (!targetId) return;
   const targetStage = stageOfFifaM(target.m);
   if (!targetStage) return;
 
   const tbd = await prisma.team.findUnique({ where: { shortCode: "TBD" } });
 
-  const all = await knockoutMatchesOrdered();
-  const inStage = all.filter((x) => bracketStageFromLabel(prettyStage(x.stage)) === targetStage);
-
-  // 1. Wyczyść drużynę z pozostałych slotów fazy docelowej (duplikaty -> TBD)
+  // 1. Wyczyść drużynę z pozostałych slotów fazy docelowej
   if (tbd) {
-    for (const m of inStage) {
-      if (m.id === targetId) continue;
+    for (const m of all) {
+      if (m.bracketStage !== targetStage || m.id === targetId) continue;
       if (m.homeScore !== null) continue; // rozegranych nie ruszamy
       if (m.homeTeamId === teamId) {
         await prisma.match.update({ where: { id: m.id }, data: { homeTeamId: tbd.id } });
@@ -91,8 +191,8 @@ async function placeTeamExclusively(teamId: string, target: AdvancementTarget) {
   }
 
   // 2. Wpisz w docelowy slot - chyba że mecz już rozegrany
-  const targetMatch = inStage.find((m) => m.id === targetId);
-  if (!targetMatch || targetMatch.homeScore !== null) return;
+  const targetRow = all.find((m) => m.id === targetId);
+  if (!targetRow || targetRow.homeScore !== null) return;
   await prisma.match.update({
     where: { id: targetId },
     data: target.slot === "home" ? { homeTeamId: teamId } : { awayTeamId: teamId },
@@ -102,7 +202,6 @@ async function placeTeamExclusively(teamId: string, target: AdvancementTarget) {
 /**
  * Po zapisaniu wyniku meczu knockout: wpisz zwycięzcę do kolejnej rundy
  * (i przegranego do meczu o 3. miejsce w przypadku półfinałów).
- * Zwycięzca: wyższy wynik z gry, a przy remisie - wyższy wynik karnych.
  */
 export async function propagateAdvancement(
   matchId: string,
@@ -132,15 +231,18 @@ export async function propagateAdvancement(
       loserTeamId = source.homeTeamId;
     }
   }
-  if (!winnerTeamId) return; // remis bez rozstrzygnięcia - nic nie robimy
+  if (!winnerTeamId) return;
 
-  const sourceFifaM = await fifaMNumberOfMatch(matchId);
-  if (sourceFifaM === null) return;
+  // Świeże dane (z właśnie zapisanym wynikiem) + mapping po drużynach
+  const all = await loadKnockout();
+  const mapping = await buildFifaMapping(all);
+  const sourceFifaM = mapping.byId.get(matchId);
+  if (sourceFifaM === undefined) return;
   const adv = ADVANCEMENT[sourceFifaM];
   if (!adv) return;
 
-  await placeTeamExclusively(winnerTeamId, adv.winnerTo);
+  await placeTeamExclusively(winnerTeamId, adv.winnerTo, all, mapping);
   if (adv.loserTo && loserTeamId) {
-    await placeTeamExclusively(loserTeamId, adv.loserTo);
+    await placeTeamExclusively(loserTeamId, adv.loserTo, all, mapping);
   }
 }
