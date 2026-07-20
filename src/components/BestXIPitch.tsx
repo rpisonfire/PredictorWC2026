@@ -127,11 +127,14 @@ export function BestXIPitch({
                 )}
               </div>
               <div
-                className="mt-1 px-1.5 py-0.5 rounded text-[10px] font-black leading-tight text-center max-w-full truncate"
+                className="mt-1 px-1.5 py-0.5 rounded text-[10px] font-black leading-tight text-center whitespace-nowrap truncate"
                 style={{
                   background: "rgba(0,0,0,0.55)",
                   color: p ? "#F1BF00" : "rgba(255,255,255,0.75)",
                   fontFamily: "'Courier New', monospace",
+                  // Etykieta może być szersza niż kółko - długie nazwiska (Bellingham) się mieszczą
+                  width: "max-content",
+                  maxWidth: 110,
                 }}
               >
                 {p ? `${p.teamFlag} ${p.name.split(" ").slice(-1)[0]}` : s.label}
@@ -172,7 +175,7 @@ export function BestXIPitch({
                     <span className="text-app-subtle text-base font-black">+</span>
                   )}
                 </div>
-                <div className="mt-1 text-[9px] font-black text-center max-w-full truncate" style={{ color: p ? "#F1BF00" : "var(--text-subtle)", fontFamily: "'Courier New', monospace" }}>
+                <div className="mt-1 text-[9px] font-black text-center whitespace-nowrap truncate" style={{ color: p ? "#F1BF00" : "var(--text-subtle)", fontFamily: "'Courier New', monospace", width: "max-content", maxWidth: 84 }}>
                   {p ? `${p.teamFlag} ${p.name.split(" ").slice(-1)[0]}` : `REZ ${i + 1}`}
                 </div>
               </button>
