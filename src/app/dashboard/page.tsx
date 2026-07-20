@@ -131,6 +131,18 @@ export default async function Dashboard() {
   // 🏆 Dzień finału - złoty banner + konfetti
   const finalToday = todayMatches.some((m) => prettyStage(m.stage) === "Finał");
 
+  // 👑 Mistrz świata - po rozegranym finale stały baner z mistrzem
+  const finalMatch = matches.find((m) => prettyStage(m.stage) === "Finał" && m.homeScore !== null);
+  let champion: { name: string; flag: string } | null = null;
+  if (finalMatch) {
+    const homeWon =
+      finalMatch.homeScore! > finalMatch.awayScore! ||
+      (finalMatch.homeScore === finalMatch.awayScore &&
+        (finalMatch.homeShootoutScore ?? 0) > (finalMatch.awayShootoutScore ?? 0));
+    const w = homeWon ? finalMatch.homeTeam : finalMatch.awayTeam;
+    champion = { name: w.name, flag: w.flag };
+  }
+
   // ⚔️ Rywal - osoba bezpośrednio przede mną w globalnym rankingu
   let rival: { nickname: string; avatar: string; ptsDiff: number } | null = null;
   if (user.currentRank != null && user.currentRank > 1) {
@@ -177,7 +189,29 @@ export default async function Dashboard() {
     <section>
       {/* Auto-refresh wyłączony na dashboardzie - kumple sami odświeżą jak chcą zobaczyć wynik */}
 
-      {finalToday && (
+      {champion && (
+        <div
+          className="mb-6 rounded-2xl p-5 text-center"
+          style={{
+            background: "linear-gradient(135deg, rgba(170,21,27,0.25), rgba(241,191,0,0.15), rgba(170,21,27,0.25))",
+            border: "1px solid rgba(241,191,0,0.55)",
+            boxShadow: "0 0 34px rgba(241,191,0,0.22)",
+          }}
+        >
+          <div className="text-3xl mb-1"><Flag emoji={champion.flag} size="xl" /></div>
+          <div
+            className="text-xl sm:text-2xl font-black"
+            style={{ color: "#F1BF00", textShadow: "0 0 16px rgba(241,191,0,0.6)", fontFamily: "'Courier New', monospace", letterSpacing: "2px" }}
+          >
+            🏆 {champion.name.toUpperCase()} MISTRZEM ŚWIATA 2026 🏆
+          </div>
+          <div className="text-sm mt-1" style={{ color: "rgba(241,191,0,0.85)" }}>
+            Dziękujemy za wspólne typowanie! Sprawdź swoje <Link href="/wrapped" className="underline font-bold">Wrapped 🎁</Link>
+          </div>
+        </div>
+      )}
+
+      {finalToday && !champion && (
         <>
           <FinalDayConfetti />
           <div
@@ -261,19 +295,14 @@ export default async function Dashboard() {
         </Link>
       )}
 
-      {/* Dzisiejsze mecze */}
+      {/* Dzisiejsze mecze - sekcja tylko gdy są (po turnieju nie straszymy "przerwą") */}
+      {todayMatches.length > 0 && (
       <div className="mb-10">
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-2xl font-black">Dzisiejsze mecze 🔥</h2>
           <span className="text-xs text-app-subtle">{todayKey}</span>
         </div>
-        {todayMatches.length === 0 ? (
-          <div className="card p-8 text-center">
-            <div className="text-4xl mb-2">🌴</div>
-            <div className="font-black">Dziś dzień przerwy</div>
-            <p className="text-sm text-app-subtle mt-1">Brak meczu w dzisiejszym terminarzu. Sprawdź następne kolejki poniżej 😎</p>
-          </div>
-        ) : (() => {
+        {(() => {
           const todayUpcoming = todayMatches.filter((m) => m.homeScore === null);
           const todayFinished = todayMatches.filter((m) => m.homeScore !== null);
           const renderToday = (items: typeof todayMatches) => (
@@ -307,6 +336,7 @@ export default async function Dashboard() {
           );
         })()}
       </div>
+      )}
 
       {Object.keys(byMatchday).length === 0 && (
         <div className="card p-10 text-center mb-10">
