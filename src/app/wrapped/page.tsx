@@ -8,6 +8,7 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { singleUserStyle, statsForUser } from "@/lib/stats";
 import { matchdayLabel } from "@/lib/stageLabel";
 import { WrappedShareButton } from "@/components/WrappedShareButton";
+import { LeagueXIPitch } from "@/components/LeagueXIPitch";
 
 export const revalidate = 3600;
 
@@ -69,6 +70,27 @@ export default async function WrappedPage() {
 
   const myBoosts = await prisma.boost.findMany({ where: { userId: user.id } });
   const boostSet = new Set(myBoosts.map((b) => b.matchId));
+
+  // ⭐ Moja jedenastka turnieju - do prezentacji na boisku we Wrapped
+  const myXIPicks = await prisma.bestXIPick.findMany({
+    where: { userId: user.id },
+    include: {
+      player: {
+        select: {
+          name: true, photoUrl: true, position: true,
+          team: { select: { flag: true } },
+        },
+      },
+    },
+  });
+  const myXI = myXIPicks.map((p) => ({
+    slotKey: p.slot,
+    name: p.player.name,
+    photoUrl: p.player.photoUrl,
+    position: p.player.position,
+    teamFlag: p.player.team.flag,
+    votes: 0, // nie pokazujemy głosów przy własnej XI
+  }));
   const finishedPreds = preds.filter((p) => p.match.homeScore !== null);
   const ptsOf = (p: (typeof preds)[number]) =>
     boostSet.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
@@ -282,6 +304,13 @@ export default async function WrappedPage() {
             </div>
           )}
         </div>
+
+        {myXI.length > 0 && (
+          <div className="card p-4">
+            <div className="text-xs uppercase tracking-wider text-app-subtle mb-3 text-center">⭐ Twoja jedenastka turnieju</div>
+            <LeagueXIPitch entries={myXI} />
+          </div>
+        )}
 
         {style && (
           <div className="card p-5">

@@ -61,7 +61,7 @@ export function LeagueXIPitch({ entries }: { entries: LeagueXIEntry[] }) {
                 className="mt-1 px-1.5 py-0.5 rounded text-[10px] font-black leading-tight text-center max-w-full truncate"
                 style={{ background: "rgba(0,0,0,0.55)", color: "#F1BF00", fontFamily: "'Courier New', monospace" }}
               >
-                {e.teamFlag} {e.name.split(" ").slice(-1)[0]} <span className="text-white/60">({e.votes})</span>
+                {e.teamFlag} {e.name.split(" ").slice(-1)[0]}{e.votes > 0 && <span className="text-white/60"> ({e.votes})</span>}
               </div>
             )}
           </div>
