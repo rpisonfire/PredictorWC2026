@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState, useTransition } from "react";
-import { XI_SLOTS, BUCKET_LABEL, SLOT_ALLOWED_BUCKETS, type PositionBucket } from "@/lib/bestXI";
+import { XI_SLOTS, BENCH_SLOTS, BUCKET_LABEL, SLOT_ALLOWED_BUCKETS, isBenchSlot, type PositionBucket } from "@/lib/bestXI";
 import { PlayerAvatar } from "./PlayerAvatar";
 import { playSwoosh } from "@/lib/sound";
 
@@ -39,20 +39,24 @@ export function BestXIPitch({
   }, [playersByBucket]);
 
   const slot = XI_SLOTS.find((s) => s.key === openSlot) ?? null;
+  const benchOpen = openSlot !== null && isBenchSlot(openSlot);
   const pickedIds = new Set(Object.values(picks));
   const candidates = useMemo(() => {
-    if (!slot) return [];
+    if (!openSlot) return [];
     const q = normalize(query.trim());
-    // Naturalna pozycja slotu najpierw, potem wymienne (MID<->FWD)
-    const pool = SLOT_ALLOWED_BUCKETS[slot.bucket].flatMap((b) => playersByBucket[b]);
+    // Rezerwowi: dowolna pozycja. Wyjściowa XI: naturalna pozycja najpierw, potem wymienne (MID<->FWD)
+    const pool = benchOpen
+      ? (["GK", "DEF", "MID", "FWD"] as PositionBucket[]).flatMap((b) => playersByBucket[b])
+      : SLOT_ALLOWED_BUCKETS[slot!.bucket].flatMap((b) => playersByBucket[b]);
     return pool
-      .filter((p) => !pickedIds.has(p.id) || picks[slot.key] === p.id)
+      .filter((p) => !pickedIds.has(p.id) || picks[openSlot] === p.id)
       .filter((p) => !q || normalize(p.name).includes(q) || normalize(p.teamCode).includes(q))
       .slice(0, 60);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slot, query, picks, playersByBucket]);
+  }, [openSlot, benchOpen, slot, query, picks, playersByBucket]);
 
   const complete = XI_SLOTS.every((s) => picks[s.key]);
+  const benchCount = BENCH_SLOTS.filter((k) => picks[k]).length;
 
   const save = () => {
     startTransition(async () => {
@@ -137,6 +141,46 @@ export function BestXIPitch({
         })}
       </div>
 
+      {/* Ławka rezerwowych - dowolne pozycje */}
+      <div className="mt-4">
+        <div className="text-xs uppercase tracking-wider text-app-subtle mb-2 text-center" style={{ fontFamily: "'Courier New', monospace", letterSpacing: "2px" }}>
+          🪑 Ławka rezerwowych ({benchCount}/5)
+        </div>
+        <div className="flex justify-center gap-2 sm:gap-3">
+          {BENCH_SLOTS.map((key, i) => {
+            const p = picks[key] ? playerById.get(picks[key]) : null;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => { setOpenSlot(key); setQuery(""); }}
+                className="flex flex-col items-center group"
+                style={{ width: 64 }}
+              >
+                <div
+                  className="rounded-full flex items-center justify-center transition-transform group-hover:scale-110 group-active:scale-95 overflow-hidden"
+                  style={{
+                    width: 46,
+                    height: 46,
+                    background: p ? "rgba(10,14,26,0.9)" : "var(--hover-bg)",
+                    border: p ? "2px solid rgba(241,191,0,0.6)" : "2px dashed var(--border-strong)",
+                  }}
+                >
+                  {p ? (
+                    <PlayerAvatar name={p.name} photoUrl={p.photoUrl} position={p.position} size={42} />
+                  ) : (
+                    <span className="text-app-subtle text-base font-black">+</span>
+                  )}
+                </div>
+                <div className="mt-1 text-[9px] font-black text-center max-w-full truncate" style={{ color: p ? "#F1BF00" : "var(--text-subtle)", fontFamily: "'Courier New', monospace" }}>
+                  {p ? `${p.teamFlag} ${p.name.split(" ").slice(-1)[0]}` : `REZ ${i + 1}`}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Zapis */}
       <button
         type="button"
@@ -145,7 +189,11 @@ export function BestXIPitch({
         className="btn-primary w-full mt-4"
         style={{ opacity: !complete || pending ? 0.6 : 1 }}
       >
-        {pending ? "⏳ Zapisuję..." : complete ? "Zapisz jedenastkę ⭐" : `Wybierz wszystkich (${Object.keys(picks).length}/11)`}
+        {pending
+          ? "⏳ Zapisuję..."
+          : complete
+          ? "Zapisz skład ⭐"
+          : `Wybierz wyjściową XI (${XI_SLOTS.filter((s) => picks[s.key]).length}/11)`}
       </button>
 
       {status !== "idle" && (
@@ -163,7 +211,7 @@ export function BestXIPitch({
       )}
 
       {/* Picker - bottom sheet */}
-      {slot && (
+      {openSlot && (
         <>
           <button
             aria-label="Zamknij"
@@ -173,7 +221,9 @@ export function BestXIPitch({
           <div className="fixed left-0 right-0 bottom-0 z-50 max-h-[70vh] flex flex-col rounded-t-2xl overflow-hidden" style={{ background: "linear-gradient(180deg, #0a0e1a 0%, #050810 100%)", border: "1px solid rgba(241,180,52,0.3)", borderBottom: "none" }}>
             <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(241,180,52,0.2)" }}>
               <div className="font-black text-white">
-                {BUCKET_LABEL[slot.bucket]} <span className="text-xs" style={{ color: "rgba(241,180,52,0.7)", fontFamily: "'Courier New', monospace" }}>· {slot.label}</span>
+                {benchOpen
+                  ? <>Rezerwowy <span className="text-xs" style={{ color: "rgba(241,180,52,0.7)", fontFamily: "'Courier New', monospace" }}>· dowolna pozycja</span></>
+                  : <>{BUCKET_LABEL[slot!.bucket]} <span className="text-xs" style={{ color: "rgba(241,180,52,0.7)", fontFamily: "'Courier New', monospace" }}>· {slot!.label}</span></>}
               </div>
               <button type="button" onClick={() => setOpenSlot(null)} className="text-white/60 hover:text-white w-8 h-8">✕</button>
             </div>
@@ -188,12 +238,12 @@ export function BestXIPitch({
               />
             </div>
             <ul className="overflow-y-auto flex-1 px-3 pb-6 space-y-1">
-              {picks[slot.key] && (
+              {picks[openSlot] && (
                 <li>
                   <button
                     type="button"
                     onClick={() => {
-                      setPicks((prev) => { const n = { ...prev }; delete n[slot.key]; return n; });
+                      setPicks((prev) => { const n = { ...prev }; delete n[openSlot]; return n; });
                       setOpenSlot(null);
                     }}
                     className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold"
@@ -208,7 +258,7 @@ export function BestXIPitch({
                   <button
                     type="button"
                     onClick={() => {
-                      setPicks((prev) => ({ ...prev, [slot.key]: p.id }));
+                      setPicks((prev) => ({ ...prev, [openSlot]: p.id }));
                       setOpenSlot(null);
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition text-left"
@@ -218,7 +268,7 @@ export function BestXIPitch({
                       <div className="font-bold text-white truncate">{p.name}</div>
                       <div className="text-xs text-white/50">{p.teamFlag} {p.teamCode}</div>
                     </div>
-                    {picks[slot.key] === p.id && <span style={{ color: "#F1BF00" }}>✔</span>}
+                    {picks[openSlot] === p.id && <span style={{ color: "#F1BF00" }}>✔</span>}
                   </button>
                 </li>
               ))}

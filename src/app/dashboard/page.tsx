@@ -132,8 +132,10 @@ export default async function Dashboard() {
   // 🏆 Dzień finału - złoty banner + konfetti
   const finalToday = todayMatches.some((m) => prettyStage(m.stage) === "Finał");
 
-  // ⭐ Jedenastka turnieju - baner dopóki user nie skompletuje 11
-  const xiCount = await prisma.bestXIPick.count({ where: { userId: user.id } });
+  // ⭐ Jedenastka turnieju - baner dopóki user nie skompletuje wyjściowej XI (ławka nie wlicza się)
+  const xiCount = await prisma.bestXIPick.count({
+    where: { userId: user.id, NOT: { slot: { startsWith: "SUB" } } },
+  });
   const needsBestXI = xiCount < 11;
 
   // 👑 Mistrz świata - po rozegranym finale stały baner z mistrzem

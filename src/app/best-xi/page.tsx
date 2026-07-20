@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { BestXIPitch, type XIPlayer } from "@/components/BestXIPitch";
 import { LeagueXIPitch, type LeagueXIEntry } from "@/components/LeagueXIPitch";
-import { XI_SLOTS, positionBucket, SLOT_ALLOWED_BUCKETS, type PositionBucket } from "@/lib/bestXI";
+import { XI_SLOTS, BENCH_SLOTS, positionBucket, SLOT_ALLOWED_BUCKETS, isBenchSlot, type PositionBucket } from "@/lib/bestXI";
 
 export const dynamic = "force-dynamic";
 
@@ -12,12 +12,12 @@ async function saveBestXI(formData: FormData): Promise<{ ok: boolean }> {
   const user = await getCurrentUser();
   if (!user) return { ok: false };
 
-  // Zbierz picki ze wszystkich slotów + walidacja pozycji po stronie serwera
+  // Zbierz picki: wyjściowa XI + ławka rezerwowych (bez wymagań pozycji)
   const entries: { slot: string; playerId: string }[] = [];
-  for (const s of XI_SLOTS) {
-    const playerId = String(formData.get(s.key) ?? "");
+  for (const key of [...XI_SLOTS.map((s) => s.key), ...BENCH_SLOTS]) {
+    const playerId = String(formData.get(key) ?? "");
     if (!playerId) continue;
-    entries.push({ slot: s.key, playerId });
+    entries.push({ slot: key, playerId });
   }
   if (entries.length === 0) return { ok: false };
 
@@ -27,11 +27,13 @@ async function saveBestXI(formData: FormData): Promise<{ ok: boolean }> {
   });
   const posById = new Map(players.map((p) => [p.id, p.position]));
 
-  // Duplikaty zawodników niedozwolone
+  // Duplikaty zawodników niedozwolone (w całym składzie 11+5)
   const ids = entries.map((e) => e.playerId);
   if (new Set(ids).size !== ids.length) return { ok: false };
 
   for (const e of entries) {
+    if (!posById.has(e.playerId)) return { ok: false }; // nieistniejący zawodnik
+    if (isBenchSlot(e.slot)) continue; // rezerwowy - dowolna pozycja
     const slotDef = XI_SLOTS.find((s) => s.key === e.slot)!;
     const bucket = positionBucket(posById.get(e.playerId));
     // MID<->FWD wymienne, GK i DEF sztywno

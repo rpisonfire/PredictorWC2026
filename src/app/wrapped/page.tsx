@@ -83,14 +83,19 @@ export default async function WrappedPage() {
       },
     },
   });
-  const myXI = myXIPicks.map((p) => ({
-    slotKey: p.slot,
-    name: p.player.name,
-    photoUrl: p.player.photoUrl,
-    position: p.player.position,
-    teamFlag: p.player.team.flag,
-    votes: 0, // nie pokazujemy głosów przy własnej XI
-  }));
+  const myXI = myXIPicks
+    .filter((p) => !p.slot.startsWith("SUB"))
+    .map((p) => ({
+      slotKey: p.slot,
+      name: p.player.name,
+      photoUrl: p.player.photoUrl,
+      position: p.player.position,
+      teamFlag: p.player.team.flag,
+      votes: 0, // nie pokazujemy głosów przy własnej XI
+    }));
+  const myBench = myXIPicks
+    .filter((p) => p.slot.startsWith("SUB"))
+    .sort((a, b) => a.slot.localeCompare(b.slot));
   const finishedPreds = preds.filter((p) => p.match.homeScore !== null);
   const ptsOf = (p: (typeof preds)[number]) =>
     boostSet.has(p.matchId) ? p.pointsAwarded * 3 : p.pointsAwarded;
@@ -309,6 +314,21 @@ export default async function WrappedPage() {
           <div className="card p-4">
             <div className="text-xs uppercase tracking-wider text-app-subtle mb-3 text-center">⭐ Twoja jedenastka turnieju</div>
             <LeagueXIPitch entries={myXI} />
+            {myBench.length > 0 && (
+              <div className="mt-3">
+                <div className="text-[10px] uppercase tracking-wider text-app-subtle mb-2 text-center" style={{ fontFamily: "'Courier New', monospace" }}>
+                  🪑 Ławka
+                </div>
+                <div className="flex justify-center flex-wrap gap-2">
+                  {myBench.map((p) => (
+                    <span key={p.slot} className="chip" style={{ background: "rgba(241,191,0,0.1)", border: "1px solid rgba(241,191,0,0.3)", color: "white" }}>
+                      <PlayerAvatar name={p.player.name} photoUrl={p.player.photoUrl} position={p.player.position} size={20} />
+                      {p.player.team.flag} {p.player.name.split(" ").slice(-1)[0]}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -47,6 +47,12 @@ export const BUCKET_LABEL: Record<PositionBucket, string> = {
   FWD: "Napastnik",
 };
 
+// Ławka rezerwowych - 5 slotów bez wymagań pozycji
+export const BENCH_SLOTS = ["SUB1", "SUB2", "SUB3", "SUB4", "SUB5"] as const;
+export function isBenchSlot(key: string): boolean {
+  return key.startsWith("SUB");
+}
+
 // Które pozycje naturalne pasują do danego slotu formacji.
 // Pomocnicy i napastnicy są wymienni (Messi może grać w pomocy) - GK i DEF sztywno.
 export const SLOT_ALLOWED_BUCKETS: Record<PositionBucket, PositionBucket[]> = {
