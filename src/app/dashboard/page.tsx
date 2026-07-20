@@ -131,6 +131,10 @@ export default async function Dashboard() {
   // 🏆 Dzień finału - złoty banner + konfetti
   const finalToday = todayMatches.some((m) => prettyStage(m.stage) === "Finał");
 
+  // ⭐ Jedenastka turnieju - baner dopóki user nie skompletuje 11
+  const xiCount = await prisma.bestXIPick.count({ where: { userId: user.id } });
+  const needsBestXI = xiCount < 11;
+
   // 👑 Mistrz świata - po rozegranym finale stały baner z mistrzem
   const finalMatch = matches.find((m) => prettyStage(m.stage) === "Finał" && m.homeScore !== null);
   let champion: { name: string; flag: string } | null = null;
@@ -281,6 +285,21 @@ export default async function Dashboard() {
             )}
           </div>
           <span className="text-app-subtle text-xs shrink-0">Ranking →</span>
+        </Link>
+      )}
+
+      {needsBestXI && (
+        <Link
+          href="/best-xi"
+          className="card p-4 mb-4 flex items-center gap-4 hover:bg-app-hover"
+          style={{ borderColor: "rgba(241,191,0,0.45)" }}
+        >
+          <div className="text-3xl">⭐</div>
+          <div className="flex-1">
+            <div className="font-black">Wybierz najlepszą jedenastkę turnieju</div>
+            <div className="text-sm text-app-muted">Ustaw swoją XI Mundialu 2026 w formacji 4-3-3 na wirtualnym boisku.</div>
+          </div>
+          <div className="chip" style={{ background: "rgba(241,191,0,0.15)", color: "#F1BF00" }}>Ustaw →</div>
         </Link>
       )}
 

@@ -18,6 +18,7 @@ const SECONDARY: NavItem[] = [
   { href: "/groups",       label: "Grupy",             emoji: "📊" },
   { href: "/stats",        label: "Statystyki",        emoji: "🌍" },
   { href: "/compare",      label: "Pojedynek",         emoji: "⚔️" },
+  { href: "/best-xi",      label: "Jedenastka",        emoji: "⭐" },
   { href: "/wrapped",      label: "Wrapped",           emoji: "🎁" },
   { href: "/profile",      label: "Profil",            emoji: "👤" },
 ];

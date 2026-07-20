@@ -21,6 +21,7 @@ export function Sidebar({
     { href: "/compare",         label: "Pojedynek",        emoji: "⚔️" },
     { href: "/groups",          label: "Grupy",            emoji: "📊" },
     { href: "/champion",        label: "Typ na mistrza",   emoji: "🏆" },
+    { href: "/best-xi",         label: "Jedenastka",       emoji: "⭐" },
     { href: "/wrapped",         label: "Wrapped",          emoji: "🎁" },
   ];
   if (isAdmin) items.push({ href: "/admin", label: "Admin", emoji: "🛠️", gold: true });

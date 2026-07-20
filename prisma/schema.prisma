@@ -8,34 +8,35 @@ datasource db {
 }
 
 model User {
-  id                   String       @id @default(cuid())
-  nickname             String       @unique
-  passwordHash         String?
-  avatar               String       @default("⚽")
-  predictedChampionId  String?
-  predictedChampion    Team?        @relation("PredictedChampion", fields: [predictedChampionId], references: [id])
-  isAdmin              Boolean      @default(false)
-  failedAttempts       Int          @default(0)
-  lockedUntil          DateTime?
+  id                  String             @id @default(cuid())
+  nickname            String             @unique
+  passwordHash        String?
+  avatar              String             @default("⚽")
+  predictedChampionId String?
+  predictedChampion   Team?              @relation("PredictedChampion", fields: [predictedChampionId], references: [id])
+  isAdmin             Boolean            @default(false)
+  failedAttempts      Int                @default(0)
+  lockedUntil         DateTime?
   // Snapshot pozycji w globalnym rankingu - aktualizowane przy setResult przez admina
-  currentRank          Int?
-  previousRank         Int?
-  createdAt            DateTime     @default(now())
-  memberships Membership[]
-  predictions Prediction[]
-  comments    Comment[]
-  boosts      Boost[]
-  pushSubs    PushSubscription[]
+  currentRank         Int?
+  previousRank        Int?
+  createdAt           DateTime           @default(now())
+  memberships         Membership[]
+  predictions         Prediction[]
+  comments            Comment[]
+  boosts              Boost[]
+  pushSubs            PushSubscription[]
+  bestXIPicks         BestXIPick[]
 }
 
 model League {
-  id                String       @id @default(cuid())
-  name              String
-  inviteCode        String       @unique
-  actualChampionId  String?
-  actualChampion    Team?        @relation("ActualChampion", fields: [actualChampionId], references: [id])
-  createdAt         DateTime     @default(now())
-  memberships       Membership[]
+  id               String       @id @default(cuid())
+  name             String
+  inviteCode       String       @unique
+  actualChampionId String?
+  actualChampion   Team?        @relation("ActualChampion", fields: [actualChampionId], references: [id])
+  createdAt        DateTime     @default(now())
+  memberships      Membership[]
 }
 
 model Membership {
@@ -49,60 +50,61 @@ model Membership {
 }
 
 model Team {
-  id        String  @id @default(cuid())
-  name      String  @unique
-  shortCode String  @unique
-  flag      String  // emoji
-  logoUrl   String? // crest from API
-  group     String? // "A", "B", ...
-  apiId     Int?    @unique
-  players   Player[]
-  homeMatches Match[] @relation("HomeTeam")
-  awayMatches Match[] @relation("AwayTeam")
-  firstScorerInMatches Match[] @relation("FirstScorerTeam")
-  predictedChampionOf User[]   @relation("PredictedChampion")
-  actualChampionOf    League[] @relation("ActualChampion")
+  id                   String   @id @default(cuid())
+  name                 String   @unique
+  shortCode            String   @unique
+  flag                 String // emoji
+  logoUrl              String? // crest from API
+  group                String? // "A", "B", ...
+  apiId                Int?     @unique
+  players              Player[]
+  homeMatches          Match[]  @relation("HomeTeam")
+  awayMatches          Match[]  @relation("AwayTeam")
+  firstScorerInMatches Match[]  @relation("FirstScorerTeam")
+  predictedChampionOf  User[]   @relation("PredictedChampion")
+  actualChampionOf     League[] @relation("ActualChampion")
 }
 
 model Player {
-  id        String  @id @default(cuid())
-  name      String
-  photoUrl  String?
-  position  String?
-  number    Int?
-  apiId     Int?    @unique
-  teamId    String
-  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  firstGoalInMatches Match[] @relation("FirstGoalPlayer")
-  predictedIn Prediction[]
+  id                 String       @id @default(cuid())
+  name               String
+  photoUrl           String?
+  position           String?
+  number             Int?
+  apiId              Int?         @unique
+  teamId             String
+  team               Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  firstGoalInMatches Match[]      @relation("FirstGoalPlayer")
+  predictedIn        Prediction[]
+  bestXIPicks        BestXIPick[]
 }
 
 model Match {
-  id              String   @id @default(cuid())
-  matchday        Int      // 1, 2, 3... groups, R16=10, QF=11, etc.
-  stage           String   // "Group A", "Round of 16", etc.
-  venue           String?  // nazwa stadionu z football-data (mapowana na STADIUMS)
-  kickoff         DateTime
-  homeTeamId      String
-  awayTeamId      String
-  homeTeam        Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeam        Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  id         String   @id @default(cuid())
+  matchday   Int // 1, 2, 3... groups, R16=10, QF=11, etc.
+  stage      String // "Group A", "Round of 16", etc.
+  venue      String? // nazwa stadionu z football-data (mapowana na STADIUMS)
+  kickoff    DateTime
+  homeTeamId String
+  awayTeamId String
+  homeTeam   Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam   Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
 
   // Results (null until match played)
-  homeScore       Int?
-  awayScore       Int?
+  homeScore         Int?
+  awayScore         Int?
   // Karne (knockout phase) - null gdy nie było. Tylko gdy homeScore == awayScore w regulaminie + dogrywce.
   homeShootoutScore Int?
   awayShootoutScore Int?
   firstScorerTeamId String?
-  firstScorerTeam   Team?    @relation("FirstScorerTeam", fields: [firstScorerTeamId], references: [id])
+  firstScorerTeam   Team?   @relation("FirstScorerTeam", fields: [firstScorerTeamId], references: [id])
   firstGoalPlayerId String?
-  firstGoalPlayer   Player?  @relation("FirstGoalPlayer", fields: [firstGoalPlayerId], references: [id])
-  noGoals         Boolean  @default(false) // 0-0 case
+  firstGoalPlayer   Player? @relation("FirstGoalPlayer", fields: [firstGoalPlayerId], references: [id])
+  noGoals           Boolean @default(false) // 0-0 case
 
-  predictions     Prediction[]
-  comments        Comment[]
-  boosts          Boost[]
+  predictions Prediction[]
+  comments    Comment[]
+  boosts      Boost[]
 
   @@index([kickoff])
   @@index([matchday])
@@ -110,20 +112,20 @@ model Match {
 }
 
 model Prediction {
-  id               String  @id @default(cuid())
-  userId           String
-  matchId          String
-  homeScore        Int
-  awayScore        Int
-  firstScorerTeam  String? // "HOME" | "AWAY" | "NONE"
+  id                String   @id @default(cuid())
+  userId            String
+  matchId           String
+  homeScore         Int
+  awayScore         Int
+  firstScorerTeam   String? // "HOME" | "AWAY" | "NONE"
   firstGoalPlayerId String?
-  pointsAwarded    Int     @default(0)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  pointsAwarded     Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match            Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  player           Player? @relation(fields: [firstGoalPlayerId], references: [id])
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match  Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player Player? @relation(fields: [firstGoalPlayerId], references: [id])
 
   @@unique([userId, matchId])
   @@index([matchId])
@@ -132,12 +134,12 @@ model Prediction {
 }
 
 model Boost {
-  id        String @id @default(cuid())
-  userId    String
-  matchId   String
-  matchday  Int
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match     Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  userId   String
+  matchId  String
+  matchday Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@unique([userId, matchday])
   @@index([matchId])
@@ -162,4 +164,16 @@ model Comment {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
+
+// Najlepsza 11 turnieju - jeden zawodnik per slot formacji 4-3-3
+model BestXIPick {
+  id       String @id @default(cuid())
+  userId   String
+  slot     String // "GK" | "LB" | "CB1" | "CB2" | "RB" | "CM1" | "CM2" | "CM3" | "LW" | "ST" | "RW"
+  playerId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, slot])
 }
