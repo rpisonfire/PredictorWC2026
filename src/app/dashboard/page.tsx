@@ -14,7 +14,8 @@ import { matchGlowStyle } from "@/lib/teamColors";
 import { PersonalScoreboard } from "@/components/PersonalScoreboard";
 import { prettyStage, isKnockoutStage } from "@/lib/stageLabel";
 import { FinalDayConfetti } from "@/components/FinalDayConfetti";
-import { statsForUser } from "@/lib/stats";
+import { statsForUser, leaderboard } from "@/lib/stats";
+import { PaniniCardLarge, PaniniCardMini } from "@/components/PaniniCard";
 
 // Z listy meczy w danej kolejce zwróć etykietę.
 // Knockout → nazwa etapu (1/16 finału, Ćwierćfinał, ...). Grupowa → "Kolejka X".
@@ -136,6 +137,11 @@ export default async function Dashboard() {
   const needsBestXI = xiCount < 11;
 
   // 👑 Mistrz świata - po rozegranym finale stały baner z mistrzem
+  // Polska nazwa w banerze (w DB angielskie nazwy z football-data)
+  const CHAMPION_NAME_PL: Record<string, string> = {
+    Spain: "Hiszpania", France: "Francja", England: "Anglia", Brazil: "Brazylia",
+    Argentina: "Argentyna", Germany: "Niemcy", Portugal: "Portugalia", Netherlands: "Holandia",
+  };
   const finalMatch = matches.find((m) => prettyStage(m.stage) === "Finał" && m.homeScore !== null);
   let champion: { name: string; flag: string } | null = null;
   if (finalMatch) {
@@ -144,12 +150,15 @@ export default async function Dashboard() {
       (finalMatch.homeScore === finalMatch.awayScore &&
         (finalMatch.homeShootoutScore ?? 0) > (finalMatch.awayShootoutScore ?? 0));
     const w = homeWon ? finalMatch.homeTeam : finalMatch.awayTeam;
-    champion = { name: w.name, flag: w.flag };
+    champion = { name: CHAMPION_NAME_PL[w.name] ?? w.name, flag: w.flag };
   }
 
-  // ⚔️ Rywal - osoba bezpośrednio przede mną w globalnym rankingu
+  // 🏛️ Hall of Fame - po finale: podium ligi zamiast bieżącej rywalizacji
+  const hallOfFame = champion ? (await leaderboard()).slice(0, 3) : null;
+
+  // ⚔️ Rywal - osoba bezpośrednio przede mną w globalnym rankingu (tylko w trakcie turnieju)
   let rival: { nickname: string; avatar: string; ptsDiff: number } | null = null;
-  if (user.currentRank != null && user.currentRank > 1) {
+  if (!champion && user.currentRank != null && user.currentRank > 1) {
     const rivalUser = await prisma.user.findFirst({
       where: { currentRank: user.currentRank - 1 },
       select: { id: true, nickname: true, avatar: true },
@@ -211,6 +220,48 @@ export default async function Dashboard() {
           </div>
           <div className="text-sm mt-1" style={{ color: "rgba(241,191,0,0.85)" }}>
             Dziękujemy za wspólne typowanie! Sprawdź swoje <Link href="/wrapped" className="underline font-bold">Wrapped 🎁</Link>
+          </div>
+        </div>
+      )}
+
+      {/* 🏛️ Hall of Fame - wieczne podium ligi */}
+      {hallOfFame && hallOfFame.length > 0 && (
+        <div className="mb-8">
+          <div
+            className="text-center text-xs uppercase font-black mb-4"
+            style={{ color: "#F1BF00", fontFamily: "'Courier New', monospace", letterSpacing: "3px", textShadow: "0 0 10px rgba(241,191,0,0.5)" }}
+          >
+            🏛️ HALL OF FAME · SEZON 2026 🏛️
+          </div>
+          <div className="flex justify-center mb-3">
+            <PaniniCardLarge
+              data={{
+                nickname: hallOfFame[0].nickname,
+                avatar: hallOfFame[0].avatar,
+                rank: 1,
+                totalPoints: hallOfFame[0].stats.totalPoints,
+                exactScoreHits: hallOfFame[0].stats.exactScoreHits,
+                avgPointsPerMatch: hallOfFame[0].stats.avgPointsPerMatch,
+                scorerHits: hallOfFame[0].stats.scorerHits,
+                badges: hallOfFame[0].badges,
+              }}
+            />
+          </div>
+          <div className="max-w-md mx-auto">
+            {hallOfFame.slice(1).map((r, i) => (
+              <PaniniCardMini
+                key={r.userId}
+                isMe={r.userId === user.id}
+                data={{
+                  nickname: r.nickname,
+                  avatar: r.avatar,
+                  rank: i + 2,
+                  totalPoints: r.stats.totalPoints,
+                  exactScoreHits: r.stats.exactScoreHits,
+                  badges: r.badges,
+                }}
+              />
+            ))}
           </div>
         </div>
       )}

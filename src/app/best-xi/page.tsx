@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { BestXIPitch, type XIPlayer } from "@/components/BestXIPitch";
+import { LeagueXIPitch, type LeagueXIEntry } from "@/components/LeagueXIPitch";
 import { XI_SLOTS, positionBucket, type PositionBucket } from "@/lib/bestXI";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,7 @@ export default async function BestXIPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const [players, myPicks] = await Promise.all([
+  const [players, myPicks, allPicks] = await Promise.all([
     prisma.player.findMany({
       select: {
         id: true,
@@ -61,7 +62,52 @@ export default async function BestXIPage() {
       orderBy: { name: "asc" },
     }),
     prisma.bestXIPick.findMany({ where: { userId: user.id } }),
+    // Jedenastka ligi - wszystkie picki wszystkich graczy
+    prisma.bestXIPick.findMany({
+      include: {
+        player: {
+          select: {
+            id: true, name: true, photoUrl: true, position: true,
+            team: { select: { flag: true } },
+          },
+        },
+      },
+    }),
   ]);
+
+  // Agregat: głosy per zawodnik (dowolny slot), potem top N per kubełek pozycji
+  const votes = new Map<string, { player: (typeof allPicks)[number]["player"]; n: number }>();
+  for (const pick of allPicks) {
+    const e = votes.get(pick.playerId) ?? { player: pick.player, n: 0 };
+    e.n += 1;
+    votes.set(pick.playerId, e);
+  }
+  const votesByBucket: Record<PositionBucket, { player: (typeof allPicks)[number]["player"]; n: number }[]> =
+    { GK: [], DEF: [], MID: [], FWD: [] };
+  for (const v of votes.values()) {
+    const bucket = positionBucket(v.player.position);
+    if (bucket) votesByBucket[bucket].push(v);
+  }
+  for (const b of Object.keys(votesByBucket) as PositionBucket[]) {
+    votesByBucket[b].sort((a, c) => c.n - a.n);
+  }
+  // Przypisz najlepszych do slotów formacji (w kolejności głosów)
+  const leagueXI: LeagueXIEntry[] = [];
+  const takenPerBucket: Record<PositionBucket, number> = { GK: 0, DEF: 0, MID: 0, FWD: 0 };
+  for (const s of XI_SLOTS) {
+    const candidate = votesByBucket[s.bucket][takenPerBucket[s.bucket]];
+    takenPerBucket[s.bucket] += 1;
+    if (!candidate) continue;
+    leagueXI.push({
+      slotKey: s.key,
+      name: candidate.player.name,
+      photoUrl: candidate.player.photoUrl,
+      position: candidate.player.position,
+      teamFlag: candidate.player.team.flag,
+      votes: candidate.n,
+    });
+  }
+  const votersCount = new Set(allPicks.map((p) => p.userId)).size;
 
   const playersByBucket: Record<PositionBucket, XIPlayer[]> = { GK: [], DEF: [], MID: [], FWD: [] };
   for (const p of players) {
@@ -93,6 +139,21 @@ export default async function BestXIPage() {
         initialPicks={initialPicks}
         saveAction={saveBestXI}
       />
+
+      {leagueXI.length > 0 && (
+        <div className="mt-10">
+          <div
+            className="text-center text-xs uppercase font-black mb-1"
+            style={{ color: "#F1BF00", fontFamily: "'Courier New', monospace", letterSpacing: "3px", textShadow: "0 0 10px rgba(241,191,0,0.5)" }}
+          >
+            ⭐ JEDENASTKA LIGI ⭐
+          </div>
+          <p className="text-center text-xs text-app-subtle mb-4">
+            Najczęściej wybierani zawodnicy · głosowało {votersCount} {votersCount === 1 ? "gracz" : "graczy"} · (liczba głosów)
+          </p>
+          <LeagueXIPitch entries={leagueXI} />
+        </div>
+      )}
     </section>
   );
 }
