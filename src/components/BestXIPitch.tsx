@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState, useTransition } from "react";
-import { XI_SLOTS, BUCKET_LABEL, type PositionBucket } from "@/lib/bestXI";
+import { XI_SLOTS, BUCKET_LABEL, SLOT_ALLOWED_BUCKETS, type PositionBucket } from "@/lib/bestXI";
 import { PlayerAvatar } from "./PlayerAvatar";
 import { playSwoosh } from "@/lib/sound";
 
@@ -43,7 +43,9 @@ export function BestXIPitch({
   const candidates = useMemo(() => {
     if (!slot) return [];
     const q = normalize(query.trim());
-    return playersByBucket[slot.bucket]
+    // Naturalna pozycja slotu najpierw, potem wymienne (MID<->FWD)
+    const pool = SLOT_ALLOWED_BUCKETS[slot.bucket].flatMap((b) => playersByBucket[b]);
+    return pool
       .filter((p) => !pickedIds.has(p.id) || picks[slot.key] === p.id)
       .filter((p) => !q || normalize(p.name).includes(q) || normalize(p.teamCode).includes(q))
       .slice(0, 60);

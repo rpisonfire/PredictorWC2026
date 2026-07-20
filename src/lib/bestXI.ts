@@ -46,3 +46,12 @@ export const BUCKET_LABEL: Record<PositionBucket, string> = {
   MID: "Pomocnik",
   FWD: "Napastnik",
 };
+
+// Które pozycje naturalne pasują do danego slotu formacji.
+// Pomocnicy i napastnicy są wymienni (Messi może grać w pomocy) - GK i DEF sztywno.
+export const SLOT_ALLOWED_BUCKETS: Record<PositionBucket, PositionBucket[]> = {
+  GK: ["GK"],
+  DEF: ["DEF"],
+  MID: ["MID", "FWD"],
+  FWD: ["FWD", "MID"],
+};

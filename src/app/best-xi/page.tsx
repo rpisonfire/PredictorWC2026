@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { BestXIPitch, type XIPlayer } from "@/components/BestXIPitch";
 import { LeagueXIPitch, type LeagueXIEntry } from "@/components/LeagueXIPitch";
-import { XI_SLOTS, positionBucket, type PositionBucket } from "@/lib/bestXI";
+import { XI_SLOTS, positionBucket, SLOT_ALLOWED_BUCKETS, type PositionBucket } from "@/lib/bestXI";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,8 @@ async function saveBestXI(formData: FormData): Promise<{ ok: boolean }> {
   for (const e of entries) {
     const slotDef = XI_SLOTS.find((s) => s.key === e.slot)!;
     const bucket = positionBucket(posById.get(e.playerId));
-    if (bucket !== slotDef.bucket) return { ok: false }; // zawodnik nie pasuje do pozycji
+    // MID<->FWD wymienne, GK i DEF sztywno
+    if (!bucket || !SLOT_ALLOWED_BUCKETS[slotDef.bucket].includes(bucket)) return { ok: false };
   }
 
   await prisma.$transaction(async (tx) => {
